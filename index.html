@@ -16,7 +16,9 @@
     .nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
     .logo{display:flex;align-items:center;gap:10px;font-weight:800}
     .logo img{height:150px;width:auto}
-    .btn{display:inline-block;padding:12px 16px;border-radius:12px;font-weight:700;text-decoration:none;white-space:nowrap}
+    .btn{display:inline-block;padding:12px 16px;border-radius:12px;font-weight:700;text-decoration:none;white-space:nowrap;transition:opacity .2s ease}
+    .btn[aria-disabled="true"],
+    .btn.is-busy{pointer-events:none;opacity:.6}
     .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
     .btn.secondary{border:1px solid var(--brand);color:var(--brand)}
     .nav .cta{display:flex;gap:10px}
@@ -69,6 +71,10 @@
     .tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;text-align:left}
     .tcard{border:1px solid var(--line);border-radius:14px;padding:20px;color:var(--muted)}
 
+    /* FOOTER */
+    footer{margin:0;padding:40px 0;color:var(--muted);font-size:14px;text-align:center;border-top:1px solid var(--line)}
+    footer a{color:var(--brand);text-decoration:none}
+
     /* MOBILE */
     @media (max-width:960px){
       .wrap{padding:16px}
@@ -83,12 +89,13 @@
       .btn{padding:10px 14px}
     }
   </style>
+  <script src="razorpay.js" defer></script>
 </head>
 <body>
   <div class="wrap">
     <!-- NAV -->
     <nav class="nav">
-      <div class="logo"><img src="logo.png" alt="JobSprint logo"></div>
+      <div class="logo"><img src="/logo.png" alt="JobSprint logo"></div>
       <div class="cta">
         <a class="btn secondary" href="#how">How it works</a>
         <a class="btn primary" href="#pricing">₹999 / 90 days</a>
@@ -104,13 +111,12 @@
           <p class="sub">JobSprint helps you stay consistent, focused, and ready — turning your job hunt into a clear 90-day journey with visible progress.</p>
           <p class="sub">Because finding the right job isn’t about luck — it’s about building your own pipeline and following through until you close the deal.</p>
           <div class="hero-cta">
-            <!-- Replace href with your Razorpay Payment Page link when ready -->
             <a class="btn primary" href="#pricing">Start Your 90-Day Sprint</a>
             <a class="btn secondary" href="#comfort">Learn How It Works</a>
           </div>
         </div>
         <div class="illus">
-          <img src="Media.png" alt="Illustration of a job application pipeline board with stages from applied to offer" loading="lazy">
+          <img src="/Media.png" alt="Illustration of a job application pipeline board with stages from applied to offer" loading="lazy">
         </div>
       </div>
       <div class="scroll-cue"><a href="#comfort" style="text-decoration:none;color:var(--muted)">See how it works ↓</a></div>
@@ -203,18 +209,10 @@
     </section>
 
     <!-- FOOTER -->
-    <footer style="text-align:center;padding:40px 0;color:var(--muted);font-size:14px;border-top:1px solid var(--line)">
-      <p>Built with ❤️ in India • <a href="#" style="color:var(--brand);text-decoration:none">Privacy Policy</a> •
-        <a href="#" style="color:var(--brand);text-decoration:none">Terms</a> •
-        <a href="#" style="color:var(--brand);text-decoration:none">Refund Policy</a></p>
+    <footer>
+      <p>Built with ❤️ in India • <a href="#">Privacy Policy</a> • <a href="#">Terms</a> • <a href="#">Refund Policy</a></p>
       <p>© 2025 JobSprint. All rights reserved.</p>
     </footer>
   </div>
 </body>
 </html>
-
-
-
-
-
-
