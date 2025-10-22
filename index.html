@@ -210,8 +210,38 @@
       <p>© 2025 JobSprint. All rights reserved.</p>
     </footer>
   </div>
+  <!-- ⬇️ Paste Razorpay script block right here -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    async function startPayment() {
+      try {
+        const resp = await fetch('/api/create-order', { method: 'POST' });
+        if (!resp.ok) throw new Error('Init failed');
+        const data = await resp.json();
+
+        const options = {
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          name: 'JobSprint',
+          description: '90-day access',
+          order_id: data.orderId,
+          theme: { color: '#0a66c2' },
+          handler: function (response) {
+            window.location.href = '/thank-you.html?pid=' + encodeURIComponent(response.razorpay_payment_id);
+          }
+        };
+
+        new Razorpay(options).open();
+      } catch (e) {
+        alert('Could not start payment. Please try again.');
+        console.error(e);
+      }
+    }
+  </script>
 </body>
 </html>
+
 
 
 
