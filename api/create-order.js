@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
     });
 
     const order = await rzp.orders.create({
-      amount: 99900,              // ₹999 in paise
+      amount: 100,              // ₹999 in paise
       currency: 'INR',
       receipt: `jobsprint_${Date.now()}`,
       payment_capture: 1,
