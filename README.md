@@ -24,7 +24,8 @@ Marketing site for JobSprint with integrated Razorpay checkout and Vercel server
    ```
 2. The pricing CTA (`#pricing > div > div:nth-child(1) > div.price-cta > a`) triggers the Razorpay Checkout experience by:
    - Loading the Razorpay SDK on demand (`razorpay.js`).
-   - Fetching an order from `/api/create-order` (amount `99900`, currency `INR`).
+   - Fetching the publishable key from `/api/config` so the client never embeds secrets in the HTML.
+   - Creating an order from `/api/create-order` (amount `99900`, currency `INR`).
    - Passing the resulting order id + key into `window.Razorpay`.
 3. On payment completion, the front end calls `/api/verify` to validate the signature before redirecting to:
    - `/thank-you` on success.

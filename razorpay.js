@@ -37,14 +37,17 @@
   }
 
   async function fetchConfig() {
-    const response = await fetch('/api/config');
+    const response = await fetch('/api/config', {
+      headers: { 'Accept': 'application/json' },
+    });
     return parseJsonResponse(response);
   }
 
   async function createOrder() {
     const response = await fetch('/api/create-order', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
     });
     return parseJsonResponse(response);
   }
@@ -52,7 +55,7 @@
   async function verifyPayment(payload) {
     const response = await fetch('/api/verify', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
     return parseJsonResponse(response);
@@ -128,7 +131,16 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  function onReady(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn, { once: true });
+      return;
+    }
+
+    fn();
+  }
+
+  onReady(() => {
     const cta = document.querySelector(CTA_SELECTOR);
 
     if (!cta) {
