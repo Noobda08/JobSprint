@@ -1,0 +1,8 @@
+{
+  "name": "jobsprint-landing",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "razorpay": "^2.9.5"
+  }
+}
