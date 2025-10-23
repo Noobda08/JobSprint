@@ -261,11 +261,12 @@
           description: PLAN_DESCRIPTIONS[data.plan] || PLAN_DESCRIPTIONS[plan] || 'JobSprint access',
           order_id: data.orderId,
           theme: { color: '#0a66c2' },
-          handler: function (response) {
-            // ✅ Redirect user to thank-you page after successful payment
-            window.location.href = '/thank-you.html?pid=' 
-              + encodeURIComponent(response.razorpay_payment_id);
-          },
+          handler: function (response){
+            const params = new URLSearchParams({
+              payment_id: response.razorpay_payment_id || ''
+            });
+            window.location.href = `/signup.html?${params.toString()}`;
+          }
           prefill: {
             name: '',
             email: '',
@@ -283,6 +284,7 @@
   </script>
 </body>
 </html>
+
 
 
 
