@@ -1,8 +1,37 @@
 const Razorpay = require('razorpay');
 
+const PLANS = {
+  lite: {
+    amount: 39900,
+    notes: { product: 'JobSprint Lite 30 days' },
+  },
+  sprint: {
+    amount: 99900,
+    notes: { product: 'JobSprint 90 days' },
+  },
+};
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  let body = req.body;
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch (e) {
+      res.status(400).json({ error: 'Invalid request payload' });
+      return;
+    }
+  }
+
+  const { plan } = body || {};
+  const planConfig = PLANS[plan];
+
+  if (!planConfig) {
+    res.status(400).json({ error: 'Invalid plan selected' });
     return;
   }
 
@@ -13,17 +42,18 @@ module.exports = async (req, res) => {
     });
 
     const order = await rzp.orders.create({
-      amount: 99900,              // ₹999 in paise
+      amount: planConfig.amount,              // Amount in paise
       currency: 'INR',
-      receipt: `jobsprint_${Date.now()}`,
+      receipt: `jobsprint_${plan}_${Date.now()}`,
       payment_capture: 1,
-      notes: { product: 'JobSprint 90 days' },
+      notes: planConfig.notes,
     });
 
     res.status(200).json({
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
+      plan,
       keyId: process.env.RAZORPAY_KEY_ID, // safe to expose
     });
   } catch (err) {
