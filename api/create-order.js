@@ -2,7 +2,7 @@ const Razorpay = require('razorpay');
 
 const PLANS = {
   lite: {
-    amount: 39900,
+    amount: 100,
     notes: { product: 'JobSprint Lite 30 days' },
   },
   sprint: {
