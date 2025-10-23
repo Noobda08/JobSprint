@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sign up • JobSprint</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --ink:#0f172a; --muted:#5b6477; --line:#e6eaf2; --brand:#0b6cff;
+      --bg:#f6f9ff; --card:#fff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:#fff}
+    .shell{display:grid;grid-template-columns:1.25fr 1fr;min-height:100vh}
+    
+    /* Left visual */
+    .hero{
+      position:relative;overflow:hidden;
+      background:url('https://images.unsplash.com/photo-1529070538774-1843cb3265df?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+    }
+    .hero::after{
+      content:"";position:absolute;inset:0;background:linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.15));
+    }
+    
+    /* Right auth card */
+    .auth{display:flex;align-items:center;justify-content:center;background:#fff}
+    .card{
+      width:min(440px,92%); background:var(--card); border:1px solid var(--line);
+      border-radius:16px; padding:28px 24px; box-shadow:0 10px 30px rgba(16,24,40,.04);
+    }
+    .logo{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .logo-badge{
+      width:36px;height:36px;display:grid;place-items:center;border-radius:10px;
+      background:#eef4ff;color:#1c4ed8;font-weight:700;font-size:18px;
+    }
+    h1{font-size:20px;margin:8px 0 4px}
+    .sub{color:var(--muted);font-size:14px;margin:0 0 18px}
+    label{display:block;font-size:13px;font-weight:600;margin:10px 0 6px}
+    input{
+      width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;
+      font-size:15px;outline:none;
+    }
+    input:focus{border-color:#c9d7ff; box-shadow:0 0 0 3px rgba(11,108,255,.12)}
+    .btn{
+      display:inline-block;width:100%;background:var(--brand);color:#fff;border:0;
+      padding:12px 14px;border-radius:10px;font-weight:700;cursor:pointer;margin-top:12px;
+    }
+    .divider{display:flex;align-items:center;gap:12px;margin:14px 0}
+    .divider .line{flex:1;height:1px;background:var(--line)}
+    .divider span{color:var(--muted);font-size:12px}
+    .terms{color:var(--muted);font-size:12px;margin-top:12px}
+    .g-btn-wrap{display:grid;place-items:center}
+    @media (max-width: 900px){ .shell{grid-template-columns:1fr} .hero{display:none} }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <!-- Left -->
+    <div class="hero" aria-hidden="true"></div>
+
+    <!-- Right -->
+    <div class="auth">
+      <div class="card">
+        <div class="logo">
+          <div class="logo-badge">J</div>
+          <div>
+            <div style="font-weight:700">Welcome to JobSprint</div>
+            <div class="sub">Get started with your email or Google account</div>
+          </div>
+        </div>
+
+        <form id="emailForm" onsubmit="handleEmail(event)">
+          <label for="identity">Enter your email or phone number</label>
+          <input id="identity" type="text" placeholder="you@example.com or 98765 43210" autocomplete="email" />
+          <button class="btn" type="submit">Continue</button>
+        </form>
+
+        <div class="divider"><div class="line"></div><span>or</span><div class="line"></div></div>
+
+        <!-- Google sign-in -->
+        <div id="g_id_onload"
+          data-client_id="164907409137-hf0b1r1fk3e6ltm9e4sud02uh1o9gn99.apps.googleusercontent.com"
+          data-context="signin"
+          data-ux_mode="popup"
+          data-callback="handleGoogleCredential"
+          data-auto_prompt="false">
+        </div>
+        <div class="g-btn-wrap">
+          <div class="g_id_signin"
+            data-type="standard"
+            data-size="large"
+            data-theme="outline"
+            data-shape="rectangular"
+            data-text="continue_with"
+            data-logo_alignment="left">
+          </div>
+        </div>
+
+        <p class="terms">By continuing you agree to our 
+          <a href="/privacy" target="_blank">privacy policy</a> and 
+          <a href="/terms" target="_blank">terms of use</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function parseJwt (token) {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    }
+
+    // Email/phone flow → just carry forward
+    function handleEmail(e){
+      e.preventDefault();
+      const v = (document.getElementById('identity').value || '').trim();
+      if(!v){ alert('Please enter your email or phone.'); return; }
+      const p = new URLSearchParams({ email:v });
+      location.href = `/onboarding.html?${p.toString()}`;
+    }
+
+    // Google sign-in → redirect to onboarding with name & email
+    window.handleGoogleCredential = function (response) {
+      try {
+        const payload = parseJwt(response.credential);
+        const name = payload.name || '';
+        const email = payload.email || '';
+        const p = new URLSearchParams({ name, email });
+        location.href = `/onboarding.html?${p.toString()}`;
+      } catch (err) {
+        console.error(err);
+        alert('Google sign-in failed. Please try again.');
+      }
+    };
+  </script>
+</body>
+</html>
