@@ -170,7 +170,7 @@
             <li>✔ Basic goal tracking & progress view</li>
           </ul>
           <p class="plan-desc">🟢 For light users testing JobSprint or running a short focused sprint.</p>
-          <div class="price-cta"><a class="btn secondary" href="#pricing">Get Lite Access</a></div>
+          <div class="price-cta"><a href="javascript:void(0)" onclick="startPayment('lite')" class="btn secondary">Get Lite Access</a></div>
         </div>
         <div class="price-card highlight">
           <span class="badge">Most popular</span>
@@ -185,7 +185,7 @@
             <li>✔ Analytics & progress dashboard</li>
           </ul>
           <p class="plan-desc">🟢 For job seekers who want clarity, consistency, & progress tracking.</p>
-          <div class="price-cta"><a href="javascript:void(0)" onclick="startPayment()" class="btn primary">Start Your 90-Day Sprint</a></div>
+          <div class="price-cta"><a href="javascript:void(0)" onclick="startPayment('sprint')" class="btn primary">Start Your 90-Day Sprint</a></div>
         </div>
         <div class="price-card">
           <h3 class="plan-title">⚡ JobSprint Pro+ — ₹1499 / 90 days</h3>
@@ -234,9 +234,22 @@
     <!-- Razorpay Payment Script -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
-    async function startPayment() {
+    const PLAN_DESCRIPTIONS = {
+      lite: '30-day JobSprint access',
+      sprint: '90-day JobSprint access',
+    };
+
+    async function startPayment(plan) {
       try {
-        const resp = await fetch('/api/create-order', { method: 'POST' });
+        if (!PLAN_DESCRIPTIONS[plan]) {
+          throw new Error('Unknown plan selected');
+        }
+
+        const resp = await fetch('/api/create-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan }),
+        });
         if (!resp.ok) throw new Error('Init failed');
         const data = await resp.json();
 
@@ -245,7 +258,7 @@
           amount: data.amount,
           currency: data.currency,
           name: 'JobSprint',
-          description: '90-day JobSprint access',
+          description: PLAN_DESCRIPTIONS[data.plan] || PLAN_DESCRIPTIONS[plan] || 'JobSprint access',
           order_id: data.orderId,
           theme: { color: '#0a66c2' },
           handler: function (response) {
