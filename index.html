@@ -55,14 +55,18 @@
 
     /* PRICING */
     .pricing{text-align:center}
-    .price-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;align-items:stretch;justify-items:center;margin-top:20px}
-    .badge{display:inline-block;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700}
-    .price-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:32px;max-width:420px;margin:0 auto}
-    .price{font-size:42px;font-weight:800;margin:12px 0;color:var(--brand)}
-    .price span{font-size:16px;font-weight:500;color:var(--muted)}
-    .features{list-style:none;padding:0;margin:18px 0;color:var(--muted);text-align:left;display:inline-block}
-    .features li{margin-bottom:10px}
-    .price-cta{margin-top:18px}
+    .price-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;align-items:stretch;justify-items:center;margin-top:28px}
+    .price-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:36px 32px;max-width:360px;width:100%;display:flex;flex-direction:column;gap:18px;text-align:left;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+    .price-card.highlight{border:2px solid rgba(10,102,194,0.6);box-shadow:0 28px 60px rgba(10,102,194,0.18);position:relative;transform:translateY(-12px) scale(1.05);z-index:2;padding-top:56px}
+    .badge{display:inline-block;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-radius:999px;padding:8px 16px;font-size:12px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+    .price-card.highlight .badge{position:absolute;top:20px;left:50%;transform:translateX(-50%)}
+    .plan-title{margin:0;font-size:20px;font-weight:800;color:var(--ink)}
+    .plan-price{margin:0;font-size:34px;font-weight:800;color:var(--brand);display:flex;align-items:flex-end;gap:6px}
+    .plan-price span{font-size:16px;font-weight:600;color:var(--muted);letter-spacing:.2px}
+    .plan-desc{margin:0;color:var(--muted);line-height:1.6}
+    .features{list-style:none;padding:0;margin:0;display:grid;gap:10px;color:var(--muted);line-height:1.5}
+    .price-cta{margin-top:auto;padding-top:8px}
+    .price-cta .btn{width:100%;text-align:center}
 
     /* Audience + Testimonials */
     .audience{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;text-align:center;color:var(--muted);font-size:16px}
@@ -79,6 +83,9 @@
       .cards{grid-template-columns:1fr}
       .step{grid-template-columns:1fr}
       .price-grid{grid-template-columns:1fr}
+      .price-card{padding:32px 24px}
+      .price-card.highlight{padding-top:52px;transform:translateY(-4px) scale(1.02)}
+      .plan-price{font-size:30px}
       .nav .cta{gap:8px}
       .btn{padding:10px 14px}
     }
@@ -152,32 +159,50 @@
     <!-- PRICING -->
     <section class="section pricing" id="pricing">
       <h2 class="title">Simple pricing, built for job seekers</h2>
-      <p class="deck">No subscriptions. No hidden costs. One-time access for your full 90-day sprint.</p>
+      <p class="deck">No subscriptions. No hidden costs. Pick the sprint that matches your timeline.</p>
       <div class="price-grid">
         <div class="price-card">
-          <h3>🎯 JobSprint Starter Plan</h3>
-          <div class="price">₹999 <span>/ 90 days</span></div>
+          <h3 class="plan-title">🕓 JobSprint Lite</h3>
+          <p class="plan-price">₹399 <span>/ 30 days</span></p>
+          <p class="plan-desc">A shorter, focused version for quick job search bursts.</p>
+          <ul class="features">
+            <li>✔ Guided 30-day roadmap</li>
+            <li>✔ Job description–résumé comparisons insights (up to 30)</li>
+            <li>✔ Personalized application answer suggestion</li>
+            <li>✔ CRM-style application tracker</li>
+            <li>✔ Basic goal tracking & progress view</li>
+          </ul>
+          <p class="plan-desc">🟢 For light users testing JobSprint or running a short focused sprint.</p>
+          <div class="price-cta"><a class="btn secondary" href="#pricing">Get Lite Access</a></div>
+        </div>
+        <div class="price-card highlight">
+          <span class="badge">Most popular</span>
+          <h3 class="plan-title">🎯 JobSprint 90-Day Sprint</h3>
+          <p class="plan-price">₹999 <span>/ 90 days</span></p>
+          <p class="plan-desc">Guided structure, resume feedback, and analytics to help you land faster.</p>
           <ul class="features">
             <li>✔ Guided 90-day roadmap</li>
             <li>✔ Résumé analysis & improvement tips</li>
+            <li>✔ Job description–resume comparison insights (up to 150)</li>
+            <li>✔ Personalized application answer suggestions</li>
             <li>✔ CRM-style application tracker</li>
             <li>✔ Analytics & progress dashboard</li>
-            <li>✔ Interview preparation (practice & guidance)</li>
           </ul>
-          <div class="price-cta"><a href="javascript:void(0)" onclick="startPayment()" class="btn primary">Start Your Sprint</a></div>
+          <p class="plan-desc">🟢 For serious job seekers who want clarity, consistency, and progress tracking.</p>
+          <div class="price-cta"><a href="javascript:void(0)" onclick="startPayment()" class="btn primary">Start Your 90-Day Sprint</a></div>
         </div>
-        <div class="price-card" aria-disabled="true">
-          <div class="badge">Coming soon</div>
-          <h3 style="margin-top:10px">⚡ JobSprint AI+ Plan</h3>
-          <div class="price">₹1,499 <span>/ 90 days</span></div>
+        <div class="price-card">
+          <h3 class="plan-title">⚡ JobSprint Pro+</h3>
+          <p class="plan-price">₹1499 <span>/ 90 days</span></p>
+          <p class="plan-desc">Everything in Starter, plus deeper analysis, interview prep, and unlimited personalization.</p>
           <ul class="features">
-            <li>✔ Everything in Starter</li>
-            <li>✔ Deeper JD ↔ résumé fit scoring</li>
-            <li>✔ Role-specific mock interviews</li>
-            <li>✔ Strengths & gaps consultation</li>
-            <li>✔ Skill focus recommendations</li>
+            <li>✔ Unlimited job description–resume comparisons</li>
+            <li>✔ Personalized application answer suggestions</li>
+            <li>✔ Interview preparation — give mock interviews with tailored question sets</li>
+            <li>✔ Advanced analytics dashboard</li>
           </ul>
-          <div class="price-cta"><a class="btn secondary" href="#waitlist">Join the AI+ waitlist</a></div>
+          <p class="plan-desc">🟢 For professionals who want a more detailed, data-backed job search experience.</p>
+          <div class="price-cta"><a class="btn secondary" href="#pricing">Join the Pro+ Waitlist</a></div>
         </div>
       </div>
     </section>
