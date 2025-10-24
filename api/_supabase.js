@@ -1,7 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
+// api/_supabase.js (CommonJS)
+const { createClient } = require('@supabase/supabase-js');
 
-export const supabaseAdmin = createClient(
+const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
   { auth: { persistSession: false } }
 );
+
+module.exports = { supabaseAdmin };
