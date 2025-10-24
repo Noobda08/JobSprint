@@ -123,37 +123,47 @@
     }
 
     <script>
-    // Google sign-in → check if user exists → route accordingly
-    window.handleGoogleCredential = async function (response) {
-      try {
-        const payload   = parseJwt(response.credential);
-        const google_id = payload.sub;                 // stable Google user id
-        const name      = payload.name || '';
-        const email     = payload.email || '';
-  
-        // carry payment id from Razorpay → /signup.html?payment_id=...
-        const payment_id = new URLSearchParams(location.search).get('payment_id') || '';
-  
-        // 1) Ask backend if this user already exists
-        const r = await fetch('/api/get-user?google_id=' + encodeURIComponent(google_id));
-        if (r.ok) {
-          const data = await r.json();
-          if (data.found) {
-            // returning user → straight to workspace
-            location.href = '/workspace.html?u=' + encodeURIComponent(data.token);
-            return;
-          }
+  // Google sign-in → check if user exists → route accordingly
+  window.handleGoogleCredential = async function (response) {
+    try {
+      const payload   = parseJwt(response.credential);
+      const google_id = payload.sub;                 // stable Google user id
+      const name      = payload.name || '';
+      const email     = payload.email || '';
+
+      // detect mode (signup vs login)
+      const params = new URLSearchParams(location.search);
+      const mode = params.get('mode') || 'signup';
+      const payment_id = params.get('payment_id') || '';
+
+      // 1️⃣ Ask backend if this user already exists
+      const r = await fetch('/api/get-user?google_id=' + encodeURIComponent(google_id));
+      if (r.ok) {
+        const data = await r.json();
+        if (data.found) {
+          // returning user → straight to workspace
+          location.href = '/workspace.html?u=' + encodeURIComponent(data.token);
+          return;
         }
-  
-        // 2) New user → send to onboarding with identity info
-        const qs = new URLSearchParams({ google_id, name, email, payment_id });
-        location.href = '/onboarding.html?' + qs.toString();
-      } catch (err) {
-        console.error(err);
-        alert('Google sign-in failed. Please try again.');
       }
-    };
-  </script>
+
+      // 2️⃣ If no record found
+      if (mode === 'login') {
+        alert('No account found with this Google ID. Please sign up first.');
+        return;
+      }
+
+      // 3️⃣ New user → go to onboarding with identity info
+      const qs = new URLSearchParams({ google_id, name, email, payment_id });
+      location.href = '/onboarding.html?' + qs.toString();
+
+    } catch (err) {
+      console.error(err);
+      alert('Google sign-in failed. Please try again.');
+    }
+  };
+</script>
+
 
 </body>
 </html>
