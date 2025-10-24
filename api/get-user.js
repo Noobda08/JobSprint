@@ -8,20 +8,15 @@ module.exports = async function handler(req, res) {
 
     const { data, error } = await supabaseAdmin
       .from('users')
-      .select('token,email,name')
+      .select('token,email,name,profile_complete')  // ⬅ add this
       .eq('google_id', google_id)
-      .maybeSingle();  // returns null instead of throwing when no row
+      .maybeSingle();
 
-    if (error) {
-      console.error('get-user supabase error:', error);
-      return res.status(500).json({ error: 'server_error' });
-    }
-
+    if (error) return res.status(500).json({ error: 'server_error' });
     if (!data) return res.status(404).json({ found: false });
 
     return res.status(200).json({ found: true, ...data });
   } catch (e) {
-    console.error('get-user fatal:', e);
     return res.status(500).json({ error: 'server_error' });
   }
 };
