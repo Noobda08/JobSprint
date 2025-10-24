@@ -123,46 +123,59 @@
     }
 
     <script>
-  // Google sign-in → check if user exists → route accordingly
-  window.handleGoogleCredential = async function (response) {
-    try {
-      const payload   = parseJwt(response.credential);
-      const google_id = payload.sub;                 // stable Google user id
-      const name      = payload.name || '';
-      const email     = payload.email || '';
-
-      // detect mode (signup vs login)
-      const params = new URLSearchParams(location.search);
-      const mode = params.get('mode') || 'signup';
-      const payment_id = params.get('payment_id') || '';
-
-      // 1️⃣ Ask backend if this user already exists
-      const r = await fetch('/api/get-user?google_id=' + encodeURIComponent(google_id));
-      if (r.ok) {
-        const data = await r.json();
-        if (data.found) {
-          // returning user → straight to workspace
-          location.href = '/workspace.html?u=' + encodeURIComponent(data.token);
-          return;
+      window.handleGoogleCredential = async function (response) {
+        try {
+          const payload   = parseJwt(response.credential);
+          const google_id = payload.sub;
+          const name      = payload.name || '';
+          const email     = payload.email || '';
+    
+          const params     = new URLSearchParams(location.search);
+          const mode       = params.get('mode') || 'signup';
+          const payment_id = params.get('payment_id') || '';
+    
+          // 1) Check backend
+          let found = false, token = '';
+          try {
+            const r = await fetch('/api/get-user?google_id=' + encodeURIComponent(google_id), {
+              headers: { 'cache-control':'no-cache' }
+            });
+            if (r.ok) {
+              const data = await r.json();
+              if (data.found) { found = true; token = data.token; }
+            }
+          } catch (e) {
+            console.error('get-user failed', e);
+          }
+    
+          if (found && token) {
+            location.href = '/workspace.html?u=' + encodeURIComponent(token);
+            return;
+          }
+    
+          // No record found
+          if (payment_id) {
+            // came from payment → first-time signup
+            const qs = new URLSearchParams({ google_id, name, email, payment_id });
+            location.href = '/onboarding.html?' + qs.toString();
+            return;
+          }
+    
+          if (mode === 'login') {
+            alert('No account found for this Google ID. Please sign up first.');
+            return;
+          }
+    
+          // plain signup (no payment id yet) — usually you won’t hit this path
+          const qs = new URLSearchParams({ google_id, name, email });
+          location.href = '/onboarding.html?' + qs.toString();
+        } catch (err) {
+          console.error(err);
+          alert('Google sign-in failed. Please try again.');
         }
-      }
+      };
+    </script>
 
-      // 2️⃣ If no record found
-      if (mode === 'login') {
-        alert('No account found with this Google ID. Please sign up first.');
-        return;
-      }
-
-      // 3️⃣ New user → go to onboarding with identity info
-      const qs = new URLSearchParams({ google_id, name, email, payment_id });
-      location.href = '/onboarding.html?' + qs.toString();
-
-    } catch (err) {
-      console.error(err);
-      alert('Google sign-in failed. Please try again.');
-    }
-  };
-</script>
 
 
 </body>
