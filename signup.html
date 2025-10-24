@@ -3,68 +3,37 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sign up • JobSprint</title>
+  <title>Sign in • JobSprint</title>
+
+  <!-- Google One Tap / Sign-In -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    :root{
-      --ink:#0f172a; --muted:#5b6477; --line:#e6eaf2; --brand:#0b6cff;
-      --bg:#f6f9ff; --card:#fff;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    :root{--ink:#0f172a; --muted:#5b6477; --line:#e6eaf2; --brand:#0b6cff; --card:#fff;}
+    *{box-sizing:border-box} html,body{height:100%}
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);background:#fff}
     .shell{display:grid;grid-template-columns:1.25fr 1fr;min-height:100vh}
-    
-    /* Left visual */
-    .hero{
-      position:relative;overflow:hidden;
-      background:url('https://images.unsplash.com/photo-1529070538774-1843cb3265df?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
-    }
-    .hero::after{
-      content:"";position:absolute;inset:0;background:linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.15));
-    }
-    
-    /* Right auth card */
+    .hero{position:relative;overflow:hidden;background:url('https://images.unsplash.com/photo-1529070538774-1843cb3265df?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat}
+    .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.15))}
     .auth{display:flex;align-items:center;justify-content:center;background:#fff}
-    .card{
-      width:min(440px,92%); background:var(--card); border:1px solid var(--line);
-      border-radius:16px; padding:28px 24px; box-shadow:0 10px 30px rgba(16,24,40,.04);
-    }
+    .card{width:min(440px,92%);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px 24px;box-shadow:0 10px 30px rgba(16,24,40,.04)}
     .logo{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-    .logo-badge{
-      width:36px;height:36px;display:grid;place-items:center;border-radius:10px;
-      background:#eef4ff;color:#1c4ed8;font-weight:700;font-size:18px;
-    }
+    .logo-badge{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#eef4ff;color:#1c4ed8;font-weight:700;font-size:18px}
     h1{font-size:20px;margin:8px 0 4px}
     .sub{color:var(--muted);font-size:14px;margin:0 0 18px}
-    label{display:block;font-size:13px;font-weight:600;margin:10px 0 6px}
-    input{
-      width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;
-      font-size:15px;outline:none;
-    }
-    input:focus{border-color:#c9d7ff; box-shadow:0 0 0 3px rgba(11,108,255,.12)}
-    .btn{
-      display:inline-block;width:100%;background:var(--brand);color:#fff;border:0;
-      padding:12px 14px;border-radius:10px;font-weight:700;cursor:pointer;margin-top:12px;
-    }
-    .divider{display:flex;align-items:center;gap:12px;margin:14px 0}
-    .divider .line{flex:1;height:1px;background:var(--line)}
-    .divider span{color:var(--muted);font-size:12px}
-    .terms{color:var(--muted);font-size:12px;margin-top:12px}
     .g-btn-wrap{display:grid;place-items:center}
+    .terms{color:var(--muted);font-size:12px;margin-top:12px}
     @media (max-width: 900px){ .shell{grid-template-columns:1fr} .hero{display:none} }
   </style>
 </head>
 
 <body>
   <div class="shell">
-    <!-- Left -->
     <div class="hero" aria-hidden="true"></div>
 
-    <!-- Right -->
     <div class="auth">
       <div class="card">
         <div class="logo">
@@ -74,7 +43,6 @@
             <div class="sub">Get started with your Google account</div>
           </div>
         </div>
-
 
         <!-- Google sign-in -->
         <div id="g_id_onload"
@@ -95,8 +63,9 @@
           </div>
         </div>
 
-        <p class="terms">By continuing you agree to our 
-          <a href="/privacy" target="_blank">privacy policy</a> and 
+        <p class="terms">
+          By continuing you agree to our
+          <a href="/privacy" target="_blank">privacy policy</a> and
           <a href="/terms" target="_blank">terms of use</a>.
         </p>
       </div>
@@ -104,79 +73,70 @@
   </div>
 
   <script>
-    function parseJwt (token) {
+    // Decode Google credential JWT
+    function parseJwt(token){
       const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
+      const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+      ).join(''));
       return JSON.parse(jsonPayload);
     }
 
-    // Email/phone flow → just carry forward
-    function handleEmail(e){
-      e.preventDefault();
-      const v = (document.getElementById('identity').value || '').trim();
-      if(!v){ alert('Please enter your email or phone.'); return; }
-      const p = new URLSearchParams({ email:v });
-      location.href = `/onboarding.html?${p.toString()}`;
-    }
+    // Main callback: route existing vs new users
+    window.handleGoogleCredential = async function (response) {
+      try {
+        const payload   = parseJwt(response.credential);
+        const google_id = payload.sub;
+        const name      = payload.name  || '';
+        const email     = payload.email || '';
 
-    <script>
-      window.handleGoogleCredential = async function (response) {
+        const params     = new URLSearchParams(location.search);
+        const mode       = params.get('mode') || 'signup';
+        const payment_id = params.get('payment_id') || '';
+
+        // 1) Check if user exists
+        let found = false, token = '';
         try {
-          const payload   = parseJwt(response.credential);
-          const google_id = payload.sub;
-          const name      = payload.name || '';
-          const email     = payload.email || '';
-    
-          const params     = new URLSearchParams(location.search);
-          const mode       = params.get('mode') || 'signup';
-          const payment_id = params.get('payment_id') || '';
-    
-          // 1) Check backend
-          let found = false, token = '';
-          try {
-            const r = await fetch('/api/get-user?google_id=' + encodeURIComponent(google_id), {
-              headers: { 'cache-control':'no-cache' }
-            });
-            if (r.ok) {
-              const data = await r.json();
-              if (data.found) { found = true; token = data.token; }
-            }
-          } catch (e) {
-            console.error('get-user failed', e);
+          const r = await fetch('/api/get-user?google_id=' + encodeURIComponent(google_id), {
+            headers: { 'cache-control':'no-cache' }
+          });
+          if (r.ok) {
+            const data = await r.json();
+            if (data.found) { found = true; token = data.token; }
           }
-    
-          if (found && token) {
-            location.href = '/workspace.html?u=' + encodeURIComponent(token);
-            return;
-          }
-    
-          // No record found
-          if (payment_id) {
-            // came from payment → first-time signup
-            const qs = new URLSearchParams({ google_id, name, email, payment_id });
-            location.href = '/onboarding.html?' + qs.toString();
-            return;
-          }
-    
-          if (mode === 'login') {
-            alert('No account found for this Google ID. Please sign up first.');
-            return;
-          }
-    
-          // plain signup (no payment id yet) — usually you won’t hit this path
-          const qs = new URLSearchParams({ google_id, name, email });
-          location.href = '/onboarding.html?' + qs.toString();
-        } catch (err) {
-          console.error(err);
-          alert('Google sign-in failed. Please try again.');
+        } catch (e) {
+          console.error('get-user failed', e);
         }
-      };
-    </script>
 
+        if (found && token) {
+          // Returning user → workspace
+          location.href = '/workspace.html?u=' + encodeURIComponent(token);
+          return;
+        }
 
+        // New user paths
+        if (payment_id) {
+          // Came from payment → go to onboarding
+          const qs = new URLSearchParams({ google_id, name, email, payment_id });
+          location.href = '/onboarding.html?' + qs.toString();
+          return;
+        }
 
+        if (mode === 'login') {
+          alert('No account found for this Google ID. Please sign up first.');
+          return;
+        }
+
+        // Plain signup (rare)
+        const qs = new URLSearchParams({ google_id, name, email });
+        location.href = '/onboarding.html?' + qs.toString();
+
+      } catch (err) {
+        console.error(err);
+        alert('Google sign-in failed. Please try again.');
+      }
+    };
+  </script>
 </body>
 </html>
