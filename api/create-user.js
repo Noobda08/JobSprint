@@ -8,16 +8,26 @@ module.exports = async function handler(req, res) {
       return res.status(405).json({ error: 'method_not_allowed' });
     }
 
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    // raw or parsed
+    let body = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch (e) {}
+    }
+    body = body || {};
+
     const {
       google_id, email, name,
       role, applications_goal_per_day, resume_url,
       career_story = {}, payment_id = '',
       plan_start, plan_end
-    } = body || {};
+    } = body;
 
     if (!google_id || !email) {
-      return res.status(400).json({ error: 'missing google_id/email' });
+      return res.status(400).json({ error: 'missing google_id_or_email', got: body });
+    }
+
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return res.status(500).json({ error: 'missing_env_vars' });
     }
 
     const token = crypto.randomUUID();
@@ -36,7 +46,10 @@ module.exports = async function handler(req, res) {
       plan_end: plan_end || null
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      return res.status(500).json({ error: 'supabase_insert_failed', detail: error.message || error });
+    }
 
     return res.status(200).json({
       success: true,
@@ -44,7 +57,7 @@ module.exports = async function handler(req, res) {
       redirect_url: `/workspace.html?u=${encodeURIComponent(token)}`
     });
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: 'server_error' });
+    console.error('create-user fatal:', e);
+    return res.status(500).json({ error: 'server_error', detail: String(e) });
   }
 };
