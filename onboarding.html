@@ -1,5 +1,127 @@
-<!doctype html><title>Onboarding</title>
-<body style="font-family:sans-serif;padding:32px">
-  <h1>Onboarding</h1>
-  <p>If you see this, Google sign-in → redirect is working ✅</p>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JobSprint — Onboarding</title>
+  <style>
+    :root{--ink:#0f172a;--muted:#5b6477;--line:#e6eaf2;--brand:#1977f3;}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);margin:0}
+    .wrap{max-width:900px;margin:40px auto;padding:0 20px}
+    h1{margin:0 0 8px;font-size:28px}
+    p.deck{margin:0 0 20px;color:var(--muted)}
+    .card{border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+    label{display:block;font-weight:600;margin:10px 0 6px}
+    input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:15px}
+    textarea{min-height:110px;resize:vertical}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;margin-top:16px}
+    .muted{color:var(--muted);font-size:14px}
+    @media (max-width:820px){.row{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Let’s set up your 90-day sprint</h1>
+  <p class="deck">Add your resume link, role, goal, and a short story so guidance feels personal.</p>
+
+  <!-- Step: Basics -->
+  <div class="card">
+    <div class="row">
+      <div>
+        <label for="resume_url">Resume link (Google Drive / public URL)</label>
+        <input id="resume_url" type="url" placeholder="https://drive.google.com/..." required>
+        <p class="muted">Set Drive link sharing to “Anyone with the link”.</p>
+      </div>
+      <div>
+        <label for="role">Target role</label>
+        <select id="role" required>
+          <option value="">Select</option>
+          <option>Product Management</option><option>Design</option><option>Marketing</option>
+          <option>Engineering</option><option>Sales</option><option>Operations</option>
+          <option>Data</option><option>HR</option><option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label for="goal">Daily applications goal</label>
+        <input id="goal" type="number" min="1" max="10" value="4" required>
+        <p class="muted">We recommend 3–5 per day.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step: Story -->
+  <div class="card">
+    <label for="journey">Your journey so far</label>
+    <textarea id="journey" placeholder="How did you start, what changed, where are you now?"></textarea>
+
+    <label for="strengths">Strengths you’ve genuinely built</label>
+    <textarea id="strengths" placeholder="Name 2–3 strengths (technical or personal)."></textarea>
+
+    <label for="flow">Work that puts you in flow</label>
+    <textarea id="flow" placeholder="Projects/problems that excite you."></textarea>
+
+    <label for="nextRole">What you want next</label>
+    <textarea id="nextRole" placeholder="What’s working/not working, and what you want next."></textarea>
+
+    <label for="vision">Five-year direction</label>
+    <textarea id="vision" placeholder="How you want people to describe your work in 5 years."></textarea>
+
+    <button class="btn" id="finish">Start my Sprint</button>
+    <p class="muted" id="status"></p>
+  </div>
+</div>
+
+<script>
+  const qs = new URLSearchParams(location.search);
+  const google_id = qs.get('google_id') || '';
+  const name      = qs.get('name') || '';
+  const email     = qs.get('email') || '';
+  const payment_id= qs.get('payment_id') || '';
+  const statusEl  = document.getElementById('status');
+
+  document.getElementById('finish').onclick = async () => {
+    const payload = {
+      google_id, name, email, payment_id,
+      role: document.getElementById('role').value,
+      applications_goal_per_day: Number(document.getElementById('goal').value || 4),
+      resume_url: document.getElementById('resume_url').value.trim(),
+      career_story: {
+        journey:          document.getElementById('journey').value.trim(),
+        strengths:        document.getElementById('strengths').value.trim(),
+        flow_state_work:  document.getElementById('flow').value.trim(),
+        current_vs_next:  document.getElementById('nextRole').value.trim(),
+        long_term_vision: document.getElementById('vision').value.trim()
+      },
+      plan_start: new Date().toISOString().slice(0,10),
+      plan_end:   new Date(Date.now() + 90*24*60*60*1000).toISOString().slice(0,10)
+    };
+
+    if (!google_id || !email) {
+      alert('Sign in first (no Google ID/email found). Go back to /signup.html'); return;
+    }
+    if (!payload.resume_url || !payload.role) {
+      alert('Please add your resume link and select a role.'); return;
+    }
+
+    try {
+      statusEl.textContent = 'Saving...';
+      const resp = await fetch('/api/create-user', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.success) throw new Error(data.error || 'save_failed');
+
+      localStorage.setItem('jobsprint_profile', JSON.stringify({ ...payload, token: data.token }));
+      location.href = data.redirect_url; // /workspace.html?u=...
+    } catch (e) {
+      console.error(e);
+      statusEl.textContent = 'Could not save. Please try again.';
+      alert('Could not save your profile.');
+    }
+  };
+</script>
 </body>
+</html>
