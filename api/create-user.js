@@ -4,60 +4,58 @@ const { supabaseAdmin } = require('./_supabase.js');
 
 module.exports = async function handler(req, res) {
   try {
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'method_not_allowed' });
-    }
+    if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' });
 
-    // raw or parsed
-    let body = req.body;
-    if (typeof body === 'string') {
-      try { body = JSON.parse(body); } catch (e) {}
-    }
-    body = body || {};
-
+    let body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const {
-      google_id, email, name,
+      google_id, email, name, payment_id,
       role, applications_goal_per_day, resume_url,
-      career_story = {}, payment_id = '',
-      plan_start, plan_end
+      career_story, plan_start, plan_end,
+      profile_complete, onboarding_step
     } = body;
 
-    if (!google_id || !email) {
-      return res.status(400).json({ error: 'missing google_id_or_email', got: body });
+    if (!google_id || !email) return res.status(400).json({ error: 'missing google_id_or_email' });
+
+    // Build a patch object with ONLY defined values (no accidental null overwrites)
+    const patch = { google_id };
+    if (email !== undefined) patch.email = email;
+    if (name !== undefined) patch.name = name;
+    if (payment_id !== undefined) patch.payment_id = payment_id;
+    if (role !== undefined) patch.role = role;
+    if (applications_goal_per_day !== undefined) patch.goal_per_day = Number(applications_goal_per_day);
+    if (resume_url !== undefined) patch.resume_url = resume_url;
+    if (career_story !== undefined) patch.career_story = career_story;
+    if (plan_start !== undefined) patch.plan_start = plan_start;
+    if (plan_end !== undefined) patch.plan_end = plan_end;
+    if (profile_complete !== undefined) patch.profile_complete = !!profile_complete;
+    if (onboarding_step !== undefined) patch.onboarding_step = onboarding_step;
+
+    // always ensure token exists
+    const { data: existing } = await supabaseAdmin
+      .from('users')
+      .select('token')
+      .eq('google_id', google_id)
+      .maybeSingle();
+
+    if (!existing || !existing.token) {
+      patch.token = crypto.randomUUID();
     }
 
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      return res.status(500).json({ error: 'missing_env_vars' });
-    }
+    patch.updated_at = new Date().toISOString();
 
-    const token = crypto.randomUUID();
+    const { error } = await supabaseAdmin
+      .from('users')
+      .upsert(patch, { onConflict: 'google_id' });
 
-    const { error } = await supabaseAdmin.from('users').insert({
-      google_id,
-      email,
-      name: name || null,
-      token,
-      role: role || null,
-      goal_per_day: Number(applications_goal_per_day || 4),
-      resume_url: resume_url || null,
-      career_story,
-      payment_id: payment_id || null,
-      plan_start: plan_start || null,
-      plan_end: plan_end || null
-    });
+    if (error) return res.status(500).json({ error: 'supabase_upsert_failed', detail: error.message });
 
-    if (error) {
-      console.error('Supabase insert error:', error);
-      return res.status(500).json({ error: 'supabase_insert_failed', detail: error.message || error });
-    }
-
+    const token = (existing && existing.token) ? existing.token : patch.token;
     return res.status(200).json({
       success: true,
       token,
       redirect_url: `/workspace.html?u=${encodeURIComponent(token)}`
     });
   } catch (e) {
-    console.error('create-user fatal:', e);
     return res.status(500).json({ error: 'server_error', detail: String(e) });
   }
 };
