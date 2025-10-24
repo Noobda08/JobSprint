@@ -71,72 +71,76 @@
       </div>
     </div>
   </div>
-
   <script>
-    // Decode Google credential JWT
-    function parseJwt(token){
+    function parseJwt (token) {
       const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
       const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
         '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
       ).join(''));
       return JSON.parse(jsonPayload);
     }
-
-    // Main callback: route existing vs new users
+  
     window.handleGoogleCredential = async function (response) {
       try {
         const payload   = parseJwt(response.credential);
         const google_id = payload.sub;
         const name      = payload.name  || '';
         const email     = payload.email || '';
-
+  
         const params     = new URLSearchParams(location.search);
         const mode       = params.get('mode') || 'signup';
         const payment_id = params.get('payment_id') || '';
-
+  
         // 1) Check if user exists
-        let found = false, token = '';
+        let found = false, token = '', profile_complete = false;
         try {
-          const r = await fetch('/api/get-user?google_id=' + encodeURIComponent(google_id), {
-            headers: { 'cache-control':'no-cache' }
-          });
+          const r = await fetch('/api/get-user?google_id=' + encodeURIComponent(google_id), { headers:{'cache-control':'no-cache'} });
           if (r.ok) {
             const data = await r.json();
-            if (data.found) { found = true; token = data.token; }
+            if (data.found) { found = true; token = data.token; profile_complete = !!data.profile_complete; }
           }
-        } catch (e) {
-          console.error('get-user failed', e);
-        }
-
-        if (found && token) {
-          // Returning user → workspace
-          location.href = '/workspace.html?u=' + encodeURIComponent(token);
+        } catch (e) { console.warn('get-user failed', e); }
+  
+        // 2) Found user
+        if (found) {
+          if (profile_complete) {
+            location.href = '/workspace.html?u=' + encodeURIComponent(token);
+          } else {
+            // send back to onboarding to finish
+            const qs = new URLSearchParams({ google_id, name, email, payment_id });
+            location.href = '/onboarding.html?' + qs.toString();
+          }
           return;
         }
-
-        // New user paths
-        if (payment_id) {
-          // Came from payment → go to onboarding
-          const qs = new URLSearchParams({ google_id, name, email, payment_id });
-          location.href = '/onboarding.html?' + qs.toString();
+  
+        // 3) New user → create shell record immediately
+        const createRes = await fetch('/api/create-user', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            google_id, email, name, payment_id,
+            profile_complete: false,
+            onboarding_step: 'start'
+          })
+        });
+        const createData = await createRes.json();
+        if (!createRes.ok || !createData.success) {
+          alert('Could not create your account. Please try again.');
           return;
         }
-
-        if (mode === 'login') {
-          alert('No account found for this Google ID. Please sign up first.');
-          return;
-        }
-
-        // Plain signup (rare)
-        const qs = new URLSearchParams({ google_id, name, email });
+  
+        // 4) Then go to onboarding
+        const qs = new URLSearchParams({ google_id, name, email, payment_id });
         location.href = '/onboarding.html?' + qs.toString();
-
+  
       } catch (err) {
         console.error(err);
         alert('Google sign-in failed. Please try again.');
       }
     };
   </script>
+
+  
 </body>
 </html>
