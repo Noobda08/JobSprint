@@ -157,6 +157,11 @@
   <p class="footer-note">We believe every job seeker deserves structure, clarity, and calm. 🌤️</p>
 
   <script>
+    if (!token || token === 'guest') {
+      // no valid session → go to login
+      location.href = '/signup.html?mode=login';
+    }
+
     // Step navigation
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
