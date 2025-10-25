@@ -77,7 +77,9 @@ module.exports = async function handler(req, res) {
     } catch (_) {
       // If lookup fails for any reason, still ensure we set a token
       userToken = userToken || crypto.randomUUID();
-      patch.token = patch.token || userToken;
+      patch.token = userToken; //modified
+      
+      //patch.token = patch.token || userToken; //old
     }
 
     patch.updated_at = new Date().toISOString();
