@@ -60,27 +60,45 @@ module.exports = async function handler(req, res) {
     if (onboarding_step !== undefined) patch.onboarding_step = onboarding_step;
 
     // Ensure a token exists for this user (reuse if present, else create)
-    let userToken = null;
-    try {
-      const { data: existing } = await supabaseAdmin
-        .from('users')
-        .select('token')
-        .eq('google_id', google_id)
-        .maybeSingle();
+    // Ensure a token always exist
+      let userToken;
+      try {
+        const { data: existing } = await supabaseAdmin
+          .from('users')
+          .select('token')
+          .eq('google_id', google_id)
+          .maybeSingle();
 
-      if (existing && existing.token) {
-        userToken = existing.token;
-      } else {
-        userToken = crypto.randomUUID();
-        patch.token = userToken;
-      }
-    } catch (_) {
-      // If lookup fails for any reason, still ensure we set a token
-      userToken = userToken || crypto.randomUUID();
-      patch.token = userToken; //modified
+        userToken = existing?.token || crypto.randomUUID();
+    } catch (e) {
+      userToken = crypto.randomUUID();
+  }
+
+// ✅ Always include token in patch
+  patch.token = userToken;
+
+    
+    // let userToken = null;
+    // try {
+    //   const { data: existing } = await supabaseAdmin
+    //     .from('users')
+    //     .select('token')
+    //     .eq('google_id', google_id)
+    //     .maybeSingle();
+
+    //   if (existing && existing.token) {
+    //     userToken = existing.token;
+    //   } else {
+    //     userToken = crypto.randomUUID();
+    //     patch.token = userToken;
+    //   }
+    // } catch (_) {
+    //   // If lookup fails for any reason, still ensure we set a token
+    //   userToken = userToken || crypto.randomUUID();
+    //   patch.token = userToken; //modified
       
-      //patch.token = patch.token || userToken; //old
-    }
+    //   //patch.token = patch.token || userToken; //old
+    // }
 
     patch.updated_at = new Date().toISOString();
 
