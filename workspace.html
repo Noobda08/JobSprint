@@ -1,255 +1,329 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>JobSprint Onboarding</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>JobSprint • Workspace</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg1:#FFF6EC; --bg2:#FFE0C8; --ink:#222; --muted:#6b6b6b;
+    --card:#fff; --line:#eee; --brand:#ff9a4f; --brand-d:#ff7c1f;
+    --lane:#fff8f2; --shadow:0 10px 30px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(120deg,var(--bg1),var(--bg2));color:var(--ink)}
+  .app{min-height:100vh;display:flex;flex-direction:column}
 
-  <!-- Font & Style -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-  <style>
-    body {
-      margin: 0;
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(120deg, #FFF6EC, #FFE0C8);
-      overflow-x: hidden;
-      color: #333;
-    }
-    .floating {
-      position: absolute;
-      background: rgba(255,255,255,0.3);
-      border-radius: 50%;
-      animation: float 12s infinite ease-in-out;
-      pointer-events: none;
-      z-index: 0;
-    }
-    @keyframes float {
-      0%,100% { transform: translateY(0) rotate(0); }
-      50% { transform: translateY(-30px) rotate(20deg); }
-    }
-    .container {
-      position: relative;
-      z-index: 1;
-      max-width: 720px;
-      margin: 60px auto;
-      background: rgba(255,255,255,0.9);
-      border-radius: 24px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-      padding: 40px 50px;
-      text-align: left;
-      transition: all 0.4s ease;
-    }
-    h1 { margin-top: 0; color: #222; font-size: 28px; }
-    p.sub { color: #555; margin-top: 4px; font-size: 15px; }
-    label { display: block; margin: 16px 0 6px; font-weight: 600; }
-    input, textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 15px;
-    }
-    input:focus, textarea:focus {
-      outline: none; border-color: #ffb36b;
-      box-shadow: 0 0 0 2px rgba(255, 179, 107, 0.3);
-    }
-    textarea { resize: vertical; min-height: 90px; }
-    button {
-      background: #ff9a4f;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 24px;
-      font-weight: 600;
-      font-size: 15px;
-      cursor: pointer;
-      margin-top: 24px;
-      transition: background 0.3s;
-    }
-    button:hover { background: #ff7c1f; }
-    .hidden { display: none; }
-    .step-indicator {
-      text-align: right;
-      font-size: 13px;
-      color: #777;
-      margin-bottom: 20px;
-    }
-    .footer-note {
-      text-align: center;
-      font-size: 13px;
-      color: #666;
-      margin-top: 24px;
-      opacity: 0.8;
-    }
-    .animate-fade {
-      animation: fadeIn 0.5s ease;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+  /* Topbar */
+  .top{
+    position:sticky;top:0;z-index:10;backdrop-filter:saturate(140%) blur(6px);
+    background:rgba(255,255,255,.65);border-bottom:1px solid #f1dcc9;
+  }
+  .topin{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:12px 16px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .badge{width:36px;height:36px;border-radius:12px;background:#ffe8d6;display:grid;place-items:center;font-weight:700;color:#c25a0b}
+  .navspacer{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #f2caa6;border-radius:999px;padding:6px 10px;color:#a2591b}
+  .ham{width:36px;height:36px;border-radius:10px;border:1px solid #f2caa6;background:#fff;cursor:pointer}
+
+  .dropdown{position:absolute;right:16px;top:60px;background:#fff;border:1px solid #f2caa6;border-radius:14px;box-shadow:var(--shadow);padding:8px;display:none;min-width:230px}
+  .dropdown a{display:block;padding:10px 12px;border-radius:10px;color:#5a3a1a;text-decoration:none}
+  .dropdown a:hover{background:#fff5eb}
+
+  /* Header stats */
+  .head{max-width:1200px;margin:18px auto 0;padding:0 16px 14px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .stat{background:rgba(255,255,255,.85);border:1px solid #f2caa6;border-radius:12px;padding:10px 14px;display:flex;gap:10px;align-items:center}
+  .stat strong{font-weight:600}
+  .btn{background:var(--brand);border:0;color:#fff;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
+  .btn:hover{background:var(--brand-d)}
+  .btn.ghost{background:#fff;border:1px solid #f2caa6;color:#a25a1b}
+
+  /* Board */
+  .board{max-width:1200px;margin:14px auto;padding:0 16px 40px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .lane{background:rgba(255,255,255,.88);border:1px solid #f2caa6;border-radius:16px;min-height:320px;display:flex;flex-direction:column}
+  .lanehead{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 8px;border-bottom:1px solid #f5d6b8}
+  .lanehead h3{margin:0;font-size:16px}
+  .count{font-size:12px;color:#9a6a3a;background:#fff5eb;border:1px solid #f2caa6;border-radius:999px;padding:2px 8px}
+  .cards{flex:1;padding:10px;display:grid;gap:10px}
+  .card{background:#fff;border:1px solid #f2caa6;border-radius:12px;padding:10px;box-shadow:var(--shadow);cursor:grab}
+  .card small{color:var(--muted)}
+  .empty{flex:1;display:grid;place-items:center;color:#b07a45;font-size:13px;padding:18px}
+
+  /* Modal */
+  .modalBG{position:fixed;inset:0;background:rgba(0,0,0,.25);display:none;align-items:center;justify-content:center;z-index:30}
+  .modal{background:#fff;border:1px solid #f2caa6;border-radius:14px;box-shadow:var(--shadow);width:min(560px,92%);padding:16px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  label{font-size:13px;font-weight:600}
+  input,textarea{width:100%;padding:10px;border:1px solid #f0d3b5;border-radius:10px;font-family:inherit}
+  textarea{min-height:80px;resize:vertical}
+
+  .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+  @media (max-width: 980px){ .board{grid-template-columns:1fr 1fr} }
+  @media (max-width: 640px){ .board{grid-template-columns:1fr} .row{grid-template-columns:1fr} .pill{display:none} }
+</style>
 </head>
 <body>
-
-  <!-- floating doodles -->
-  <div class="floating" style="width:100px;height:100px;top:80px;left:60px;animation-delay:0s;"></div>
-  <div class="floating" style="width:80px;height:80px;bottom:100px;right:120px;animation-delay:4s;"></div>
-  <div class="floating" style="width:60px;height:60px;top:200px;right:50px;animation-delay:2s;"></div>
-
-  <div class="container animate-fade" id="step1">
-    <div class="step-indicator">Step 1 of 2</div>
-    <h1>Let’s start with your basics 🌱</h1>
-    <p class="sub">Upload your resume and I’ll fill what I can. You can edit anything anytime.</p>
-
-    <label>Upload Resume (PDF/DOCX)</label>
-    <input type="file" id="resume_file" accept=".pdf,.doc,.docx" />
-
-    <label>Full Name</label>
-    <input type="text" id="name" placeholder="Your full name" />
-
-    <label>Email</label>
-    <input type="email" id="email" placeholder="you@example.com" />
-
-    <label>Phone</label>
-    <input type="text" id="phone" placeholder="+91 9876543210" />
-
-    <label>City</label>
-    <input type="text" id="city" placeholder="Your city" />
-
-    <label>Date of Birth</label>
-    <input type="date" id="dob" />
-
-    <label>Current Role</label>
-    <input type="text" id="role" placeholder="e.g., Product Manager" />
-
-    <label>Total Experience (years)</label>
-    <input type="number" id="experience" min="0" placeholder="e.g., 5" />
-
-    <button id="nextBtn">Next: Tell your story →</button>
+<div class="app">
+  <!-- top bar -->
+  <div class="top">
+    <div class="topin">
+      <div class="brand">
+        <div class="badge">J</div>
+        <div>
+          <div style="font-weight:700;">JobSprint</div>
+          <div id="userLine" style="font-size:12px;color:#8a6a4b;">Welcome back</div>
+        </div>
+      </div>
+      <div class="navspacer"></div>
+      <div class="pill" id="goalPill">Goal: <strong id="goalNum">4</strong> / day</div>
+      <button class="ham" id="hamBtn">☰</button>
+      <div class="dropdown" id="menu">
+        <a href="onboarding.html">Edit onboarding info</a>
+        <a href="#" id="exportBtn">Export board (JSON)</a>
+        <a href="#" id="signoutBtn">Sign out</a>
+      </div>
+    </div>
   </div>
 
-  <div class="container hidden animate-fade" id="step2">
-    <div class="step-indicator">Step 2 of 2</div>
-    <h1>Now, let’s talk about <em>you</em> 🌻</h1>
-    <p class="sub">Don’t overthink — just answer from the heart.</p>
-
-    <label>Your career story so far</label>
-    <textarea id="journey" placeholder="How did you get where you are today?"></textarea>
-
-    <label>Your top 2–3 strengths</label>
-    <textarea id="strengths" placeholder="e.g., curiosity, discipline, creativity"></textarea>
-
-    <label>Work that energizes you</label>
-    <textarea id="flow" placeholder="What kind of problems do you love solving?"></textarea>
-
-    <label>Your next role / dream job</label>
-    <textarea id="nextRole" placeholder="What do you want to do next?"></textarea>
-
-    <label>Your long-term career vision</label>
-    <textarea id="vision" placeholder="How do you see yourself growing in 5 years?"></textarea>
-
-    <button id="backBtn">← Back</button>
-    <button id="finishBtn">Finish Setup</button>
+  <!-- header stats -->
+  <div class="head">
+    <div class="stat">Today’s applications: <strong id="todayCount">0</strong></div>
+    <div class="stat">This week: <strong id="weekCount">0</strong></div>
+    <button class="btn" id="addBtn">+ Add Application</button>
+    <button class="btn ghost" id="resetBtn">Reset board</button>
   </div>
 
-  <p class="footer-note">We believe every job seeker deserves structure, clarity, and calm. 🌤️</p>
+  <!-- board -->
+  <div class="board" id="board">
+    <div class="lane" data-col="to_apply">
+      <div class="lanehead"><h3>To Apply</h3><span class="count" data-count="to_apply">0</span></div>
+      <div class="cards" data-drop="to_apply"></div>
+      <div class="empty">Drag cards here</div>
+    </div>
+    <div class="lane" data-col="applied">
+      <div class="lanehead"><h3>Applied</h3><span class="count" data-count="applied">0</span></div>
+      <div class="cards" data-drop="applied"></div>
+      <div class="empty">Drag cards here</div>
+    </div>
+    <div class="lane" data-col="interviewing">
+      <div class="lanehead"><h3>Interviewing</h3><span class="count" data-count="interviewing">0</span></div>
+      <div class="cards" data-drop="interviewing"></div>
+      <div class="empty">Drag cards here</div>
+    </div>
+    <div class="lane" data-col="offer">
+      <div class="lanehead"><h3>Offer</h3><span class="count" data-count="offer">0</span></div>
+      <div class="cards" data-drop="offer"></div>
+      <div class="empty">Drag cards here</div>
+    </div>
+  </div>
+</div>
 
-  <script>
-    if (!token || token === 'guest') {
-      // no valid session → go to login
-      location.href = '/signup.html?mode=login';
-    }
+<!-- modal -->
+<div class="modalBG" id="modalBG" aria-hidden="true">
+  <div class="modal">
+    <h3 style="margin:4px 0 12px">New Application</h3>
+    <div class="row">
+      <div>
+        <label>Company</label>
+        <input id="m_company" placeholder="Acme Inc."/>
+      </div>
+      <div>
+        <label>Role</label>
+        <input id="m_role" placeholder="Product Manager"/>
+      </div>
+      <div>
+        <label>JD link</label>
+        <input id="m_link" placeholder="https://..."/>
+      </div>
+      <div>
+        <label>Deadline (optional)</label>
+        <input type="date" id="m_deadline"/>
+      </div>
+    </div>
+    <label style="margin-top:10px">Notes</label>
+    <textarea id="m_notes" placeholder="Anything important about this application..."></textarea>
+    <div class="actions">
+      <button class="btn ghost" id="cancelBtn">Cancel</button>
+      <button class="btn" id="saveBtn">Add</button>
+    </div>
+  </div>
+</div>
 
-    // Step navigation
-    const step1 = document.getElementById('step1');
-    const step2 = document.getElementById('step2');
-    document.getElementById('nextBtn').onclick = () => {
-      step1.classList.add('hidden');
-      step2.classList.remove('hidden');
-      window.scrollTo({top:0,behavior:'smooth'});
-    };
-    document.getElementById('backBtn').onclick = () => {
-      step2.classList.add('hidden');
-      step1.classList.remove('hidden');
-      window.scrollTo({top:0,behavior:'smooth'});
-    };
+<script>
+  // --- session & per-user storage keys ---
+  const qs = new URLSearchParams(location.search);
+  const token = qs.get('u') || (JSON.parse(localStorage.getItem('jobsprint_profile')||'{}').token) || 'guest';
 
-    // Simulate resume parsing
-    document.getElementById('resume_file').addEventListener('change', () => {
-      setTimeout(() => {
-        document.getElementById('name').value = "Alex Jobseeker";
-        document.getElementById('email').value = "alex@example.com";
-        document.getElementById('phone').value = "+91 9876543210";
-        document.getElementById('city').value = "Bangalore";
-        document.getElementById('dob').value = "1996-05-12";
-        document.getElementById('role').value = "Product Manager";
-        document.getElementById('experience').value = 5;
-        alert("✨ Resume parsed successfully! Dummy data filled.");
-      }, 800);
-    });
+  // ✅ Guard: if no valid session token, send to login
+  if (!token || token === 'guest') {
+    location.href = '/signup.html?mode=login';
+  }
 
-    // Finish onboarding
-    document.getElementById('finishBtn').onclick = async () => {
-      const params = new URLSearchParams(location.search);
-      const google_id = params.get('google_id');
-      const payment_id = params.get('payment_id');
-      const email = document.getElementById('email').value.trim() || params.get('email');
-      const name = document.getElementById('name').value.trim();
+  const KEY_BOARD = `jobsprint_board_${token}`;
+  const KEY_TODAY = `jobsprint_today_${token}`;
+  const profile = JSON.parse(localStorage.getItem('jobsprint_profile') || '{}');
 
-      if (!google_id || !email) { alert('Missing Google sign-in context.'); return; }
+  // initial board state
+  let board = JSON.parse(localStorage.getItem(KEY_BOARD) || 'null') || {
+    to_apply: [], applied: [], interviewing: [], offer: []
+  };
 
-      const payload = {
-        google_id,
-        email,
-        name,
-        payment_id,
-        phone: document.getElementById('phone').value.trim(),
-        city: document.getElementById('city').value.trim(),
-        dob: document.getElementById('dob').value,
-        role: document.getElementById('role').value.trim(),
-        experience: Number(document.getElementById('experience').value || 0),
-        career_story: {
-          journey: document.getElementById('journey').value.trim(),
-          strengths: document.getElementById('strengths').value.trim(),
-          flow_state_work: document.getElementById('flow').value.trim(),
-          current_vs_next: document.getElementById('nextRole').value.trim(),
-          long_term_vision: document.getElementById('vision').value.trim()
-        },
-        plan_start: new Date().toISOString().slice(0,10),
-        plan_end: new Date(Date.now() + 90*24*60*60*1000).toISOString().slice(0,10),
-        profile_complete: true,
-        onboarding_step: 'done'
-      };
+  // UI refs
+  const userLine = document.getElementById('userLine');
+  const goalNum  = document.getElementById('goalNum');
+  const todayCountEl = document.getElementById('todayCount');
+  const weekCountEl  = document.getElementById('weekCount');
 
-      const finishBtn = document.getElementById('finishBtn');
-      finishBtn.disabled = true;
-      finishBtn.innerText = "Saving...";
-
-      try {
-        const resp = await fetch('/api/create-user', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(payload)
-        });
-        const data = await resp.json();
-        if (!resp.ok || !data.success) {
-          console.error(data);
-          alert("Could not save your onboarding. Please try again.");
-          finishBtn.disabled = false;
-          finishBtn.innerText = "Finish Setup";
+  // ✅ Hydrate header from backend by token; fallback to local
+  (async () => {
+    try {
+      const r = await fetch('/api/get-user-by-token?token=' + encodeURIComponent(token), { headers:{'cache-control':'no-cache'} });
+      if (r.ok) {
+        const data = await r.json();
+        if (data.found) {
+          const merged = { ...(profile||{}), name: data.name, email: data.email, applications_goal_per_day: data.goal_per_day, token };
+          localStorage.setItem('jobsprint_profile', JSON.stringify(merged));
+          userLine.textContent = data.name ? `Hello, ${data.name}` : 'Welcome back';
+          goalNum.textContent = data.goal_per_day || 4;
           return;
         }
-        alert("🎉 Onboarding complete! Redirecting...");
-        window.location.href = data.redirect_url || "/workspace.html";
-      } catch (err) {
-        console.error(err);
-        alert("Something went wrong. Please try again.");
-        finishBtn.disabled = false;
-        finishBtn.innerText = "Finish Setup";
       }
-    };
-  </script>
+      userLine.textContent = profile?.name ? `Hello, ${profile.name}` : 'Welcome back';
+      goalNum.textContent = profile?.applications_goal_per_day || 4;
+    } catch {
+      userLine.textContent = profile?.name ? `Hello, ${profile.name}` : 'Welcome back';
+      goalNum.textContent = profile?.applications_goal_per_day || 4;
+    }
+  })();
+
+  // counts & rendering
+  function updateCounts(){
+    ['to_apply','applied','interviewing','offer'].forEach(col=>{
+      const c = board[col].length;
+      document.querySelector(`[data-count="${col}"]`).textContent = c;
+      const lane = document.querySelector(`.lane[data-col="${col}"]`);
+      lane.querySelector('.empty').style.display = c ? 'none' : 'grid';
+    });
+  }
+  function saveBoard(){ localStorage.setItem(KEY_BOARD, JSON.stringify(board)); }
+  function cardHTML(item){
+    const deadline = item.deadline ? ` • <small>Due: ${item.deadline}</small>` : '';
+    return `
+      <div class="card" draggable="true" data-id="${item.id}">
+        <strong>${item.company}</strong> — ${item.role} ${deadline}<br/>
+        <small>${item.link ? `<a href="${item.link}" target="_blank">Job link</a>` : ''}</small>
+        ${item.notes ? `<div style="margin-top:4px;color:#7a6a55;font-size:13px">${item.notes}</div>`:''}
+      </div>`;
+  }
+  function renderBoard(){
+    ['to_apply','applied','interviewing','offer'].forEach(col=>{
+      const wrap = document.querySelector(`[data-drop="${col}"]`);
+      wrap.innerHTML = board[col].map(cardHTML).join('');
+    });
+    updateCounts();
+    enableDnD();
+  }
+
+  // drag & drop
+  function enableDnD(){
+    document.querySelectorAll('.card').forEach(el=>{
+      el.addEventListener('dragstart', e=>{
+        e.dataTransfer.setData('text/plain', el.getAttribute('data-id'));
+        setTimeout(()=> el.style.opacity = .5, 0);
+      });
+      el.addEventListener('dragend', ()=> el.style.opacity = 1);
+    });
+    document.querySelectorAll('.cards').forEach(drop=>{
+      drop.addEventListener('dragover', e=> e.preventDefault());
+      drop.addEventListener('drop', e=>{
+        e.preventDefault();
+        const id = e.dataTransfer.getData('text/plain');
+        const targetCol = drop.getAttribute('data-drop');
+        moveCard(id, targetCol);
+      });
+    });
+  }
+  function moveCard(id, dest){
+    let card=null, fromCol=null;
+    for (const col of ['to_apply','applied','interviewing','offer']) {
+      const idx = board[col].findIndex(x=>x.id===id);
+      if (idx>-1) { card = board[col].splice(idx,1)[0]; fromCol = col; break; }
+    }
+    if (!card) return;
+    board[dest].unshift(card);
+    saveBoard(); renderBoard();
+    if (fromCol==='to_apply' && dest==='applied') bumpToday();
+  }
+
+  // daily/weekly counters
+  function todayKeyDate(){ return new Date().toISOString().slice(0,10); }
+  function getWeekNum(d){ d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dayNum = d.getUTCDay()||7; d.setUTCDate(d.getUTCDate()+4-dayNum); const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1)); return Math.ceil((((d - yearStart) / 86400000) + 1)/7); }
+  function loadToday(){
+    const raw = JSON.parse(localStorage.getItem(KEY_TODAY) || 'null') || { date: todayKeyDate(), count: 0, week: {} };
+    if (raw.date !== todayKeyDate()) { raw.date = todayKeyDate(); raw.count = 0; }
+    return raw;
+  }
+  function saveToday(t){ localStorage.setItem(KEY_TODAY, JSON.stringify(t)); }
+  function bumpToday(){
+    const t = loadToday();
+    t.count += 1;
+    const d = new Date(); const wk = d.getFullYear()+'-W'+getWeekNum(d);
+    t.week[wk] = (t.week[wk]||0) + 1;
+    saveToday(t); reflectToday();
+  }
+  function reflectToday(){
+    const t = loadToday();
+    todayCountEl.textContent = t.count;
+    const d = new Date(); const wk = d.getFullYear()+'-W'+getWeekNum(d);
+    weekCountEl.textContent = t.week[wk] || 0;
+  }
+
+  // modal controls
+  const modalBG = document.getElementById('modalBG');
+  function openModal(){ modalBG.style.display='flex'; }
+  function closeModal(){ modalBG.style.display='none'; clearModal(); }
+  function clearModal(){
+    ['m_company','m_role','m_link','m_deadline','m_notes'].forEach(id=>document.getElementById(id).value='');
+  }
+  function addCard(){
+    const company  = document.getElementById('m_company').value.trim();
+    const role     = document.getElementById('m_role').value.trim();
+    if (!company || !role){ alert('Please enter Company and Role'); return; }
+    const link     = document.getElementById('m_link').value.trim();
+    const deadline = document.getElementById('m_deadline').value;
+    const notes    = document.getElementById('m_notes').value.trim();
+    const id = 'c_' + Math.random().toString(16).slice(2) + Date.now().toString(16);
+    board.to_apply.unshift({ id, company, role, link, deadline, notes, created_at: Date.now() });
+    saveBoard(); renderBoard(); closeModal();
+  }
+
+  // top menu + actions
+  const menu = document.getElementById('menu');
+  document.getElementById('hamBtn').onclick = ()=> menu.style.display = (menu.style.display==='block'?'none':'block');
+  document.getElementById('exportBtn').onclick = (e)=>{ e.preventDefault(); exportBoard(); menu.style.display='none'; };
+  document.getElementById('signoutBtn').onclick = (e)=>{ e.preventDefault(); localStorage.removeItem('jobsprint_profile'); location.href='/signup.html?mode=login'; };
+
+  function exportBoard(){
+    const blob = new Blob([JSON.stringify(board,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'jobsprint_board.json'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // buttons
+  document.getElementById('addBtn').onclick = openModal;
+  document.getElementById('cancelBtn').onclick = closeModal;
+  document.getElementById('saveBtn').onclick = addCard;
+  document.getElementById('resetBtn').onclick = ()=>{
+    if (!confirm('Reset board for this user?')) return;
+    board = { to_apply:[], applied:[], interviewing:[], offer:[] };
+    saveBoard(); renderBoard();
+  };
+
+  // init
+  renderBoard();
+  reflectToday();
+</script>
 </body>
 </html>
