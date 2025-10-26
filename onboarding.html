@@ -172,18 +172,50 @@
     };
 
     // Simulate resume parsing
-    document.getElementById('resume_file').addEventListener('change', () => {
-      setTimeout(() => {
-        document.getElementById('name').value = "Alex Jobseeker";
-        document.getElementById('email').value = "alex@example.com";
-        document.getElementById('phone').value = "+91 9876543210";
-        document.getElementById('city').value = "Bangalore";
-        document.getElementById('dob').value = "1996-05-12";
-        document.getElementById('role').value = "Product Manager";
-        document.getElementById('experience').value = 5;
-        alert("✨ Resume parsed successfully! Dummy data filled.");
-      }, 800);
-    });
+    document.getElementById('resume_file').addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fd = new FormData();
+    fd.append('file', file);
+
+    try {
+      const r = await fetch('/api/parse-resume', { method: 'POST', body: fd });
+      const j = await r.json();
+      if (!r.ok || !j.success) 
+        { alert('Could not parse resume. Use PDF/DOCX or fill manually.'); 
+         return; 
+        }
+      const f = j.fields || {};
+      if (f.name) document.getElementById('name').value = f.name;
+      if (f.email) document.getElementById('email').value = f.email;
+      if (f.phone) document.getElementById('phone').value = f.phone;
+      if (f.city) document.getElementById('city').value = f.city;
+      if (f.dob) document.getElementById('dob').value = f.dob;
+      if (f.role) document.getElementById('role').value = f.role;
+      if (typeof f.experience === 'number') document.getElementById('experience').value = f.experience;
+    
+      alert('✨ Resume parsed!');
+  } 
+    catch (err) 
+    {
+    console.error(err);
+    alert('Parsing failed. Please fill fields manually.');
+    }
+});
+       
+    // document.getElementById('resume_file').addEventListener('change', () => {
+    //   setTimeout(() => {
+    //     document.getElementById('name').value = "Alex Jobseeker";
+    //     document.getElementById('email').value = "alex@example.com";
+    //     document.getElementById('phone').value = "+91 9876543210";
+    //     document.getElementById('city').value = "Bangalore";
+    //     document.getElementById('dob').value = "1996-05-12";
+    //     document.getElementById('role').value = "Product Manager";
+    //     document.getElementById('experience').value = 5;
+    //     alert("✨ Resume parsed successfully! Dummy data filled.");
+    //   }, 800);
+    // });
 
     // Finish onboarding
     document.getElementById('finishBtn').onclick = async () => {
