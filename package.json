@@ -6,6 +6,7 @@
     "@napi-rs/canvas": "^0.1.80",
     "@supabase/supabase-js": "^2.45.0",
     "busboy": "^1.6.0",
+    "canvas": "^3.2.0",
     "mammoth": "^1.11.0",
     "pdf-parse": "^2.4.5",
     "razorpay": "^2.9.5"
