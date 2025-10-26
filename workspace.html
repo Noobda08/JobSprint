@@ -40,7 +40,7 @@
   .btn.ghost{background:#fff;border:1px solid #f2caa6;color:#a25a1b}
 
   /* Board */
-  .board{max-width:1200px;margin:14px auto;padding:0 16px 40px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+  .board{max-width:1200px;margin:14px auto;padding:0 16px 40px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
   .lane{background:rgba(255,255,255,.88);border:1px solid #f2caa6;border-radius:16px;min-height:320px;display:flex;flex-direction:column}
   .lanehead{padding:12px 12px 10px;border-bottom:1px solid #f5d6b8;display:flex;flex-direction:column;gap:6px;min-height:148px}
   .lanehead-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -48,8 +48,14 @@
   .lane-desc{margin:6px 0 0;font-size:12px;color:#9f9f9f;line-height:1.4}
   .count{font-size:12px;color:#9a6a3a;background:#fff5eb;border:1px solid #f2caa6;border-radius:999px;padding:2px 8px}
   .cards{flex:1;padding:10px;display:grid;gap:10px}
-  .card{background:#fff;border:1px solid #f2caa6;border-radius:12px;padding:10px;box-shadow:var(--shadow);cursor:grab}
+  .card{background:#fff;border:1px solid #f2caa6;border-radius:12px;padding:12px;box-shadow:var(--shadow);cursor:grab;display:flex;flex-direction:column;gap:8px}
+  .card strong{font-weight:600}
   .card small{color:var(--muted)}
+  .card-header{font-size:14px;line-height:1.4}
+  .card-role{color:#7a6a55;font-size:13px}
+  .card-badges{display:flex;flex-wrap:wrap;gap:6px}
+  .card-badge{background:#fff5eb;border:1px solid #f2caa6;border-radius:999px;padding:2px 8px;font-size:11px;color:#8a5d2b;white-space:nowrap}
+  .card-badge.more{background:#ffe8d6;color:#a2591b;font-weight:600}
   .empty{flex:1;display:grid;place-items:center;color:#b07a45;font-size:13px;padding:18px}
 
   /* Modal */
@@ -61,6 +67,42 @@
   textarea{min-height:80px;resize:vertical}
 
   .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+  .section{margin-top:16px;padding:14px;border:1px solid #f5d6b8;border-radius:12px;background:#fff8f2}
+  .section h4{margin:0 0 8px;font-size:15px}
+  .fit-panel button{margin-top:6px}
+  .fit-results{margin-top:10px;border-top:1px solid #f2e0ce;padding-top:10px;font-size:13px;color:#6b5234}
+  .fit-band{display:inline-flex;align-items:center;gap:6px;margin-left:6px;font-size:12px;padding:2px 8px;border-radius:999px;background:#ffe5cc;color:#9a5b1f}
+  .fit-list{margin:6px 0 0;padding-left:18px}
+  .badge-pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #f2caa6;border-radius:999px;padding:4px 10px;font-size:12px;color:#9a5b1f}
+  .questions-add{display:flex;gap:8px;margin-bottom:10px}
+  .questions-add input{flex:1}
+  .question-item{border:1px solid #f2d6b6;border-radius:12px;margin-bottom:10px;background:#fff}
+  .question-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #f5e2cf}
+  .question-head input{flex:1;border:none;padding:0;font-weight:600;color:#7a4e23}
+  .question-head button{background:none;border:0;font-size:16px;cursor:pointer;color:#a56a33}
+  .question-body{padding:12px;display:none;flex-direction:column;gap:10px}
+  .question-body textarea{min-height:90px}
+  .stage-details{margin-top:14px}
+  .stage-details h5{margin:0 0 6px;font-size:14px;color:#8a5d2b}
+  .stage-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stage-grid.full{grid-template-columns:1fr}
+  .stage-note{font-size:12px;color:#8f7357;margin-top:4px}
+  .stage-round{display:flex;flex-direction:column;gap:6px;border:1px solid #f2d6b6;border-radius:10px;padding:10px;background:#fff8f2;margin-bottom:10px}
+  .stage-round .row-inline{display:flex;gap:8px}
+  .stage-round .row-inline input{flex:1}
+  .stage-round button{align-self:flex-end}
+  .drawerBG{position:fixed;inset:0;display:none;align-items:stretch;justify-content:flex-end;background:rgba(0,0,0,.25);z-index:40}
+  .drawer{width:min(360px,90vw);background:#fff;height:100%;border-left:1px solid #f0d3b5;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .drawer-head{padding:14px 16px;border-bottom:1px solid #f5e2cf;display:flex;align-items:center;justify-content:space-between}
+  .drawer-head h4{margin:0;font-size:16px}
+  .drawer-body{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+  .drawer-body .msg{padding:10px 12px;border-radius:10px;max-width:90%;font-size:13px;line-height:1.4}
+  .drawer-body .msg.user{background:#ffe5cc;align-self:flex-end}
+  .drawer-body .msg.ai{background:#f6f6f6;border:1px solid #ececec;align-self:flex-start}
+  .drawer-input{padding:12px 16px;border-top:1px solid #f5e2cf;display:flex;flex-direction:column;gap:8px}
+  .drawer-input textarea{min-height:70px}
+  .toast{position:fixed;top:20px;right:20px;background:#fff;border:1px solid #f0d3b5;border-radius:12px;box-shadow:var(--shadow);padding:12px 16px;font-size:13px;color:#724b1c;display:none;z-index:60}
+  .toggle-switch{display:flex;align-items:center;gap:8px;font-size:13px;color:#7a4e23}
   @media (max-width: 980px){ .board{grid-template-columns:1fr 1fr} }
   @media (max-width: 640px){ .board{grid-template-columns:1fr} .row{grid-template-columns:1fr} .pill{display:none} }
 </style>
@@ -98,6 +140,14 @@
 
   <!-- board -->
   <div class="board" id="board">
+    <div class="lane" data-col="research">
+      <div class="lanehead">
+        <div class="lanehead-top"><h3>Research / To Apply</h3><span class="count" data-count="research">0</span></div>
+        <p class="lane-desc">Track roles you&rsquo;re exploring, prepping, or yet to apply for.</p>
+      </div>
+      <div class="cards" data-drop="research"></div>
+      <div class="empty">Drag Applications here</div>
+    </div>
     <div class="lane" data-col="applied">
       <div class="lanehead">
         <div class="lanehead-top"><h3>Applied</h3><span class="count" data-count="applied">0</span></div>
@@ -124,7 +174,7 @@
     </div>
     <div class="lane" data-col="offer">
       <div class="lanehead">
-        <div class="lanehead-top"><h3>Offer Recieved</h3><span class="count" data-count="offer">0</span></div>
+        <div class="lanehead-top"><h3>Offer Received</h3><span class="count" data-count="offer">0</span></div>
         <p class="lane-desc">Move your application to this stage when you&rsquo;ve received a verbal or written offer.</p>
       </div>
       <div class="cards" data-drop="offer"></div>
@@ -165,20 +215,65 @@
     </div>
     <label style="margin-top:10px">Notes</label>
     <textarea id="m_notes" placeholder="Anything important about this application..."></textarea>
+
+    <div class="section" id="jobDescSection">
+      <h4>Job Description</h4>
+      <textarea id="m_jobdesc" placeholder="Paste JD here"></textarea>
+    </div>
+
+    <div class="section fit-panel">
+      <h4 style="display:flex;align-items:center;gap:8px">Fit Analysis</h4>
+      <p style="margin:0;font-size:12px;color:#8a6d4d">Use your profile and the JD to understand how well you match.</p>
+      <button class="btn ghost" id="analyzeFitBtn" type="button" style="align-self:flex-start">Analyze Fit</button>
+      <div class="fit-results" id="fitResults" style="display:none"></div>
+    </div>
+
+    <div class="section" id="questionsSection">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px">
+        <h4 style="margin:0">Application Questions</h4>
+        <button class="btn ghost" type="button" id="openChatBtn" style="white-space:nowrap">Open AI Chat</button>
+      </div>
+      <div class="questions-add">
+        <input id="questionInput" placeholder="Add question"/>
+        <button class="btn" type="button" id="addQuestionBtn">Add</button>
+      </div>
+      <div id="questionsList"></div>
+    </div>
+
+    <div class="section stage-details" id="stageDetailsSection">
+      <h4 style="margin-bottom:4px">Stage Details</h4>
+      <div id="stageDetailsContent"></div>
+    </div>
+
     <div class="actions">
       <button class="btn ghost" id="deleteBtn" style="margin-right:auto;display:none">Delete</button>
       <button class="btn ghost" id="cancelBtn">Cancel</button>
+      <button class="btn ghost" id="markAppliedBtn" style="display:none">Mark as Applied</button>
       <button class="btn" id="saveBtn">Add</button>
     </div>
   </div>
 </div>
 
+<div class="drawerBG" id="chatDrawer" aria-hidden="true">
+  <div class="drawer">
+    <div class="drawer-head">
+      <h4>AI Chat Assistant</h4>
+      <button class="btn ghost" id="closeChatBtn" style="padding:6px 10px;font-size:12px">Close</button>
+    </div>
+    <div class="drawer-body" id="chatBody"></div>
+    <div class="drawer-input">
+      <textarea id="chatInput" placeholder="Ask the assistant anything about this application..."></textarea>
+      <button class="btn" id="chatSendBtn">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-  // --- session & per-user storage keys ---
   const qs = new URLSearchParams(location.search);
   const token = qs.get('u') || (JSON.parse(localStorage.getItem('jobsprint_profile')||'{}').token) || 'guest';
 
-  // ✅ Guard: if no valid session token, send to login
   if (!token || token === 'guest') {
     location.href = '/signup.html?mode=login';
   }
@@ -187,47 +282,133 @@
   const KEY_TODAY = `jobsprint_today_${token}`;
   const profile = JSON.parse(localStorage.getItem('jobsprint_profile') || '{}');
 
-  // initial board state
-  const COLUMNS = ['applied','screening','interviewing','offer','rejected'];
+  const COLUMNS = ['research','applied','screening','interviewing','offer','rejected'];
+  const LANE_TITLES = {
+    research: 'Research / To Apply',
+    applied: 'Applied',
+    screening: 'Screening',
+    interviewing: 'Interviewing',
+    offer: 'Offer Received',
+    rejected: 'Rejected'
+  };
+  const STOP_WORDS = new Set(['about','above','after','again','against','all','also','am','an','and','any','are','as','at','be','because','been','before','being','below','between','both','but','by','can','could','did','do','does','doing','down','during','each','few','for','from','further','had','has','have','having','he','her','here','hers','herself','him','himself','his','how','if','in','into','is','it','its','itself','just','more','most','my','myself','no','nor','not','now','of','off','on','once','only','or','other','our','ours','ourselves','out','over','own','same','she','should','so','some','such','than','that','the','their','theirs','them','themselves','then','there','these','they','this','those','through','to','too','under','until','up','very','was','we','were','what','when','where','which','while','who','whom','why','will','with','you','your','yours','yourself','yourselves']);
 
-  function emptyBoard(){
-    return COLUMNS.reduce((acc,col)=>{ acc[col] = []; return acc; }, {});
+  function generateId(prefix='c') {
+    return `${prefix}_${Math.random().toString(16).slice(2)}${Date.now().toString(16)}`;
   }
 
-  function normalizeBoard(raw){
-    if (!raw) return emptyBoard();
-    if ('to_apply' in raw){
-      return {
-        applied: raw.to_apply || [],
-        screening: raw.applied || [],
-        interviewing: raw.interviewing || [],
-        offer: raw.offer || [],
-        rejected: raw.rejected || []
-      };
+  function getFitBand(score) {
+    if (score >= 80) return 'High';
+    if (score >= 60) return 'Medium';
+    return 'Low';
+  }
+
+  function createBlankCard() {
+    return {
+      company: '',
+      role: '',
+      link: '',
+      deadline: '',
+      notes: '',
+      jobDescription: '',
+      resumeVersion: 'Resume v1',
+      savedAt: Date.now(),
+      fit: { score: null, band: '', matches: [], missing: [] },
+      appliedInfo: { date: '', source: '' },
+      screeningInfo: { replied: false, assessmentDue: '', infoShared: '' },
+      interviewingRounds: [],
+      offerInfo: { ctc: '', joiningDate: '', status: '' },
+      rejectedInfo: { reason: '', date: '' },
+      questions: [],
+      created_at: Date.now()
+    };
+  }
+
+  function upgradeCard(card) {
+    if (!card) return { ...createBlankCard(), id: generateId('c') };
+    const upgraded = { ...createBlankCard() };
+    upgraded.id = card.id || generateId('c');
+    upgraded.company = card.company || '';
+    upgraded.role = card.role || '';
+    upgraded.link = card.link || '';
+    upgraded.deadline = card.deadline || '';
+    upgraded.notes = card.notes || '';
+    upgraded.jobDescription = card.jobDescription || card.job_description || '';
+    upgraded.resumeVersion = card.resumeVersion || card.resume_version || upgraded.resumeVersion;
+    upgraded.savedAt = card.savedAt || card.saved_at || card.created_at || upgraded.savedAt;
+    upgraded.created_at = card.created_at || upgraded.created_at;
+    if (card.fit || typeof card.fit_score === 'number') {
+      const fitScore = card.fit?.score ?? card.fit_score;
+      upgraded.fit.score = typeof fitScore === 'number' ? Math.max(0, Math.min(100, Math.round(fitScore))) : null;
+      upgraded.fit.matches = Array.isArray(card.fit?.matches) ? card.fit.matches : (Array.isArray(card.fit_matches) ? card.fit_matches : []);
+      upgraded.fit.missing = Array.isArray(card.fit?.missing) ? card.fit.missing : (Array.isArray(card.fit_missing) ? card.fit_missing : []);
+      upgraded.fit.band = card.fit?.band || (upgraded.fit.score != null ? getFitBand(upgraded.fit.score) : '');
     }
+    upgraded.appliedInfo = {
+      date: card.appliedInfo?.date || card.applied_date || '',
+      source: card.appliedInfo?.source || card.source || ''
+    };
+    upgraded.screeningInfo = {
+      replied: card.screeningInfo?.replied ?? false,
+      assessmentDue: card.screeningInfo?.assessmentDue || card.assessment_due || '',
+      infoShared: card.screeningInfo?.infoShared || card.info_shared || ''
+    };
+    upgraded.interviewingRounds = Array.isArray(card.interviewingRounds)
+      ? card.interviewingRounds.map(r => ({ id: r.id || generateId('r'), name: r.name || '', datetime: r.datetime || '' }))
+      : [];
+    upgraded.offerInfo = {
+      ctc: card.offerInfo?.ctc || card.ctc || '',
+      joiningDate: card.offerInfo?.joiningDate || card.joiningDate || '',
+      status: card.offerInfo?.status || card.offer_status || ''
+    };
+    upgraded.rejectedInfo = {
+      reason: card.rejectedInfo?.reason || card.rejectionReason || '',
+      date: card.rejectedInfo?.date || card.rejectionDate || ''
+    };
+    upgraded.questions = Array.isArray(card.questions)
+      ? card.questions.map(q => ({ id: q.id || generateId('q'), prompt: q.prompt || '', answer: q.answer || '' }))
+      : [];
+    return upgraded;
+  }
+
+  function emptyBoard() {
+    return COLUMNS.reduce((acc, col) => { acc[col] = []; return acc; }, {});
+  }
+
+  function normalizeBoard(raw) {
     const shaped = emptyBoard();
-    COLUMNS.forEach(col=>{
-      if (Array.isArray(raw[col])) shaped[col] = raw[col];
+    if (!raw || typeof raw !== 'object') return shaped;
+    if ('to_apply' in raw) {
+      shaped.research = (raw.to_apply || []).map(upgradeCard);
+      shaped.applied = (raw.applied || []).map(upgradeCard);
+      shaped.screening = (raw.screening || []).map(upgradeCard);
+      shaped.interviewing = (raw.interviewing || []).map(upgradeCard);
+      shaped.offer = (raw.offer || []).map(upgradeCard);
+      shaped.rejected = (raw.rejected || []).map(upgradeCard);
+      return shaped;
+    }
+    COLUMNS.forEach(col => {
+      if (Array.isArray(raw[col])) {
+        shaped[col] = raw[col].map(upgradeCard);
+      }
     });
     return shaped;
   }
 
   let board = normalizeBoard(JSON.parse(localStorage.getItem(KEY_BOARD) || 'null'));
 
-  // UI refs
   const userLine = document.getElementById('userLine');
-  const goalNum  = document.getElementById('goalNum');
+  const goalNum = document.getElementById('goalNum');
   const todayCountEl = document.getElementById('todayCount');
-  const weekCountEl  = document.getElementById('weekCount');
+  const weekCountEl = document.getElementById('weekCount');
 
-  // ✅ Hydrate header from backend by token; fallback to local
   (async () => {
     try {
-      const r = await fetch('/api/get-user-by-token?token=' + encodeURIComponent(token), { headers:{'cache-control':'no-cache'} });
+      const r = await fetch('/api/get-user-by-token?token=' + encodeURIComponent(token), { headers: { 'cache-control': 'no-cache' } });
       if (r.ok) {
         const data = await r.json();
         if (data.found) {
-          const merged = { ...(profile||{}), name: data.name, email: data.email, applications_goal_per_day: data.goal_per_day, token };
+          const merged = { ...(profile || {}), name: data.name, email: data.email, applications_goal_per_day: data.goal_per_day, token };
           localStorage.setItem('jobsprint_profile', JSON.stringify(merged));
           userLine.textContent = data.name ? `Hello, ${data.name}` : 'Welcome back';
           goalNum.textContent = data.goal_per_day || 4;
@@ -242,46 +423,118 @@
     }
   })();
 
-  // counts & rendering
-  function updateCounts(){
-    COLUMNS.forEach(col=>{
-      const c = board[col].length;
-      document.querySelector(`[data-count="${col}"]`).textContent = c;
+  function saveBoard() {
+    localStorage.setItem(KEY_BOARD, JSON.stringify(board));
+  }
+
+  function formatShortDate(input) {
+    if (!input) return '';
+    const date = typeof input === 'number' ? new Date(input) : new Date(input);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(undefined, { day: '2-digit', month: 'short' });
+  }
+
+  function formatDateTimeDisplay(value) {
+    if (!value) return '';
+    const dt = new Date(value);
+    if (Number.isNaN(dt.getTime())) return value;
+    const day = dt.toLocaleDateString(undefined, { weekday: 'short' });
+    const time = dt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    return `${day} ${time}`;
+  }
+
+  function escapeHtml(str) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' };
+    return (str || '').replace(/[&<>"']/g, ch => map[ch] || ch);
+  }
+
+  function getCardBadges(card, stage) {
+    const badges = [];
+    if (stage === 'research') {
+      if (card.fit?.score != null) badges.push(`Fit Score ${card.fit.score}%`);
+      if (card.resumeVersion) badges.push(card.resumeVersion);
+      const saved = formatShortDate(card.savedAt);
+      if (saved) badges.push(`Saved ${saved}`);
+    } else if (stage === 'applied') {
+      const appliedDate = card.appliedInfo?.date || '';
+      const formatted = formatShortDate(appliedDate);
+      if (formatted) badges.push(`Applied ${formatted}`);
+      if (card.appliedInfo?.source) badges.push(`Source: ${card.appliedInfo.source}`);
+    } else if (stage === 'screening') {
+      if (card.screeningInfo?.replied) badges.push('Replied');
+      const due = formatShortDate(card.screeningInfo?.assessmentDue);
+      if (due) badges.push(`Assessment due ${due}`);
+      if (card.screeningInfo?.infoShared) badges.push('Info shared');
+    } else if (stage === 'interviewing') {
+      (card.interviewingRounds || []).forEach(round => {
+        if (!round) return;
+        const name = round.name || 'Round';
+        const schedule = formatDateTimeDisplay(round.datetime);
+        badges.push(`${name}${schedule ? ` ${schedule}` : ''}`.trim());
+      });
+    } else if (stage === 'offer') {
+      if (card.offerInfo?.ctc) badges.push(`CTC: ${card.offerInfo.ctc}`);
+      const joining = formatShortDate(card.offerInfo?.joiningDate);
+      if (joining) badges.push(`Joining ${joining}`);
+      if (card.offerInfo?.status) badges.push(`Status: ${card.offerInfo.status}`);
+    } else if (stage === 'rejected') {
+      if (card.rejectedInfo?.reason) badges.push(`Reason: ${card.rejectedInfo.reason}`);
+      const rejectDate = formatShortDate(card.rejectedInfo?.date);
+      if (rejectDate) badges.push(`Date ${rejectDate}`);
+    }
+    return badges.filter(Boolean);
+  }
+
+  function cardHTML(card, stage) {
+    const header = `<div class="card-header"><strong>${escapeHtml(card.company || 'Company')}</strong> — <span class="card-role">${escapeHtml(card.role || 'Role TBD')}</span></div>`;
+    const badges = getCardBadges(card, stage);
+    const visible = badges.slice(0, 5).map(text => `<span class="card-badge">${escapeHtml(text)}</span>`).join('');
+    const overflow = badges.length > 5 ? `<span class="card-badge more">+${badges.length - 5}</span>` : '';
+    const linkUrl = card.link ? escapeHtml(card.link) : '';
+    const link = card.link ? `<div><small><a href="${linkUrl}" target="_blank" rel="noopener">Job link</a></small></div>` : '';
+    const notes = card.notes ? `<div style="color:#7a6a55;font-size:13px">${escapeHtml(card.notes).replace(/\n/g,'<br/>')}</div>` : '';
+    return `
+      <div class="card" draggable="true" data-id="${card.id}">
+        ${header}
+        ${badges.length ? `<div class="card-badges">${visible}${overflow}</div>` : ''}
+        ${link}
+        ${notes}
+      </div>
+    `;
+  }
+
+  function updateCounts() {
+    COLUMNS.forEach(col => {
+      const count = board[col].length;
+      const badge = document.querySelector(`[data-count="${col}"]`);
+      if (badge) badge.textContent = count;
       const lane = document.querySelector(`.lane[data-col="${col}"]`);
-      lane.querySelector('.empty').style.display = c ? 'none' : 'grid';
+      if (lane) lane.querySelector('.empty').style.display = count ? 'none' : 'grid';
     });
   }
-  function saveBoard(){ localStorage.setItem(KEY_BOARD, JSON.stringify(board)); }
-  function cardHTML(item){
-    const deadline = item.deadline ? ` • <small>Due: ${item.deadline}</small>` : '';
-    return `
-      <div class="card" draggable="true" data-id="${item.id}">
-        <strong>${item.company}</strong> — ${item.role} ${deadline}<br/>
-        <small>${item.link ? `<a href="${item.link}" target="_blank">Job link</a>` : ''}</small>
-        ${item.notes ? `<div style="margin-top:4px;color:#7a6a55;font-size:13px">${item.notes}</div>`:''}
-      </div>`;
-  }
-  function renderBoard(){
-    COLUMNS.forEach(col=>{
+
+  function renderBoard() {
+    COLUMNS.forEach(col => {
       const wrap = document.querySelector(`[data-drop="${col}"]`);
-      wrap.innerHTML = board[col].map(cardHTML).join('');
+      if (!wrap) return;
+      wrap.innerHTML = board[col].map(card => cardHTML(card, col)).join('');
     });
     updateCounts();
     enableDnD();
+    attachCardActions();
   }
 
-  // drag & drop
-  function enableDnD(){
-    document.querySelectorAll('.card').forEach(el=>{
-      el.addEventListener('dragstart', e=>{
+  function enableDnD() {
+    document.querySelectorAll('.card').forEach(el => {
+      el.addEventListener('dragstart', e => {
         e.dataTransfer.setData('text/plain', el.getAttribute('data-id'));
-        setTimeout(()=> el.style.opacity = .5, 0);
+        setTimeout(() => el.style.opacity = 0.5, 0);
       });
-      el.addEventListener('dragend', ()=> el.style.opacity = 1);
+      el.addEventListener('dragend', () => el.style.opacity = 1);
     });
-    document.querySelectorAll('.cards').forEach(drop=>{
-      drop.addEventListener('dragover', e=> e.preventDefault());
-      drop.addEventListener('drop', e=>{
+    document.querySelectorAll('.cards').forEach(drop => {
+      drop.addEventListener('dragover', e => e.preventDefault());
+      drop.addEventListener('drop', e => {
         e.preventDefault();
         const id = e.dataTransfer.getData('text/plain');
         const targetCol = drop.getAttribute('data-drop');
@@ -289,167 +542,836 @@
       });
     });
   }
-  function moveCard(id, dest){
+
+  function handleStageChange(card, from, dest) {
+    if (dest === 'research' && !card.savedAt) {
+      card.savedAt = Date.now();
+    }
+    if (dest === 'applied' && from !== 'applied') {
+      if (!card.appliedInfo) card.appliedInfo = { date: '', source: '' };
+      if (!card.appliedInfo.date) card.appliedInfo.date = todayKeyDate();
+      if (!card.appliedInfo.source) card.appliedInfo.source = 'Manual';
+      bumpToday();
+    }
+    if (dest === 'screening') {
+      if (!card.screeningInfo) card.screeningInfo = { replied: false, assessmentDue: '', infoShared: '' };
+      card.screeningInfo.replied = true;
+      if (!card.screeningInfo.infoShared) card.screeningInfo.infoShared = 'Pending';
+    }
+    if (dest === 'rejected' && !card.rejectedInfo?.date) {
+      if (!card.rejectedInfo) card.rejectedInfo = { reason: '', date: '' };
+      card.rejectedInfo.date = todayKeyDate();
+    }
+  }
+
+  function moveCard(id, dest) {
     if (!COLUMNS.includes(dest)) return;
-    let card=null, fromCol=null;
+    let card = null;
+    let fromCol = null;
+    let index = -1;
     for (const col of COLUMNS) {
-      const idx = board[col].findIndex(x=>x.id===id);
-      if (idx>-1) { card = board[col].splice(idx,1)[0]; fromCol = col; break; }
+      index = board[col].findIndex(x => x.id === id);
+      if (index > -1) {
+        card = board[col][index];
+        fromCol = col;
+        board[col].splice(index, 1);
+        break;
+      }
     }
     if (!card) return;
+    card = upgradeCard(card);
+    handleStageChange(card, fromCol, dest);
     board[dest].unshift(card);
-    saveBoard(); renderBoard();
+    saveBoard();
+    renderBoard();
   }
 
-  // daily/weekly counters
-  function todayKeyDate(){ return new Date().toISOString().slice(0,10); }
-  function getWeekNum(d){ d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const dayNum = d.getUTCDay()||7; d.setUTCDate(d.getUTCDate()+4-dayNum); const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1)); return Math.ceil((((d - yearStart) / 86400000) + 1)/7); }
-  function loadToday(){
-    const raw = JSON.parse(localStorage.getItem(KEY_TODAY) || 'null') || { date: todayKeyDate(), count: 0, week: {} };
-    if (raw.date !== todayKeyDate()) { raw.date = todayKeyDate(); raw.count = 0; }
-    return raw;
-  }
-  function saveToday(t){ localStorage.setItem(KEY_TODAY, JSON.stringify(t)); }
-  function bumpToday(){
-    const t = loadToday();
-    t.count += 1;
-    const d = new Date(); const wk = d.getFullYear()+'-W'+getWeekNum(d);
-    t.week[wk] = (t.week[wk]||0) + 1;
-    saveToday(t); reflectToday();
-  }
-  function reflectToday(){
-    const t = loadToday();
-    todayCountEl.textContent = t.count;
-    const d = new Date(); const wk = d.getFullYear()+'-W'+getWeekNum(d);
-    weekCountEl.textContent = t.week[wk] || 0;
-  }
-
-  // modal controls
-  const modalBG = document.getElementById('modalBG');
-  const modalTitle = document.getElementById('modalTitle');
-  const saveBtn = document.getElementById('saveBtn');
-  const deleteBtn = document.getElementById('deleteBtn');
-  let editingCardId = null;
-
-  function setModalVisibility(show){
-    modalBG.style.display = show ? 'flex' : 'none';
-    modalBG.setAttribute('aria-hidden', show ? 'false' : 'true');
-  }
-
-  function clearModal(){
-    ['m_company','m_role','m_link','m_deadline','m_notes'].forEach(id=>document.getElementById(id).value='');
-  }
-
-  function openModalForNew(){
-    editingCardId = null;
-    modalTitle.textContent = 'New Application';
-    saveBtn.textContent = 'Add';
-    deleteBtn.style.display = 'none';
-    clearModal();
-    setModalVisibility(true);
-    document.getElementById('m_company').focus();
-  }
-
-  function locateCard(id){
-    for (const col of COLUMNS){
-      const idx = board[col].findIndex(x=>x.id===id);
-      if (idx>-1){
+  function locateCard(id) {
+    for (const col of COLUMNS) {
+      const idx = board[col].findIndex(x => x.id === id);
+      if (idx > -1) {
         return { col, idx, card: board[col][idx] };
       }
     }
     return null;
   }
 
-  function openModalForEdit(id){
-    const located = locateCard(id);
-    if (!located) return;
-    editingCardId = id;
-    const { card } = located;
-    modalTitle.textContent = 'Edit Application';
-    saveBtn.textContent = 'Save changes';
-    deleteBtn.style.display = 'inline-flex';
-    document.getElementById('m_company').value = card.company || '';
-    document.getElementById('m_role').value = card.role || '';
-    document.getElementById('m_link').value = card.link || '';
-    document.getElementById('m_deadline').value = card.deadline || '';
-    document.getElementById('m_notes').value = card.notes || '';
-    setModalVisibility(true);
-    document.getElementById('m_company').focus();
+  function todayKeyDate() {
+    return new Date().toISOString().slice(0, 10);
   }
 
-  function closeModal(){
-    setModalVisibility(false);
-    editingCardId = null;
-    clearModal();
+  function getWeekNum(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   }
 
-  function upsertCard(){
-    const company  = document.getElementById('m_company').value.trim();
-    const role     = document.getElementById('m_role').value.trim();
-    if (!company || !role){ alert('Please enter Company and Role'); return; }
-    const link     = document.getElementById('m_link').value.trim();
-    const deadline = document.getElementById('m_deadline').value;
-    const notes    = document.getElementById('m_notes').value.trim();
-    if (editingCardId){
-      const located = locateCard(editingCardId);
-      if (!located) { closeModal(); return; }
-      board[located.col][located.idx] = { ...board[located.col][located.idx], company, role, link, deadline, notes };
-    } else {
-      const id = 'c_' + Math.random().toString(16).slice(2) + Date.now().toString(16);
-      board.applied.unshift({ id, company, role, link, deadline, notes, created_at: Date.now() });
-      bumpToday();
+  function loadToday() {
+    const raw = JSON.parse(localStorage.getItem(KEY_TODAY) || 'null') || { date: todayKeyDate(), count: 0, week: {} };
+    if (raw.date !== todayKeyDate()) {
+      raw.date = todayKeyDate();
+      raw.count = 0;
     }
-    saveBoard(); renderBoard(); closeModal();
+    return raw;
   }
 
-  function deleteCard(){
-    if (!editingCardId) { closeModal(); return; }
-    const located = locateCard(editingCardId);
-    if (!located) { closeModal(); return; }
-    if (!confirm('Delete this application?')) return;
-    board[located.col].splice(located.idx, 1);
-    saveBoard(); renderBoard(); closeModal();
+  function saveToday(t) {
+    localStorage.setItem(KEY_TODAY, JSON.stringify(t));
   }
 
-  // top menu + actions
-  const menu = document.getElementById('menu');
-  document.getElementById('hamBtn').onclick = ()=> menu.style.display = (menu.style.display==='block'?'none':'block');
-  document.getElementById('exportBtn').onclick = (e)=>{ e.preventDefault(); exportBoard(); menu.style.display='none'; };
-  document.getElementById('signoutBtn').onclick = (e)=>{ e.preventDefault(); localStorage.removeItem('jobsprint_profile'); location.href='/signup.html?mode=login'; };
-
-  function exportBoard(){
-    const blob = new Blob([JSON.stringify(board,null,2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'jobsprint_board.json'; a.click();
-    URL.revokeObjectURL(url);
+  function bumpToday() {
+    const t = loadToday();
+    t.count += 1;
+    const d = new Date();
+    const wk = d.getFullYear() + '-W' + getWeekNum(d);
+    t.week[wk] = (t.week[wk] || 0) + 1;
+    saveToday(t);
+    reflectToday();
   }
 
-  // buttons
-  document.getElementById('addBtn').onclick = openModalForNew;
-  document.getElementById('cancelBtn').onclick = closeModal;
-  document.getElementById('saveBtn').onclick = upsertCard;
-  document.getElementById('deleteBtn').onclick = deleteCard;
-  document.getElementById('resetBtn').onclick = ()=>{
-    if (!confirm('Reset board for this user?')) return;
-    board = emptyBoard();
-    saveBoard(); renderBoard();
-  };
+  function reflectToday() {
+    const t = loadToday();
+    todayCountEl.textContent = t.count;
+    const d = new Date();
+    const wk = d.getFullYear() + '-W' + getWeekNum(d);
+    weekCountEl.textContent = t.week[wk] || 0;
+  }
 
-  // init
-  function attachCardActions(){
-    document.querySelectorAll('.card').forEach(el=>{
-      el.addEventListener('click', e=>{
-        if (e.target.closest('a')) return;
+  const modalBG = document.getElementById('modalBG');
+  const modalTitle = document.getElementById('modalTitle');
+  const saveBtn = document.getElementById('saveBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const markAppliedBtn = document.getElementById('markAppliedBtn');
+  const companyInput = document.getElementById('m_company');
+  const roleInput = document.getElementById('m_role');
+  const linkInput = document.getElementById('m_link');
+  const deadlineInput = document.getElementById('m_deadline');
+  const notesInput = document.getElementById('m_notes');
+  const jobDescEl = document.getElementById('m_jobdesc');
+  const fitResultsEl = document.getElementById('fitResults');
+  const analyzeFitBtn = document.getElementById('analyzeFitBtn');
+  const questionInput = document.getElementById('questionInput');
+  const questionsListEl = document.getElementById('questionsList');
+  const addQuestionBtn = document.getElementById('addQuestionBtn');
+  const openChatBtn = document.getElementById('openChatBtn');
+  const stageDetailsContent = document.getElementById('stageDetailsContent');
+  const chatDrawer = document.getElementById('chatDrawer');
+  const chatBody = document.getElementById('chatBody');
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const closeChatBtn = document.getElementById('closeChatBtn');
+  const toastEl = document.getElementById('toast');
+
+  let editingCardId = null;
+  let workingCol = 'research';
+  let workingIndex = -1;
+  let modalStage = 'research';
+  let workingCard = null;
+  let questionExpansion = {};
+  let chatHistory = [];
+  let toastTimer = null;
+
+  function setModalVisibility(show) {
+    modalBG.style.display = show ? 'flex' : 'none';
+    modalBG.setAttribute('aria-hidden', show ? 'false' : 'true');
+  }
+
+  function attachCardActions() {
+    document.querySelectorAll('.card').forEach(el => {
+      el.addEventListener('click', evt => {
+        if (evt.target.closest('a')) return;
         const id = el.getAttribute('data-id');
         openModalForEdit(id);
       });
     });
   }
 
-  const originalEnableDnD = enableDnD;
-  enableDnD = function(){
-    originalEnableDnD();
-    attachCardActions();
+  function populateModal() {
+    if (!workingCard) return;
+    companyInput.value = workingCard.company || '';
+    roleInput.value = workingCard.role || '';
+    linkInput.value = workingCard.link || '';
+    deadlineInput.value = workingCard.deadline || '';
+    notesInput.value = workingCard.notes || '';
+    jobDescEl.value = workingCard.jobDescription || '';
+    renderFitResults();
+    renderQuestionsList();
+    renderStageDetails();
+    markAppliedBtn.style.display = editingCardId && modalStage === 'research' ? 'inline-flex' : 'none';
+  }
+
+  function openModalForNew() {
+    editingCardId = null;
+    workingCard = { ...createBlankCard(), id: generateId('c') };
+    workingCol = 'research';
+    workingIndex = -1;
+    modalStage = 'research';
+    questionExpansion = {};
+    chatHistory = [];
+    modalTitle.textContent = 'New Application';
+    saveBtn.textContent = 'Add';
+    deleteBtn.style.display = 'none';
+    markAppliedBtn.style.display = 'none';
+    populateModal();
+    setModalVisibility(true);
+    companyInput.focus();
+  }
+
+  function openModalForEdit(id) {
+    const located = locateCard(id);
+    if (!located) return;
+    editingCardId = id;
+    workingCol = located.col;
+    workingIndex = located.idx;
+    modalStage = located.col;
+    workingCard = upgradeCard(JSON.parse(JSON.stringify(located.card)));
+    workingCard.id = id;
+    questionExpansion = {};
+    workingCard.questions.forEach(q => { questionExpansion[q.id] = true; });
+    chatHistory = [];
+    modalTitle.textContent = 'Edit Application';
+    saveBtn.textContent = 'Save changes';
+    deleteBtn.style.display = 'inline-flex';
+    populateModal();
+    setModalVisibility(true);
+    companyInput.focus();
+  }
+
+  function closeModal() {
+    setModalVisibility(false);
+    editingCardId = null;
+    workingCard = null;
+    chatHistory = [];
+    questionExpansion = {};
+    closeChat();
+  }
+
+  function renderFitResults() {
+    if (!workingCard) return;
+    const fit = workingCard.fit || { score: null, matches: [], missing: [] };
+    if (fit.score == null) {
+      fitResultsEl.style.display = 'none';
+      fitResultsEl.innerHTML = '';
+      return;
+    }
+    fitResultsEl.style.display = 'block';
+    const band = fit.band || getFitBand(fit.score);
+    const matchesList = (fit.matches || []).length
+      ? `<ul class="fit-list">${fit.matches.map(m => `<li>${escapeHtml(m)}</li>`).join('')}</ul>`
+      : '<div class="stage-note">No matches yet — add strengths to your profile.</div>';
+    const missingList = (fit.missing || []).length
+      ? `<ul class="fit-list">${fit.missing.map(m => `<li>${escapeHtml(m)}</li>`).join('')}</ul>`
+      : '<div class="stage-note">Looks great — no major gaps identified.</div>';
+    fitResultsEl.innerHTML = `
+      <div><strong>Fit Score:</strong> ${fit.score}% <span class="fit-band">${band}</span></div>
+      <div style="margin-top:8px;font-weight:600">Matches</div>
+      ${matchesList}
+      <div style="margin-top:8px;font-weight:600">Missing skills</div>
+      ${missingList}
+    `;
+  }
+
+  function extractKeywords(text, limit = 15) {
+    const counts = {};
+    (text || '').toLowerCase().match(/\b[a-z]{3,}\b/g)?.forEach(word => {
+      if (STOP_WORDS.has(word)) return;
+      counts[word] = (counts[word] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([word]) => word);
+  }
+
+  function toTitle(word) {
+    return word ? word.charAt(0).toUpperCase() + word.slice(1) : '';
+  }
+
+  function analyzeFit() {
+    if (!workingCard) return;
+    const jd = jobDescEl.value.trim();
+    if (!jd) {
+      alert('Paste the job description first.');
+      return;
+    }
+    const keywords = extractKeywords(jd, 20);
+    const profileText = [
+      profile?.career_story?.strengths,
+      profile?.career_story?.journey,
+      profile?.career_story?.flow_state_work,
+      profile?.career_story?.current_vs_next,
+      profile?.career_story?.long_term_vision,
+      profile?.role,
+      notesInput.value
+    ].filter(Boolean).join(' ').toLowerCase();
+    const userTokens = new Set((profileText.match(/\b[a-z]{3,}\b/g) || []).filter(word => !STOP_WORDS.has(word)));
+    const matches = [];
+    const missing = [];
+    keywords.forEach(word => {
+      if (userTokens.has(word)) matches.push(toTitle(word));
+      else missing.push(toTitle(word));
+    });
+    const total = keywords.length || 1;
+    let score = Math.round((matches.length / total) * 100);
+    if (!Number.isFinite(score)) score = 0;
+    score = Math.max(0, Math.min(100, score));
+    workingCard.fit = {
+      score,
+      band: getFitBand(score),
+      matches,
+      missing
+    };
+    renderFitResults();
+  }
+
+  function generateAnswer(prompt) {
+    const jd = jobDescEl.value.trim();
+    const matches = (workingCard?.fit?.matches || []).slice(0, 3);
+    const focus = matches.length ? matches.join(', ') : 'my relevant experience and quick learning';
+    const headline = extractKeywords(jd, 1)[0];
+    const intro = headline ? `The role emphasizes ${headline}, which aligns with` : 'The role aligns with';
+    return `For “${prompt}”, I would highlight how ${intro} ${focus}. I can share a recent example that shows measurable impact and outline the next steps I’m taking for this opportunity.`;
+  }
+
+  function renderQuestionsList() {
+    questionsListEl.innerHTML = '';
+    if (!workingCard || !workingCard.questions.length) {
+      const note = document.createElement('div');
+      note.className = 'stage-note';
+      note.textContent = 'Add prompts to draft answers before forms or screenings.';
+      questionsListEl.appendChild(note);
+      return;
+    }
+    workingCard.questions.forEach(q => {
+      if (!(q.id in questionExpansion)) questionExpansion[q.id] = false;
+      const item = document.createElement('div');
+      item.className = 'question-item';
+      item.dataset.id = q.id;
+      const head = document.createElement('div');
+      head.className = 'question-head';
+      const qInputEl = document.createElement('input');
+      qInputEl.type = 'text';
+      qInputEl.value = q.prompt;
+      qInputEl.placeholder = 'Question';
+      qInputEl.addEventListener('input', e => { q.prompt = e.target.value; });
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.textContent = questionExpansion[q.id] ? '▴' : '▾';
+      toggleBtn.addEventListener('click', () => {
+        questionExpansion[q.id] = !questionExpansion[q.id];
+        renderQuestionsList();
+      });
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.textContent = '✕';
+      removeBtn.style.color = '#a56a33';
+      removeBtn.addEventListener('click', () => {
+        workingCard.questions = workingCard.questions.filter(itemQ => itemQ.id !== q.id);
+        delete questionExpansion[q.id];
+        renderQuestionsList();
+      });
+      head.append(qInputEl, toggleBtn, removeBtn);
+      const body = document.createElement('div');
+      body.className = 'question-body';
+      body.style.display = questionExpansion[q.id] ? 'flex' : 'none';
+      const answerArea = document.createElement('textarea');
+      answerArea.value = q.answer || '';
+      answerArea.addEventListener('input', e => { q.answer = e.target.value; });
+      const regenBtn = document.createElement('button');
+      regenBtn.type = 'button';
+      regenBtn.className = 'btn ghost';
+      regenBtn.textContent = 'Regenerate suggestion';
+      regenBtn.addEventListener('click', () => {
+        q.answer = generateAnswer(q.prompt || 'this question');
+        renderQuestionsList();
+      });
+      body.append(answerArea, regenBtn);
+      item.append(head, body);
+      questionsListEl.appendChild(item);
+    });
+  }
+
+  function addQuestionFromInput() {
+    if (!workingCard) return;
+    const text = questionInput.value.trim();
+    if (!text) return;
+    const question = { id: generateId('q'), prompt: text, answer: generateAnswer(text) };
+    workingCard.questions.push(question);
+    questionExpansion[question.id] = true;
+    questionInput.value = '';
+    renderQuestionsList();
+  }
+
+  function renderStageDetails() {
+    stageDetailsContent.innerHTML = '';
+    if (!workingCard) return;
+    const note = document.createElement('div');
+    note.className = 'stage-note';
+    note.textContent = `Details shown on cards in the “${LANE_TITLES[modalStage]}” lane.`;
+    stageDetailsContent.appendChild(note);
+    const builder = {
+      research: buildResearchDetails,
+      applied: buildAppliedDetails,
+      screening: buildScreeningDetails,
+      interviewing: buildInterviewingDetails,
+      offer: buildOfferDetails,
+      rejected: buildRejectedDetails
+    }[modalStage];
+    if (builder) {
+      stageDetailsContent.appendChild(builder());
+    }
+  }
+
+  function buildResearchDetails() {
+    const grid = document.createElement('div');
+    grid.className = 'stage-grid';
+    const resumeWrap = document.createElement('div');
+    const resumeLabel = document.createElement('label');
+    resumeLabel.textContent = 'Resume version';
+    const resumeInput = document.createElement('input');
+    resumeInput.id = 'stage_resume';
+    resumeInput.value = workingCard.resumeVersion || 'Resume v1';
+    resumeInput.addEventListener('input', e => { workingCard.resumeVersion = e.target.value || 'Resume v1'; });
+    resumeWrap.append(resumeLabel, resumeInput);
+    const savedWrap = document.createElement('div');
+    const savedLabel = document.createElement('label');
+    savedLabel.textContent = 'Saved on';
+    const savedInput = document.createElement('input');
+    savedInput.type = 'date';
+    savedInput.id = 'stage_saved';
+    const savedValue = workingCard.savedAt ? new Date(workingCard.savedAt).toISOString().slice(0, 10) : todayKeyDate();
+    savedInput.value = savedValue;
+    savedInput.addEventListener('change', e => {
+      if (e.target.value) {
+        const date = new Date(e.target.value);
+        if (!Number.isNaN(date.getTime())) workingCard.savedAt = date.getTime();
+      }
+    });
+    savedWrap.append(savedLabel, savedInput);
+    grid.append(resumeWrap, savedWrap);
+    return grid;
+  }
+
+  function buildAppliedDetails() {
+    const grid = document.createElement('div');
+    grid.className = 'stage-grid';
+    const dateWrap = document.createElement('div');
+    const dateLabel = document.createElement('label');
+    dateLabel.textContent = 'Applied on';
+    const dateInput = document.createElement('input');
+    dateInput.type = 'date';
+    dateInput.id = 'stage_applied_date';
+    dateInput.value = workingCard.appliedInfo?.date || '';
+    dateInput.addEventListener('change', e => { workingCard.appliedInfo.date = e.target.value; });
+    dateWrap.append(dateLabel, dateInput);
+    const sourceWrap = document.createElement('div');
+    const sourceLabel = document.createElement('label');
+    sourceLabel.textContent = 'Source';
+    const sourceInput = document.createElement('input');
+    sourceInput.type = 'text';
+    sourceInput.id = 'stage_applied_source';
+    sourceInput.placeholder = 'LinkedIn, Referral, ...';
+    sourceInput.value = workingCard.appliedInfo?.source || '';
+    sourceInput.addEventListener('input', e => { workingCard.appliedInfo.source = e.target.value; });
+    sourceWrap.append(sourceLabel, sourceInput);
+    grid.append(dateWrap, sourceWrap);
+    return grid;
+  }
+
+  function buildScreeningDetails() {
+    const container = document.createElement('div');
+    const grid = document.createElement('div');
+    grid.className = 'stage-grid';
+    const statusWrap = document.createElement('div');
+    const statusLabel = document.createElement('label');
+    statusLabel.textContent = 'Status';
+    const toggle = document.createElement('label');
+    toggle.className = 'toggle-switch';
+    const repliedInput = document.createElement('input');
+    repliedInput.type = 'checkbox';
+    repliedInput.id = 'stage_screening_replied';
+    repliedInput.checked = !!workingCard.screeningInfo?.replied;
+    repliedInput.addEventListener('change', e => { workingCard.screeningInfo.replied = e.target.checked; });
+    const repliedText = document.createElement('span');
+    repliedText.textContent = 'Replied';
+    toggle.append(repliedInput, repliedText);
+    statusWrap.append(statusLabel, toggle);
+    const dueWrap = document.createElement('div');
+    const dueLabel = document.createElement('label');
+    dueLabel.textContent = 'Assessment due';
+    const dueInput = document.createElement('input');
+    dueInput.type = 'date';
+    dueInput.id = 'stage_assessment_due';
+    dueInput.value = workingCard.screeningInfo?.assessmentDue || '';
+    dueInput.addEventListener('change', e => { workingCard.screeningInfo.assessmentDue = e.target.value; });
+    dueWrap.append(dueLabel, dueInput);
+    grid.append(statusWrap, dueWrap);
+    const infoWrap = document.createElement('div');
+    infoWrap.className = 'stage-grid full';
+    const infoInner = document.createElement('div');
+    const infoLabel = document.createElement('label');
+    infoLabel.textContent = 'Info shared';
+    const infoTextarea = document.createElement('textarea');
+    infoTextarea.id = 'stage_info_shared';
+    infoTextarea.value = workingCard.screeningInfo?.infoShared || '';
+    infoTextarea.addEventListener('input', e => { workingCard.screeningInfo.infoShared = e.target.value; });
+    infoInner.append(infoLabel, infoTextarea);
+    infoWrap.append(infoInner);
+    container.append(grid, infoWrap);
+    return container;
+  }
+
+  function buildInterviewingDetails() {
+    const container = document.createElement('div');
+    (workingCard.interviewingRounds || []).forEach(round => {
+      const block = document.createElement('div');
+      block.className = 'stage-round';
+      block.dataset.round = round.id;
+      const inline = document.createElement('div');
+      inline.className = 'row-inline';
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.placeholder = 'Round name (Tech 1)';
+      nameInput.value = round.name || '';
+      nameInput.addEventListener('input', e => { round.name = e.target.value; });
+      const dateInput = document.createElement('input');
+      dateInput.type = 'datetime-local';
+      dateInput.value = round.datetime || '';
+      dateInput.addEventListener('change', e => { round.datetime = e.target.value; });
+      inline.append(nameInput, dateInput);
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn ghost';
+      removeBtn.textContent = 'Remove';
+      removeBtn.addEventListener('click', () => {
+        workingCard.interviewingRounds = workingCard.interviewingRounds.filter(r => r.id !== round.id);
+        renderStageDetails();
+      });
+      block.append(inline, removeBtn);
+      container.appendChild(block);
+    });
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'btn ghost';
+    addBtn.textContent = 'Add round';
+    addBtn.addEventListener('click', () => {
+      workingCard.interviewingRounds = workingCard.interviewingRounds || [];
+      workingCard.interviewingRounds.push({ id: generateId('r'), name: '', datetime: '' });
+      renderStageDetails();
+    });
+    container.appendChild(addBtn);
+    if (!workingCard.interviewingRounds.length) {
+      const note = document.createElement('div');
+      note.className = 'stage-note';
+      note.style.marginTop = '6px';
+      note.textContent = 'Track each upcoming interview round with timing.';
+      container.appendChild(note);
+    }
+    return container;
+  }
+
+  function buildOfferDetails() {
+    const container = document.createElement('div');
+    const grid = document.createElement('div');
+    grid.className = 'stage-grid';
+    const ctcWrap = document.createElement('div');
+    const ctcLabel = document.createElement('label');
+    ctcLabel.textContent = 'CTC';
+    const ctcInput = document.createElement('input');
+    ctcInput.type = 'text';
+    ctcInput.id = 'stage_offer_ctc';
+    ctcInput.placeholder = '₹ / $ ...';
+    ctcInput.value = workingCard.offerInfo?.ctc || '';
+    ctcInput.addEventListener('input', e => { workingCard.offerInfo.ctc = e.target.value; });
+    ctcWrap.append(ctcLabel, ctcInput);
+    const joinWrap = document.createElement('div');
+    const joinLabel = document.createElement('label');
+    joinLabel.textContent = 'Joining date';
+    const joinInput = document.createElement('input');
+    joinInput.type = 'date';
+    joinInput.id = 'stage_offer_joining';
+    joinInput.value = workingCard.offerInfo?.joiningDate || '';
+    joinInput.addEventListener('change', e => { workingCard.offerInfo.joiningDate = e.target.value; });
+    joinWrap.append(joinLabel, joinInput);
+    grid.append(ctcWrap, joinWrap);
+    const statusWrap = document.createElement('div');
+    statusWrap.className = 'stage-grid full';
+    const statusInner = document.createElement('div');
+    const statusLabel = document.createElement('label');
+    statusLabel.textContent = 'Status';
+    const statusSelect = document.createElement('select');
+    statusSelect.id = 'stage_offer_status';
+    ['','Verbal','Written'].forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt;
+      option.textContent = opt || 'Select';
+      if ((workingCard.offerInfo?.status || '') === opt) option.selected = true;
+      statusSelect.appendChild(option);
+    });
+    statusSelect.addEventListener('change', e => { workingCard.offerInfo.status = e.target.value; });
+    statusInner.append(statusLabel, statusSelect);
+    statusWrap.append(statusInner);
+    container.append(grid, statusWrap);
+    return container;
+  }
+
+  function buildRejectedDetails() {
+    const grid = document.createElement('div');
+    grid.className = 'stage-grid full';
+    const reasonWrap = document.createElement('div');
+    const reasonLabel = document.createElement('label');
+    reasonLabel.textContent = 'Reason';
+    const reasonArea = document.createElement('textarea');
+    reasonArea.id = 'stage_reject_reason';
+    reasonArea.value = workingCard.rejectedInfo?.reason || '';
+    reasonArea.addEventListener('input', e => { workingCard.rejectedInfo.reason = e.target.value; });
+    reasonWrap.append(reasonLabel, reasonArea);
+    const dateWrap = document.createElement('div');
+    const dateLabel = document.createElement('label');
+    dateLabel.textContent = 'Date';
+    const dateInput = document.createElement('input');
+    dateInput.type = 'date';
+    dateInput.id = 'stage_reject_date';
+    dateInput.value = workingCard.rejectedInfo?.date || '';
+    dateInput.addEventListener('change', e => { workingCard.rejectedInfo.date = e.target.value; });
+    dateWrap.append(dateLabel, dateInput);
+    grid.append(reasonWrap, dateWrap);
+    return grid;
+  }
+
+  function readStageDetailsIntoState() {
+    if (!workingCard) return;
+    if (modalStage === 'research') {
+      const resumeInput = document.getElementById('stage_resume');
+      const savedInput = document.getElementById('stage_saved');
+      if (resumeInput) workingCard.resumeVersion = resumeInput.value || 'Resume v1';
+      if (savedInput && savedInput.value) {
+        const d = new Date(savedInput.value);
+        if (!Number.isNaN(d.getTime())) workingCard.savedAt = d.getTime();
+      }
+    } else if (modalStage === 'applied') {
+      const dateInput = document.getElementById('stage_applied_date');
+      const sourceInput = document.getElementById('stage_applied_source');
+      if (dateInput) workingCard.appliedInfo.date = dateInput.value;
+      if (sourceInput) workingCard.appliedInfo.source = sourceInput.value;
+    } else if (modalStage === 'screening') {
+      const repliedInput = document.getElementById('stage_screening_replied');
+      const dueInput = document.getElementById('stage_assessment_due');
+      const infoInput = document.getElementById('stage_info_shared');
+      if (repliedInput) workingCard.screeningInfo.replied = repliedInput.checked;
+      if (dueInput) workingCard.screeningInfo.assessmentDue = dueInput.value;
+      if (infoInput) workingCard.screeningInfo.infoShared = infoInput.value;
+    } else if (modalStage === 'interviewing') {
+      const rounds = [];
+      document.querySelectorAll('.stage-round').forEach(block => {
+        const id = block.dataset.round || generateId('r');
+        const [nameInput, dateInput] = block.querySelectorAll('input');
+        const name = nameInput?.value.trim() || '';
+        const datetime = dateInput?.value || '';
+        if (name || datetime) rounds.push({ id, name, datetime });
+      });
+      workingCard.interviewingRounds = rounds;
+    } else if (modalStage === 'offer') {
+      const ctcInput = document.getElementById('stage_offer_ctc');
+      const joinInput = document.getElementById('stage_offer_joining');
+      const statusSelect = document.getElementById('stage_offer_status');
+      if (ctcInput) workingCard.offerInfo.ctc = ctcInput.value;
+      if (joinInput) workingCard.offerInfo.joiningDate = joinInput.value;
+      if (statusSelect) workingCard.offerInfo.status = statusSelect.value;
+    } else if (modalStage === 'rejected') {
+      const reasonArea = document.getElementById('stage_reject_reason');
+      const dateInput = document.getElementById('stage_reject_date');
+      if (reasonArea) workingCard.rejectedInfo.reason = reasonArea.value;
+      if (dateInput) workingCard.rejectedInfo.date = dateInput.value;
+    }
+  }
+
+  function syncModalToState() {
+    if (!workingCard) return null;
+    workingCard.company = companyInput.value.trim();
+    workingCard.role = roleInput.value.trim();
+    workingCard.link = linkInput.value.trim();
+    workingCard.deadline = deadlineInput.value;
+    workingCard.notes = notesInput.value.trim();
+    workingCard.jobDescription = jobDescEl.value.trim();
+    readStageDetailsIntoState();
+    return workingCard;
+  }
+
+  function sanitizeCard(raw, existing = {}) {
+    const base = upgradeCard({ ...existing, ...raw });
+    base.id = raw.id || existing.id || generateId('c');
+    base.created_at = existing.created_at || raw.created_at || Date.now();
+    base.questions = (raw.questions || []).map(q => ({ id: q.id || generateId('q'), prompt: q.prompt || '', answer: q.answer || '' }));
+    return base;
+  }
+
+  function upsertCard() {
+    const updated = syncModalToState();
+    if (!updated) return;
+    if (!updated.company || !updated.role) {
+      alert('Please enter Company and Role');
+      return;
+    }
+    if (editingCardId) {
+      const located = locateCard(editingCardId);
+      if (!located) {
+        closeModal();
+        return;
+      }
+      const merged = sanitizeCard({ ...updated, id: editingCardId }, located.card);
+      board[located.col][located.idx] = merged;
+    } else {
+      const newCard = sanitizeCard({ ...updated, id: workingCard.id || generateId('c'), savedAt: updated.savedAt || Date.now() }, {});
+      newCard.created_at = Date.now();
+      board.research.unshift(newCard);
+    }
+    saveBoard();
+    renderBoard();
+    closeModal();
+  }
+
+  function markAsApplied() {
+    if (!editingCardId) return;
+    const located = locateCard(editingCardId);
+    if (!located) return;
+    syncModalToState();
+    const merged = sanitizeCard({ ...workingCard, id: editingCardId }, located.card);
+    board[located.col][located.idx] = merged;
+    moveCard(editingCardId, 'applied');
+    closeModal();
+    showToast('Application marked as Applied.');
+  }
+
+  function deleteCard() {
+    if (!editingCardId) {
+      closeModal();
+      return;
+    }
+    const located = locateCard(editingCardId);
+    if (!located) {
+      closeModal();
+      return;
+    }
+    if (!confirm('Delete this application?')) return;
+    board[located.col].splice(located.idx, 1);
+    saveBoard();
+    renderBoard();
+    closeModal();
+    showToast('Application deleted.');
+  }
+
+  function showToast(message) {
+    toastEl.textContent = message;
+    toastEl.style.display = 'block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toastEl.style.display = 'none';
+    }, 2400);
+  }
+
+  function openChat() {
+    chatDrawer.style.display = 'flex';
+    chatDrawer.setAttribute('aria-hidden', 'false');
+    renderChatHistory();
+    setTimeout(() => chatInput.focus(), 100);
+  }
+
+  function closeChat() {
+    chatDrawer.style.display = 'none';
+    chatDrawer.setAttribute('aria-hidden', 'true');
+  }
+
+  function renderChatHistory() {
+    chatBody.innerHTML = '';
+    if (!chatHistory.length) {
+      const note = document.createElement('div');
+      note.className = 'stage-note';
+      note.textContent = 'Ask the assistant to refine answers or prep for interviews.';
+      chatBody.appendChild(note);
+      return;
+    }
+    chatHistory.forEach(msg => {
+      const bubble = document.createElement('div');
+      bubble.className = `msg ${msg.role}`;
+      bubble.textContent = msg.text;
+      chatBody.appendChild(bubble);
+    });
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  function generateChatResponse(message) {
+    const band = workingCard?.fit?.band;
+    const score = workingCard?.fit?.score;
+    const missing = workingCard?.fit?.missing || [];
+    const focus = missing.length ? `Focus on strengthening ${missing.slice(0, 3).join(', ')}.` : 'Your fit looks solid — emphasize your top achievements.';
+    const keywords = extractKeywords(jobDescEl.value, 3).map(toTitle).join(', ');
+    const jdTip = keywords ? `Highlight ${keywords} from the JD.` : '';
+    return `Thanks for sharing! ${band ? `Current fit: ${band}${score != null ? ` (${score}%)` : ''}. ` : ''}${focus} ${jdTip}`.trim();
+  }
+
+  function sendChat() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    chatHistory.push({ role: 'user', text });
+    const reply = generateChatResponse(text);
+    chatHistory.push({ role: 'ai', text: reply });
+    chatInput.value = '';
+    renderChatHistory();
+  }
+
+  const menu = document.getElementById('menu');
+  document.getElementById('hamBtn').onclick = () => menu.style.display = (menu.style.display === 'block' ? 'none' : 'block');
+  document.getElementById('exportBtn').onclick = e => {
+    e.preventDefault();
+    const blob = new Blob([JSON.stringify(board, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'jobsprint_board.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    menu.style.display = 'none';
+  };
+  document.getElementById('signoutBtn').onclick = e => {
+    e.preventDefault();
+    localStorage.removeItem('jobsprint_profile');
+    location.href = '/signup.html?mode=login';
+  };
+
+  document.getElementById('addBtn').onclick = openModalForNew;
+  document.getElementById('cancelBtn').onclick = closeModal;
+  saveBtn.onclick = upsertCard;
+  deleteBtn.onclick = deleteCard;
+  markAppliedBtn.onclick = markAsApplied;
+  analyzeFitBtn.onclick = analyzeFit;
+  addQuestionBtn.onclick = addQuestionFromInput;
+  questionInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addQuestionFromInput();
+    }
+  });
+  openChatBtn.onclick = openChat;
+  closeChatBtn.onclick = closeChat;
+  chatSendBtn.onclick = sendChat;
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChat();
+    }
+  });
+  chatDrawer.addEventListener('click', e => {
+    if (e.target === chatDrawer) closeChat();
+  });
+
+  document.getElementById('resetBtn').onclick = () => {
+    if (!confirm('Reset board for this user?')) return;
+    board = emptyBoard();
+    saveBoard();
+    renderBoard();
   };
 
   renderBoard();
