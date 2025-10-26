@@ -1,4 +1,20 @@
 // /api/parse-resume.js
+
+// --- polyfills for pdf-parse to run on Vercel ---
+let DOMMatrixPoly, ImageDataPoly, Path2DPoly;
+try {
+  const c = require('canvas');
+  DOMMatrixPoly = c.DOMMatrix;
+  ImageDataPoly = c.ImageData;
+  Path2DPoly = c.Path2D;
+} catch (_) {}
+
+if (typeof global.DOMMatrix === 'undefined' && DOMMatrixPoly) global.DOMMatrix = DOMMatrixPoly;
+if (typeof global.ImageData === 'undefined' && ImageDataPoly) global.ImageData = ImageDataPoly;
+if (typeof global.Path2D === 'undefined' && Path2DPoly) global.Path2D = Path2DPoly;
+// --- end polyfills ---
+
+
 const Busboy = require('busboy');
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
