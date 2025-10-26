@@ -1,6 +1,6 @@
 // /api/parse-resume.js
 
-// --- polyfills for pdf-parse to run on Vercel ---
+// --- polyfills for pdf-parse on Vercel ---
 let DOMMatrixPoly, ImageDataPoly, Path2DPoly;
 try {
   const c = require('canvas');
