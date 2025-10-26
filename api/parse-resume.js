@@ -16,7 +16,9 @@ if (typeof global.Path2D === 'undefined' && Path2DPoly) global.Path2D = Path2DPo
 
 
 const Busboy = require('busboy');
-const pdfParse = require('pdf-parse');
+//const pdfParse = require('pdf-parse');
+const pdfParseMod = require('pdf-parse');
+const pdfParse = pdfParseMod && pdfParseMod.default ? pdfParseMod.default : pdfParseMod;
 const mammoth = require('mammoth');
 
 function extract(text = '') {
