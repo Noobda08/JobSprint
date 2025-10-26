@@ -122,7 +122,7 @@
 <!-- modal -->
 <div class="modalBG" id="modalBG" aria-hidden="true">
   <div class="modal">
-    <h3 style="margin:4px 0 12px">New Application</h3>
+    <h3 style="margin:4px 0 12px" id="modalTitle">New Application</h3>
     <div class="row">
       <div>
         <label>Company</label>
@@ -144,6 +144,7 @@
     <label style="margin-top:10px">Notes</label>
     <textarea id="m_notes" placeholder="Anything important about this application..."></textarea>
     <div class="actions">
+      <button class="btn ghost" id="deleteBtn" style="margin-right:auto;display:none">Delete</button>
       <button class="btn ghost" id="cancelBtn">Cancel</button>
       <button class="btn" id="saveBtn">Add</button>
     </div>
@@ -281,20 +282,87 @@
 
   // modal controls
   const modalBG = document.getElementById('modalBG');
-  function openModal(){ modalBG.style.display='flex'; }
-  function closeModal(){ modalBG.style.display='none'; clearModal(); }
+  const modalTitle = document.getElementById('modalTitle');
+  const saveBtn = document.getElementById('saveBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  let editingCardId = null;
+
+  function setModalVisibility(show){
+    modalBG.style.display = show ? 'flex' : 'none';
+    modalBG.setAttribute('aria-hidden', show ? 'false' : 'true');
+  }
+
   function clearModal(){
     ['m_company','m_role','m_link','m_deadline','m_notes'].forEach(id=>document.getElementById(id).value='');
   }
-  function addCard(){
+
+  function openModalForNew(){
+    editingCardId = null;
+    modalTitle.textContent = 'New Application';
+    saveBtn.textContent = 'Add';
+    deleteBtn.style.display = 'none';
+    clearModal();
+    setModalVisibility(true);
+    document.getElementById('m_company').focus();
+  }
+
+  function locateCard(id){
+    for (const col of ['to_apply','applied','interviewing','offer']){
+      const idx = board[col].findIndex(x=>x.id===id);
+      if (idx>-1){
+        return { col, idx, card: board[col][idx] };
+      }
+    }
+    return null;
+  }
+
+  function openModalForEdit(id){
+    const located = locateCard(id);
+    if (!located) return;
+    editingCardId = id;
+    const { card } = located;
+    modalTitle.textContent = 'Edit Application';
+    saveBtn.textContent = 'Save changes';
+    deleteBtn.style.display = 'inline-flex';
+    document.getElementById('m_company').value = card.company || '';
+    document.getElementById('m_role').value = card.role || '';
+    document.getElementById('m_link').value = card.link || '';
+    document.getElementById('m_deadline').value = card.deadline || '';
+    document.getElementById('m_notes').value = card.notes || '';
+    setModalVisibility(true);
+    document.getElementById('m_company').focus();
+  }
+
+  function closeModal(){
+    setModalVisibility(false);
+    editingCardId = null;
+    clearModal();
+  }
+
+  function upsertCard(){
     const company  = document.getElementById('m_company').value.trim();
     const role     = document.getElementById('m_role').value.trim();
     if (!company || !role){ alert('Please enter Company and Role'); return; }
     const link     = document.getElementById('m_link').value.trim();
     const deadline = document.getElementById('m_deadline').value;
     const notes    = document.getElementById('m_notes').value.trim();
-    const id = 'c_' + Math.random().toString(16).slice(2) + Date.now().toString(16);
-    board.to_apply.unshift({ id, company, role, link, deadline, notes, created_at: Date.now() });
+    if (editingCardId){
+      const located = locateCard(editingCardId);
+      if (!located) { closeModal(); return; }
+      board[located.col][located.idx] = { ...board[located.col][located.idx], company, role, link, deadline, notes };
+    } else {
+      const id = 'c_' + Math.random().toString(16).slice(2) + Date.now().toString(16);
+      board.to_apply.unshift({ id, company, role, link, deadline, notes, created_at: Date.now() });
+    }
+    saveBoard(); renderBoard(); closeModal();
+  }
+
+  function deleteCard(){
+    if (!editingCardId) { closeModal(); return; }
+    const located = locateCard(editingCardId);
+    if (!located) { closeModal(); return; }
+    if (!confirm('Delete this application?')) return;
+    board[located.col].splice(located.idx, 1);
     saveBoard(); renderBoard(); closeModal();
   }
 
@@ -312,9 +380,10 @@
   }
 
   // buttons
-  document.getElementById('addBtn').onclick = openModal;
+  document.getElementById('addBtn').onclick = openModalForNew;
   document.getElementById('cancelBtn').onclick = closeModal;
-  document.getElementById('saveBtn').onclick = addCard;
+  document.getElementById('saveBtn').onclick = upsertCard;
+  document.getElementById('deleteBtn').onclick = deleteCard;
   document.getElementById('resetBtn').onclick = ()=>{
     if (!confirm('Reset board for this user?')) return;
     board = { to_apply:[], applied:[], interviewing:[], offer:[] };
@@ -322,6 +391,22 @@
   };
 
   // init
+  function attachCardActions(){
+    document.querySelectorAll('.card').forEach(el=>{
+      el.addEventListener('click', e=>{
+        if (e.target.closest('a')) return;
+        const id = el.getAttribute('data-id');
+        openModalForEdit(id);
+      });
+    });
+  }
+
+  const originalEnableDnD = enableDnD;
+  enableDnD = function(){
+    originalEnableDnD();
+    attachCardActions();
+  };
+
   renderBoard();
   reflectToday();
 </script>
