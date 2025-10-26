@@ -40,10 +40,12 @@
   .btn.ghost{background:#fff;border:1px solid #f2caa6;color:#a25a1b}
 
   /* Board */
-  .board{max-width:1200px;margin:14px auto;padding:0 16px 40px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .board{max-width:1200px;margin:14px auto;padding:0 16px 40px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
   .lane{background:rgba(255,255,255,.88);border:1px solid #f2caa6;border-radius:16px;min-height:320px;display:flex;flex-direction:column}
-  .lanehead{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 8px;border-bottom:1px solid #f5d6b8}
+  .lanehead{padding:12px 12px 10px;border-bottom:1px solid #f5d6b8}
+  .lanehead-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .lanehead h3{margin:0;font-size:16px}
+  .lane-desc{margin:6px 0 0;font-size:12px;color:#9f9f9f;line-height:1.4}
   .count{font-size:12px;color:#9a6a3a;background:#fff5eb;border:1px solid #f2caa6;border-radius:999px;padding:2px 8px}
   .cards{flex:1;padding:10px;display:grid;gap:10px}
   .card{background:#fff;border:1px solid #f2caa6;border-radius:12px;padding:10px;box-shadow:var(--shadow);cursor:grab}
@@ -96,24 +98,44 @@
 
   <!-- board -->
   <div class="board" id="board">
-    <div class="lane" data-col="to_apply">
-      <div class="lanehead"><h3>To Apply</h3><span class="count" data-count="to_apply">0</span></div>
-      <div class="cards" data-drop="to_apply"></div>
-      <div class="empty">Drag cards here</div>
-    </div>
     <div class="lane" data-col="applied">
-      <div class="lanehead"><h3>Applied</h3><span class="count" data-count="applied">0</span></div>
+      <div class="lanehead">
+        <div class="lanehead-top"><h3>Applied</h3><span class="count" data-count="applied">0</span></div>
+        <p class="lane-desc">Applications you&rsquo;ve submitted and are waiting to hear back on.</p>
+      </div>
       <div class="cards" data-drop="applied"></div>
       <div class="empty">Drag cards here</div>
     </div>
+    <div class="lane" data-col="screening">
+      <div class="lanehead">
+        <div class="lanehead-top"><h3>Screening / Response Received</h3><span class="count" data-count="screening">0</span></div>
+        <p class="lane-desc">Move your application to this stage when a recruiter has replied or requested more information.</p>
+      </div>
+      <div class="cards" data-drop="screening"></div>
+      <div class="empty">Drag cards here</div>
+    </div>
     <div class="lane" data-col="interviewing">
-      <div class="lanehead"><h3>Interviewing</h3><span class="count" data-count="interviewing">0</span></div>
+      <div class="lanehead">
+        <div class="lanehead-top"><h3>Interviewing</h3><span class="count" data-count="interviewing">0</span></div>
+        <p class="lane-desc">Move your application to this stage when interviews have been scheduled or are in progress.</p>
+      </div>
       <div class="cards" data-drop="interviewing"></div>
       <div class="empty">Drag cards here</div>
     </div>
     <div class="lane" data-col="offer">
-      <div class="lanehead"><h3>Offer</h3><span class="count" data-count="offer">0</span></div>
+      <div class="lanehead">
+        <div class="lanehead-top"><h3>Offer</h3><span class="count" data-count="offer">0</span></div>
+        <p class="lane-desc">Move your application to this stage when you&rsquo;ve received a verbal or written offer.</p>
+      </div>
       <div class="cards" data-drop="offer"></div>
+      <div class="empty">Drag cards here</div>
+    </div>
+    <div class="lane" data-col="rejected">
+      <div class="lanehead">
+        <div class="lanehead-top"><h3>Rejected</h3><span class="count" data-count="rejected">0</span></div>
+        <p class="lane-desc">Move your application to this stage when the process didn&rsquo;t move forward or the company declined your application.</p>
+      </div>
+      <div class="cards" data-drop="rejected"></div>
       <div class="empty">Drag cards here</div>
     </div>
   </div>
@@ -166,9 +188,31 @@
   const profile = JSON.parse(localStorage.getItem('jobsprint_profile') || '{}');
 
   // initial board state
-  let board = JSON.parse(localStorage.getItem(KEY_BOARD) || 'null') || {
-    to_apply: [], applied: [], interviewing: [], offer: []
-  };
+  const COLUMNS = ['applied','screening','interviewing','offer','rejected'];
+
+  function emptyBoard(){
+    return COLUMNS.reduce((acc,col)=>{ acc[col] = []; return acc; }, {});
+  }
+
+  function normalizeBoard(raw){
+    if (!raw) return emptyBoard();
+    if ('to_apply' in raw){
+      return {
+        applied: raw.to_apply || [],
+        screening: raw.applied || [],
+        interviewing: raw.interviewing || [],
+        offer: raw.offer || [],
+        rejected: raw.rejected || []
+      };
+    }
+    const shaped = emptyBoard();
+    COLUMNS.forEach(col=>{
+      if (Array.isArray(raw[col])) shaped[col] = raw[col];
+    });
+    return shaped;
+  }
+
+  let board = normalizeBoard(JSON.parse(localStorage.getItem(KEY_BOARD) || 'null'));
 
   // UI refs
   const userLine = document.getElementById('userLine');
@@ -200,7 +244,7 @@
 
   // counts & rendering
   function updateCounts(){
-    ['to_apply','applied','interviewing','offer'].forEach(col=>{
+    COLUMNS.forEach(col=>{
       const c = board[col].length;
       document.querySelector(`[data-count="${col}"]`).textContent = c;
       const lane = document.querySelector(`.lane[data-col="${col}"]`);
@@ -218,7 +262,7 @@
       </div>`;
   }
   function renderBoard(){
-    ['to_apply','applied','interviewing','offer'].forEach(col=>{
+    COLUMNS.forEach(col=>{
       const wrap = document.querySelector(`[data-drop="${col}"]`);
       wrap.innerHTML = board[col].map(cardHTML).join('');
     });
@@ -246,15 +290,15 @@
     });
   }
   function moveCard(id, dest){
+    if (!COLUMNS.includes(dest)) return;
     let card=null, fromCol=null;
-    for (const col of ['to_apply','applied','interviewing','offer']) {
+    for (const col of COLUMNS) {
       const idx = board[col].findIndex(x=>x.id===id);
       if (idx>-1) { card = board[col].splice(idx,1)[0]; fromCol = col; break; }
     }
     if (!card) return;
     board[dest].unshift(card);
     saveBoard(); renderBoard();
-    if (fromCol==='to_apply' && dest==='applied') bumpToday();
   }
 
   // daily/weekly counters
@@ -307,7 +351,7 @@
   }
 
   function locateCard(id){
-    for (const col of ['to_apply','applied','interviewing','offer']){
+    for (const col of COLUMNS){
       const idx = board[col].findIndex(x=>x.id===id);
       if (idx>-1){
         return { col, idx, card: board[col][idx] };
@@ -352,7 +396,8 @@
       board[located.col][located.idx] = { ...board[located.col][located.idx], company, role, link, deadline, notes };
     } else {
       const id = 'c_' + Math.random().toString(16).slice(2) + Date.now().toString(16);
-      board.to_apply.unshift({ id, company, role, link, deadline, notes, created_at: Date.now() });
+      board.applied.unshift({ id, company, role, link, deadline, notes, created_at: Date.now() });
+      bumpToday();
     }
     saveBoard(); renderBoard(); closeModal();
   }
@@ -386,7 +431,7 @@
   document.getElementById('deleteBtn').onclick = deleteCard;
   document.getElementById('resetBtn').onclick = ()=>{
     if (!confirm('Reset board for this user?')) return;
-    board = { to_apply:[], applied:[], interviewing:[], offer:[] };
+    board = emptyBoard();
     saveBoard(); renderBoard();
   };
 
