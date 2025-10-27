@@ -15,11 +15,13 @@ if (typeof global.Path2D === 'undefined' && Path2DPoly) global.Path2D = Path2DPo
 // --- end polyfills ---
 
 
+const crypto = require('crypto');
 const Busboy = require('busboy');
 //const pdfParse = require('pdf-parse');
 const pdfParseMod = require('pdf-parse');
 const pdfParse = pdfParseMod && pdfParseMod.default ? pdfParseMod.default : pdfParseMod;
 const mammoth = require('mammoth');
+const { supabaseAdmin } = require('./_supabase');
 
 function extract(text = '') {
   const firstLine = text.split('\n').map(s => s.trim()).find(Boolean) || null;
@@ -46,6 +48,8 @@ module.exports = async function handler(req, res) {
     let fileBuffer = Buffer.alloc(0);
     let filename = '';
     let mime = '';
+    let googleId = '';
+    let email = '';
 
     await new Promise((resolve, reject) => {
       bb.on('file', (_field, file, info) => {
@@ -53,6 +57,10 @@ module.exports = async function handler(req, res) {
         mime = info.mimeType || info.mime || '';
         file.on('data', d => { fileBuffer = Buffer.concat([fileBuffer, d]); });
         file.on('end', () => {});
+      });
+      bb.on('field', (name, value) => {
+        if (name === 'google_id') googleId = value?.trim?.() || '';
+        if (name === 'email') email = value?.trim?.() || '';
       });
       bb.on('error', reject);
       bb.on('finish', resolve);
@@ -76,7 +84,53 @@ module.exports = async function handler(req, res) {
 
     if (!text.trim()) return res.status(422).json({ error: 'empty', detail: 'Could not read text' });
 
-    return res.status(200).json({ success: true, fields: extract(text) });
+    let resumePath = null;
+    let publicUrl = null;
+
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      try {
+        const bucket = supabaseAdmin.storage.from('resumes');
+        const ext = (filename.includes('.') ? filename.split('.').pop() : '') || '';
+        const safeExt = ext ? `.${ext.replace(/[^a-z0-9]/gi, '')}` : '';
+        const baseName = safeExt ? filename.slice(0, -ext.length - 1) : filename;
+        const base = baseName.replace(/[^a-z0-9._-]/gi, '_') || 'resume';
+        const unique = `${Date.now()}-${crypto.randomUUID()}`;
+        const prefix = googleId ? googleId.replace(/[^a-z0-9/_-]/gi, '') + '/' : '';
+        resumePath = `${prefix}${unique}-${base}${safeExt}`;
+
+        const { error: uploadErr } = await bucket.upload(resumePath, fileBuffer, {
+          contentType: mime || 'application/octet-stream',
+          upsert: true
+        });
+
+        if (uploadErr) {
+          console.error('resume upload failed:', uploadErr);
+          resumePath = null;
+        } else {
+          const { data: publicData } = bucket.getPublicUrl(resumePath);
+          publicUrl = publicData?.publicUrl || null;
+        }
+      } catch (uploadEx) {
+        console.error('resume upload exception:', uploadEx);
+        resumePath = null;
+        publicUrl = null;
+      }
+    } else {
+      console.warn('Supabase environment variables missing; skipping resume upload.');
+    }
+
+    return res.status(200).json({
+      success: true,
+      fields: extract(text),
+      resume: {
+        path: resumePath,
+        public_url: publicUrl,
+        original_filename: filename,
+        mime,
+        google_id: googleId || null,
+        email: email || null
+      }
+    });
   } catch (e) {
     console.error('parse-resume error:', e);
     return res.status(500).json({ error: 'server_error', detail: String(e) });
