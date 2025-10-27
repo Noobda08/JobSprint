@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const { supabase } = require('./_supabase');
 
+let bucketEnsured = false;
+
 module.exports.config = { api: { bodyParser: false } };
 
 module.exports = async function handler(req, res) {
@@ -25,11 +27,37 @@ module.exports = async function handler(req, res) {
     }
 
     try {
+      const bucketName = 'resumes';
+
+      // Ensure the bucket exists before attempting an upload. This makes local/dev
+      // setups more forgiving when the bucket has not been created manually yet.
+      if (!bucketEnsured) {
+        try {
+          const { data: bucketData, error: bucketErr } = await supabase.storage.getBucket(bucketName);
+          if (bucketErr || !bucketData) {
+            const { error: createErr } = await supabase.storage.createBucket(bucketName, {
+              public: true,
+            });
+            if (createErr && !/already exists/i.test(createErr.message || '')) {
+              throw createErr;
+            }
+          }
+          bucketEnsured = true;
+        } catch (bucketError) {
+          console.error('[upload-resume] Bucket check/creation failed:', bucketError);
+          return res.status(500).json({
+            success: false,
+            error:
+              'Could not access the "resumes" storage bucket. Ensure the Supabase service role key is configured and the bucket exists.',
+          });
+        }
+      }
+
       const buffer = fs.readFileSync(file.filepath);
 
       const orig = file.originalFilename || path.basename(file.filepath);
       const ext = (orig.split('.').pop() || 'bin').toLowerCase();
-      const key = `resumes/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const key = `${bucketName}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
       const contentType =
         ext === 'pdf'
@@ -41,7 +69,7 @@ module.exports = async function handler(req, res) {
           : 'application/octet-stream';
 
       const { error: upErr } = await supabase.storage
-        .from('resumes')
+        .from(bucketName)
         .upload(key, buffer, { contentType, upsert: false });
 
       // remove temp file (fire-and-forget)
@@ -52,7 +80,7 @@ module.exports = async function handler(req, res) {
         return res.status(500).json({ success: false, error: upErr.message || 'Upload failed' });
       }
 
-      const { data } = supabase.storage.from('resumes').getPublicUrl(key);
+      const { data } = supabase.storage.from(bucketName).getPublicUrl(key);
       const url = data?.publicUrl;
       if (!url) {
         console.error('[upload-resume] No public URL generated');
