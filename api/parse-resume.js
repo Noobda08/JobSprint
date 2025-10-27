@@ -17,9 +17,43 @@ if (typeof global.Path2D === 'undefined' && Path2DPoly) global.Path2D = Path2DPo
 
 const crypto = require('crypto');
 const Busboy = require('busboy');
-//const pdfParse = require('pdf-parse');
-const pdfParseMod = require('pdf-parse');
-const pdfParse = pdfParseMod && pdfParseMod.default ? pdfParseMod.default : pdfParseMod;
+let pdfParseLoadError = null;
+let pdfParse = null;
+
+function resolvePdfParseExport(mod) {
+  if (!mod) return null;
+  if (typeof mod === 'function') return mod;
+  if (typeof mod.pdfParse === 'function') return mod.pdfParse.bind(mod);
+  if (typeof mod.parse === 'function') return mod.parse.bind(mod);
+  if (mod.default) return resolvePdfParseExport(mod.default);
+  const firstFn = Object.values(mod).find(v => typeof v === 'function');
+  return firstFn ? firstFn.bind(mod) : null;
+}
+
+try {
+  const mod = require('pdf-parse');
+  pdfParse = resolvePdfParseExport(mod);
+  if (!pdfParse) {
+    const fallback = require('pdf-parse/lib/pdf-parse.js');
+    pdfParse = resolvePdfParseExport(fallback);
+  }
+  if (!pdfParse) {
+    pdfParseLoadError = new Error('pdf-parse module did not expose a callable parser');
+  }
+} catch (err) {
+  if (err?.code === 'ERR_REQUIRE_ESM') {
+    pdfParse = async (...args) => {
+      const imported = await import('pdf-parse');
+      const fn = resolvePdfParseExport(imported);
+      if (!fn) throw new Error('pdf-parse ESM module did not expose a callable parser');
+      return fn(...args);
+    };
+    pdfParseLoadError = null;
+  } else {
+    pdfParseLoadError = err;
+  }
+}
+
 const mammoth = require('mammoth');
 const { supabaseAdmin } = require('./_supabase');
 
@@ -386,8 +420,17 @@ module.exports = async function handler(req, res) {
     let text = '';
 
     if (lower.endsWith('.pdf') || mime.includes('pdf')) {
-      const parsed = await pdfParse(fileBuffer);
-      text = parsed.text || '';
+      if (!pdfParse || pdfParseLoadError) {
+        const reason = pdfParseLoadError ? pdfParseLoadError.message : 'missing pdf-parse export';
+        return res.status(500).json({ error: 'pdf_parser_unavailable', detail: reason });
+      }
+      let parsed;
+      try {
+        parsed = await pdfParse(fileBuffer);
+      } catch (err) {
+        return res.status(500).json({ error: 'pdf_parse_failed', detail: err?.message || 'Unknown pdf-parse error' });
+      }
+      text = parsed?.text || '';
     } else if (lower.endsWith('.docx') || mime.includes('wordprocessingml')) {
       const { value } = await mammoth.extractRawText({ buffer: fileBuffer });
       text = value || '';
