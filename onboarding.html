@@ -188,10 +188,11 @@
     try {
       const r = await fetch('/api/parse-resume', { method: 'POST', body: fd });
       const j = await r.json();
-      if (!r.ok || !j.success)
-        { alert('Could not parse resume. Use PDF/DOCX or fill manually.');
-         return;
-        }
+      if (!r.ok || !j.success) {
+        const reason = j?.detail || j?.error || 'Use PDF/DOCX or fill manually.';
+        alert(`Could not parse resume. ${reason}`);
+        return;
+      }
       const f = j.fields || {};
       const resumeMeta = j.resume || {};
       uploadedResume = {
@@ -205,13 +206,19 @@
       if (f.dob) document.getElementById('dob').value = f.dob;
       if (f.role) document.getElementById('role').value = f.role;
       if (typeof f.experience === 'number') document.getElementById('experience').value = f.experience;
-    
-      alert('✨ Resume parsed!');
-  } 
-    catch (err) 
+
+      const confidence = f._confidence || j.parsed?._confidence;
+      const profileHints = f.profiles || j.parsed?.profiles;
+      console.info('Resume parse confidence', confidence);
+      if (profileHints?.linkedin) console.info('LinkedIn detected:', profileHints.linkedin);
+      if (profileHints?.github) console.info('GitHub detected:', profileHints.github);
+
+      alert('✨ Resume parsed with advanced heuristics! Review and adjust if needed.');
+    }
+    catch (err)
     {
-    console.error(err);
-    alert('Parsing failed. Please fill fields manually.');
+      console.error(err);
+      alert('Parsing failed. Please fill fields manually.');
     }
 });
        
