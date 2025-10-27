@@ -1,248 +1,239 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>JobSprint Onboarding</title>
-
-  <!-- Font & Style -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <meta charset="utf-8" />
+  <title>JobSprint • Onboarding</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body {
-      margin: 0;
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(120deg, #FFF6EC, #FFE0C8);
-      overflow-x: hidden;
-      color: #333;
+    :root { --bg:#f7f8fb; --card:#fff; --text:#131820; --muted:#6b7280; --primary:#2563eb; --border:#e5e7eb; }
+    body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background:var(--bg); color:var(--text); }
+    .wrap { max-width: 920px; margin: 32px auto; padding: 0 16px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+    h1 { font-size: 22px; margin:0 0 8px; }
+    p.lead { color:var(--muted); margin:0 0 16px; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    .row { display:flex; gap:16px; }
+    label { display:block; font-size: 13px; color:#374151; margin-bottom:6px; }
+    input[type="text"], input[type="email"], input[type="date"], input[type="number"], textarea, select {
+      width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; font-size:14px; box-sizing:border-box;
     }
-    .floating {
-      position: absolute;
-      background: rgba(255,255,255,0.3);
-      border-radius: 50%;
-      animation: float 12s infinite ease-in-out;
-      pointer-events: none;
-      z-index: 0;
-    }
-    @keyframes float {
-      0%,100% { transform: translateY(0) rotate(0); }
-      50% { transform: translateY(-30px) rotate(20deg); }
-    }
-    .container {
-      position: relative;
-      z-index: 1;
-      max-width: 720px;
-      margin: 60px auto;
-      background: rgba(255,255,255,0.9);
-      border-radius: 24px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-      padding: 40px 50px;
-      text-align: left;
-      transition: all 0.4s ease;
-    }
-    h1 { margin-top: 0; color: #222; font-size: 28px; }
-    p.sub { color: #555; margin-top: 4px; font-size: 15px; }
-    label { display: block; margin: 16px 0 6px; font-weight: 600; }
-    input, textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 15px;
-    }
-    input:focus, textarea:focus {
-      outline: none; border-color: #ffb36b;
-      box-shadow: 0 0 0 2px rgba(255, 179, 107, 0.3);
-    }
-    textarea { resize: vertical; min-height: 90px; }
-    button {
-      background: #ff9a4f;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 24px;
-      font-weight: 600;
-      font-size: 15px;
-      cursor: pointer;
-      margin-top: 24px;
-      transition: background 0.3s;
-    }
-    button:hover { background: #ff7c1f; }
-    .hidden { display: none; }
-    .step-indicator {
-      text-align: right;
-      font-size: 13px;
-      color: #777;
-      margin-bottom: 20px;
-    }
-    .footer-note {
-      text-align: center;
-      font-size: 13px;
-      color: #666;
-      margin-top: 24px;
-      opacity: 0.8;
-    }
-    .animate-fade {
-      animation: fadeIn 0.5s ease;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    textarea { min-height: 96px; resize: vertical; }
+    .muted { color:var(--muted); font-size:12px; }
+    .actions { display:flex; justify-content:flex-end; gap:12px; margin-top:20px; }
+    button { appearance:none; border:1px solid transparent; background:var(--primary); color:#fff; padding:10px 16px; border-radius:10px; font-weight:600; cursor:pointer; }
+    button.secondary { background:#fff; border-color:var(--border); color:#111827; }
+    .small { font-size:12px; padding:8px 12px; }
+    .inline { display:inline-flex; align-items:center; gap:8px; }
+    .badge { display:inline-block; background:#eef2ff; color:#3730a3; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:600; }
+    .divider { height:1px; background:var(--border); margin:20px 0; }
+    .hint { font-size:12px; color:var(--muted); margin-top:6px; }
+    .success { color:#065f46; }
+    .error { color:#991b1b; }
   </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Let’s set up your profile</h1>
+      <p class="lead">Upload your resume to auto-fill the basics. You can edit anything before you continue.</p>
 
-  <!-- floating doodles -->
-  <div class="floating" style="width:100px;height:100px;top:80px;left:60px;animation-delay:0s;"></div>
-  <div class="floating" style="width:80px;height:80px;bottom:100px;right:120px;animation-delay:4s;"></div>
-  <div class="floating" style="width:60px;height:60px;top:200px;right:50px;animation-delay:2s;"></div>
+      <!-- Resume upload -->
+      <div class="row">
+        <div style="flex:1">
+          <label for="resume_file">Resume (PDF / DOCX)</label>
+          <input type="file" id="resume_file" accept=".pdf,.doc,.docx" />
+          <div id="resume_status" class="hint">We’ll upload and parse this to save you time.</div>
+          <input type="hidden" id="resume_url" />
+        </div>
+        <div style="width:240px">
+          <label>Resume status</label>
+          <div id="resume_badge" class="badge">Not uploaded</div>
+        </div>
+      </div>
 
-  <div class="container animate-fade" id="step1">
-    <div class="step-indicator">Step 1 of 2</div>
-    <h1>Let’s start with your basics 🌱</h1>
-    <p class="sub">Upload your resume and I’ll fill what I can. You can edit anything anytime.</p>
+      <div class="divider"></div>
 
-    <label>Upload Resume (PDF/DOCX)</label>
-    <input type="file" id="resume_file" accept=".pdf,.doc,.docx" />
+      <!-- Basic details -->
+      <div class="grid">
+        <div>
+          <label for="name">Full name</label>
+          <input type="text" id="name" placeholder="Your name" />
+        </div>
+        <div>
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="you@example.com" />
+        </div>
 
-    <label>Full Name</label>
-    <input type="text" id="name" placeholder="Your full name" />
+        <div>
+          <label for="phone">Phone</label>
+          <input type="text" id="phone" placeholder="+91XXXXXXXXXX" />
+        </div>
+        <div>
+          <label for="city">City</label>
+          <input type="text" id="city" placeholder="Noida" />
+        </div>
 
-    <label>Email</label>
-    <input type="email" id="email" placeholder="you@example.com" />
+        <div>
+          <label for="dob">Date of birth</label>
+          <input type="date" id="dob" />
+        </div>
+        <div>
+          <label for="experience">Years of experience</label>
+          <input type="number" id="experience" min="0" step="0.5" placeholder="e.g., 6.5" />
+        </div>
 
-    <label>Phone</label>
-    <input type="text" id="phone" placeholder="+91 9876543210" />
+        <div>
+          <label for="role">Current / Target role</label>
+          <input type="text" id="role" placeholder="Product Manager" />
+        </div>
+        <div>
+          <label for="source">How did you find us? <span class="muted">(optional)</span></label>
+          <select id="source">
+            <option value="">Select</option>
+            <option>LinkedIn</option>
+            <option>Friend / Referral</option>
+            <option>Reddit</option>
+            <option>Search</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
 
-    <label>City</label>
-    <input type="text" id="city" placeholder="Your city" />
+      <div class="divider"></div>
 
-    <label>Date of Birth</label>
-    <input type="date" id="dob" />
+      <!-- Story bits (optional, from your earlier schema) -->
+      <div class="grid">
+        <div>
+          <label for="journey">Your journey (brief)</label>
+          <textarea id="journey" placeholder="Two lines about your journey so far…"></textarea>
+        </div>
+        <div>
+          <label for="strengths">Your strengths</label>
+          <textarea id="strengths" placeholder="Top strengths you bring to a team…"></textarea>
+        </div>
+        <div>
+          <label for="flow">When do you feel in ‘flow’?</label>
+          <textarea id="flow" placeholder="Describe work that energizes you…"></textarea>
+        </div>
+        <div>
+          <label for="nextRole">Current vs next role</label>
+          <textarea id="nextRole" placeholder="What do you do now? What do you want next?"></textarea>
+        </div>
+        <div>
+          <label for="vision">Long-term vision</label>
+          <textarea id="vision" placeholder="Where do you want to be in 3–5 years?"></textarea>
+        </div>
+      </div>
 
-    <label>Current Role</label>
-    <input type="text" id="role" placeholder="e.g., Product Manager" />
+      <div class="actions">
+        <button class="secondary small" id="skipBtn" type="button">Skip for now</button>
+        <button id="finishBtn" type="button">Create my workspace</button>
+      </div>
 
-    <label>Total Experience (years)</label>
-    <input type="number" id="experience" min="0" placeholder="e.g., 5" />
-
-    <button id="nextBtn">Next: Tell your story →</button>
+      <div id="save_status" class="hint" style="margin-top:8px;"></div>
+    </div>
   </div>
-
-  <div class="container hidden animate-fade" id="step2">
-    <div class="step-indicator">Step 2 of 2</div>
-    <h1>Now, let’s talk about <em>you</em> 🌻</h1>
-    <p class="sub">Don’t overthink — just answer from the heart.</p>
-
-    <label>Your career story so far</label>
-    <textarea id="journey" placeholder="How did you get where you are today?"></textarea>
-
-    <label>Your top 2–3 strengths</label>
-    <textarea id="strengths" placeholder="e.g., curiosity, discipline, creativity"></textarea>
-
-    <label>Work that energizes you</label>
-    <textarea id="flow" placeholder="What kind of problems do you love solving?"></textarea>
-
-    <label>Your next role / dream job</label>
-    <textarea id="nextRole" placeholder="What do you want to do next?"></textarea>
-
-    <label>Your long-term career vision</label>
-    <textarea id="vision" placeholder="How do you see yourself growing in 5 years?"></textarea>
-
-    <button id="backBtn">← Back</button>
-    <button id="finishBtn">Finish Setup</button>
-  </div>
-
-  <p class="footer-note">We believe every job seeker deserves structure, clarity, and calm. 🌤️</p>
 
   <script>
-    // Step navigation
-    const step1 = document.getElementById('step1');
-    const step2 = document.getElementById('step2');
-    document.getElementById('nextBtn').onclick = () => {
-      step1.classList.add('hidden');
-      step2.classList.remove('hidden');
-      window.scrollTo({top:0,behavior:'smooth'});
-    };
-    document.getElementById('backBtn').onclick = () => {
-      step2.classList.add('hidden');
-      step1.classList.remove('hidden');
-      window.scrollTo({top:0,behavior:'smooth'});
-    };
-
-    // Simulate resume parsing
-    document.getElementById('resume_file').addEventListener('change', async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const fd = new FormData();
-    fd.append('file', file);
-
-    try {
-      const r = await fetch('/api/parse-resume', { method: 'POST', body: fd });
-      const j = await r.json();
-      if (!r.ok || !j.success) 
-        { alert('Could not parse resume. Use PDF/DOCX or fill manually.'); 
-         return; 
-        }
-      const f = j.fields || {};
-      if (f.name) document.getElementById('name').value = f.name;
-      if (f.email) document.getElementById('email').value = f.email;
-      if (f.phone) document.getElementById('phone').value = f.phone;
-      if (f.city) document.getElementById('city').value = f.city;
-      if (f.dob) document.getElementById('dob').value = f.dob;
-      if (f.role) document.getElementById('role').value = f.role;
-      if (typeof f.experience === 'number') document.getElementById('experience').value = f.experience;
-    
-      alert('✨ Resume parsed!');
-  } 
-    catch (err) 
-    {
-    console.error(err);
-    alert('Parsing failed. Please fill fields manually.');
+    // =========================
+    // Utilities
+    // =========================
+    const $ = (id) => document.getElementById(id);
+    function setBadge(el, text, ok=false) {
+      el.textContent = text;
+      el.style.background = ok ? '#ecfdf5' : '#eef2ff';
+      el.style.color = ok ? '#065f46' : '#3730a3';
     }
-});
-       
-    // document.getElementById('resume_file').addEventListener('change', () => {
-    //   setTimeout(() => {
-    //     document.getElementById('name').value = "Alex Jobseeker";
-    //     document.getElementById('email').value = "alex@example.com";
-    //     document.getElementById('phone').value = "+91 9876543210";
-    //     document.getElementById('city').value = "Bangalore";
-    //     document.getElementById('dob').value = "1996-05-12";
-    //     document.getElementById('role').value = "Product Manager";
-    //     document.getElementById('experience').value = 5;
-    //     alert("✨ Resume parsed successfully! Dummy data filled.");
-    //   }, 800);
-    // });
+    function setStatus(el, text, ok=null) {
+      el.textContent = text;
+      el.className = 'hint' + (ok === true ? ' success' : ok === false ? ' error' : '');
+    }
 
-    // Finish onboarding
-    document.getElementById('finishBtn').onclick = async () => {
-      const params = new URLSearchParams(location.search);
-      const google_id = params.get('google_id');
-      const payment_id = params.get('payment_id');
-      const email = document.getElementById('email').value.trim() || params.get('email');
-      const name = document.getElementById('name').value.trim();
+    // Optionally pull auth/ids from your environment (adjust as per your app)
+    const google_id = localStorage.getItem('google_id') || null;
+    const payment_id = localStorage.getItem('payment_id') || null;
 
-      if (!google_id || !email) { alert('Missing Google sign-in context.'); return; }
+    // =========================
+    // 1) Upload resume → get URL (persist), then parse via your backend parser
+    // =========================
+    async function uploadResumeToSupabase(file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await fetch('/api/upload-resume', { method: 'POST', body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j?.success || !j?.url) throw new Error(j?.error || 'Upload failed');
+      return j.url;
+    }
 
+    // This calls your **server** that wraps `resume_parser_js_robust_node.js`
+    async function parseResumeWithMyLogic(file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await fetch('/api/parse-resume', { method: 'POST', body: fd });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j?.error || 'Parser error');
+      // Expected shape from your parser route:
+      // { name, email, phone, city, dob, role, experience_years }
+      return j || {};
+    }
+
+    $('resume_file').addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setStatus($('resume_status'), 'Uploading resume…');
+      setBadge($('resume_badge'), 'Uploading…');
+
+      try {
+        // 1) Upload & persist
+        const url = await uploadResumeToSupabase(file);
+        $('resume_url').value = url;
+        setBadge($('resume_badge'), 'Uploaded', true);
+        setStatus($('resume_status'), 'Resume uploaded. Parsing…');
+
+        // 2) Parse via your backend parser
+        const f = await parseResumeWithMyLogic(file);
+
+        // 3) Autofill gently (don’t overwrite if user already typed)
+        if (f.name && !$('name').value) $('name').value = f.name;
+        if (f.email && !$('email').value) $('email').value = f.email;
+        if (f.phone && !$('phone').value) $('phone').value = f.phone;
+        if (f.city && !$('city').value) $('city').value = f.city;
+        if (f.dob && !$('dob').value) $('dob').value = f.dob;
+        if (f.role && !$('role').value) $('role').value = f.role;
+        const exp = (typeof f.experience_years === 'number') ? f.experience_years : f.experience;
+        if (typeof exp === 'number' && !$('experience').value) $('experience').value = exp;
+
+        setStatus($('resume_status'), '✨ Uploaded & parsed. You can review/edit the fields above.', true);
+      } catch (err) {
+        console.error(err);
+        setBadge($('resume_badge'), 'Upload failed');
+        setStatus($('resume_status'), 'Could not upload/parse resume. You can still fill the form manually.', false);
+      }
+    });
+
+    // =========================
+    // 2) Save profile (send resume_url too)
+    // =========================
+    $('finishBtn').addEventListener('click', async () => {
       const payload = {
         google_id,
-        email,
-        name,
         payment_id,
-        phone: document.getElementById('phone').value.trim(),
-        city: document.getElementById('city').value.trim(),
-        dob: document.getElementById('dob').value,
-        role: document.getElementById('role').value.trim(),
-        experience: Number(document.getElementById('experience').value || 0),
+        email: $('email').value.trim(),
+        name: $('name').value.trim(),
+        phone: $('phone').value.trim(),
+        city: $('city').value.trim(),
+        dob: $('dob').value || null,
+        role: $('role').value.trim(),
+        experience: Number($('experience').value || 0),
+        source: $('source').value || null,
+        resume_url: $('resume_url').value || null,
         career_story: {
-          journey: document.getElementById('journey').value.trim(),
-          strengths: document.getElementById('strengths').value.trim(),
-          flow_state_work: document.getElementById('flow').value.trim(),
-          current_vs_next: document.getElementById('nextRole').value.trim(),
-          long_term_vision: document.getElementById('vision').value.trim()
+          journey: $('journey').value.trim(),
+          strengths: $('strengths').value.trim(),
+          flow_state_work: $('flow').value.trim(),
+          current_vs_next: $('nextRole').value.trim(),
+          long_term_vision: $('vision').value.trim()
         },
         plan_start: new Date().toISOString().slice(0,10),
         plan_end: new Date(Date.now() + 90*24*60*60*1000).toISOString().slice(0,10),
@@ -250,33 +241,30 @@
         onboarding_step: 'done'
       };
 
-      const finishBtn = document.getElementById('finishBtn');
-      finishBtn.disabled = true;
-      finishBtn.innerText = "Saving...";
+      setStatus($('save_status'), 'Saving your profile…');
 
       try {
-        const resp = await fetch('/api/create-user', {
+        const r = await fetch('/api/create-user', {
           method: 'POST',
-          headers: {'Content-Type':'application/json'},
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        const data = await resp.json();
-        if (!resp.ok || !data.success) {
-          console.error(data);
-          alert("Could not save your onboarding. Please try again.");
-          finishBtn.disabled = false;
-          finishBtn.innerText = "Finish Setup";
-          return;
-        }
-        alert("🎉 Onboarding complete! Redirecting...");
-        window.location.href = data.redirect_url || "/workspace.html";
-      } catch (err) {
-        console.error(err);
-        alert("Something went wrong. Please try again.");
-        finishBtn.disabled = false;
-        finishBtn.innerText = "Finish Setup";
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j?.error || 'Save failed');
+
+        setStatus($('save_status'), '✅ Profile saved. Redirecting to readiness…', true);
+        // redirect to your readiness step (as we planned)
+        window.location.href = '/readiness';
+      } catch (e) {
+        console.error(e);
+        setStatus($('save_status'), 'Could not save your profile. Please try again.', false);
       }
-    };
+    });
+
+    $('skipBtn').addEventListener('click', () => {
+      // Allow skipping (stores minimal state if needed)
+      window.location.href = '/workspace';
+    });
   </script>
 </body>
 </html>
