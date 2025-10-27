@@ -157,6 +157,9 @@
   <p class="footer-note">We believe every job seeker deserves structure, clarity, and calm. 🌤️</p>
 
   <script>
+    const params = new URLSearchParams(location.search);
+    let uploadedResume = { path: null, publicUrl: null };
+
     // Step navigation
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
@@ -178,15 +181,23 @@
 
     const fd = new FormData();
     fd.append('file', file);
+    if (params.get('google_id')) fd.append('google_id', params.get('google_id'));
+    const emailFromParams = params.get('email') || document.getElementById('email').value.trim();
+    if (emailFromParams) fd.append('email', emailFromParams);
 
     try {
       const r = await fetch('/api/parse-resume', { method: 'POST', body: fd });
       const j = await r.json();
-      if (!r.ok || !j.success) 
-        { alert('Could not parse resume. Use PDF/DOCX or fill manually.'); 
-         return; 
+      if (!r.ok || !j.success)
+        { alert('Could not parse resume. Use PDF/DOCX or fill manually.');
+         return;
         }
       const f = j.fields || {};
+      const resumeMeta = j.resume || {};
+      uploadedResume = {
+        path: resumeMeta.path || null,
+        publicUrl: resumeMeta.public_url || null
+      };
       if (f.name) document.getElementById('name').value = f.name;
       if (f.email) document.getElementById('email').value = f.email;
       if (f.phone) document.getElementById('phone').value = f.phone;
@@ -219,7 +230,6 @@
 
     // Finish onboarding
     document.getElementById('finishBtn').onclick = async () => {
-      const params = new URLSearchParams(location.search);
       const google_id = params.get('google_id');
       const payment_id = params.get('payment_id');
       const email = document.getElementById('email').value.trim() || params.get('email');
@@ -237,6 +247,7 @@
         dob: document.getElementById('dob').value,
         role: document.getElementById('role').value.trim(),
         experience: Number(document.getElementById('experience').value || 0),
+        resume_url: uploadedResume.publicUrl || uploadedResume.path || undefined,
         career_story: {
           journey: document.getElementById('journey').value.trim(),
           strengths: document.getElementById('strengths').value.trim(),
