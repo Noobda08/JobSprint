@@ -20,14 +20,85 @@ const Busboy = require('busboy');
 let pdfParseLoadError = null;
 let pdfParse = null;
 
-function resolvePdfParseExport(mod) {
-  if (!mod) return null;
-  if (typeof mod === 'function') return mod;
-  if (typeof mod.pdfParse === 'function') return mod.pdfParse.bind(mod);
-  if (typeof mod.parse === 'function') return mod.parse.bind(mod);
-  if (mod.default) return resolvePdfParseExport(mod.default);
-  const firstFn = Object.values(mod).find(v => typeof v === 'function');
-  return firstFn ? firstFn.bind(mod) : null;
+function isPdfParseClassCandidate(fn) {
+  if (typeof fn !== 'function' || !fn.prototype) return false;
+  const proto = fn.prototype;
+  const hasLoad = typeof proto.load === 'function';
+  const hasGetText = typeof proto.getText === 'function';
+  return hasLoad && hasGetText;
+}
+
+function isClassLike(fn) {
+  if (typeof fn !== 'function' || !fn.prototype) return false;
+  const proto = fn.prototype;
+  const names = Object.getOwnPropertyNames(proto);
+  return names.some(name => name !== 'constructor');
+}
+
+function createPdfParseClassWrapper(Ctor) {
+  return async function parseWithClass(buffer) {
+    const instance = new Ctor({ data: buffer });
+    let text = '';
+    try {
+      if (typeof instance.load === 'function') await instance.load();
+      if (typeof instance.getText === 'function') {
+        const value = await instance.getText();
+        if (typeof value === 'string') {
+          text = value;
+        } else if (value && typeof value.text === 'string') {
+          text = value.text;
+        }
+      }
+    } finally {
+      if (typeof instance.destroy === 'function') {
+        try { await instance.destroy(); } catch (_) {}
+      }
+    }
+    return { text };
+  };
+}
+
+function adaptPdfParseExport(candidate, context) {
+  if (typeof candidate !== 'function') return null;
+  if (isPdfParseClassCandidate(candidate)) return createPdfParseClassWrapper(candidate);
+  if (isClassLike(candidate)) return null;
+  return context ? candidate.bind(context) : candidate;
+}
+
+function resolvePdfParseExport(mod, seen = new Set()) {
+  if (!mod || seen.has(mod)) return null;
+  seen.add(mod);
+
+  if (typeof mod === 'function') {
+    const direct = adaptPdfParseExport(mod);
+    if (direct) return direct;
+  }
+
+  const preferredKeys = ['pdfParse', 'PDFParse', 'parse'];
+  for (const key of preferredKeys) {
+    const value = mod[key];
+    const adapted = adaptPdfParseExport(value, mod);
+    if (adapted) return adapted;
+    if (value && typeof value === 'object') {
+      const nested = resolvePdfParseExport(value, seen);
+      if (nested) return nested;
+    }
+  }
+
+  if (mod.default) {
+    const adaptedDefault = adaptPdfParseExport(mod.default, mod);
+    if (adaptedDefault) return adaptedDefault;
+    const nested = resolvePdfParseExport(mod.default, seen);
+    if (nested) return nested;
+  }
+
+  const values = Object.values(mod);
+  for (const value of values) {
+    const adapted = adaptPdfParseExport(value, mod);
+    if (adapted) return adapted;
+  }
+
+  return null;
 }
 
 try {
@@ -430,7 +501,11 @@ module.exports = async function handler(req, res) {
       } catch (err) {
         return res.status(500).json({ error: 'pdf_parse_failed', detail: err?.message || 'Unknown pdf-parse error' });
       }
-      text = parsed?.text || '';
+      if (typeof parsed === 'string') {
+        text = parsed;
+      } else {
+        text = parsed?.text || '';
+      }
     } else if (lower.endsWith('.docx') || mime.includes('wordprocessingml')) {
       const { value } = await mammoth.extractRawText({ buffer: fileBuffer });
       text = value || '';
@@ -510,3 +585,5 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'server_error', detail: String(e) });
   }
 };
+
+module.exports._resolvePdfParseExport = resolvePdfParseExport;
