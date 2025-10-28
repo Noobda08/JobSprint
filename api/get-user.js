@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
 
     const { data, error } = await supabaseAdmin
       .from('users')
-      .select('token,email,name,profile_complete')  // ⬅ add this
+      .select('token,email,name,profile_complete,phone,city,dob,role,experience,resume_url,career_story')
       .eq('google_id', google_id)
       .maybeSingle();
 
