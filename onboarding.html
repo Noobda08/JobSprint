@@ -158,6 +158,43 @@
 
   <script>
     const params = new URLSearchParams(location.search);
+    const googleId = params.get('google_id');
+    const paymentId = params.get('payment_id');
+    const finishBtn = document.getElementById('finishBtn');
+
+    if (!googleId) {
+      if (finishBtn) {
+        finishBtn.disabled = true;
+        finishBtn.innerText = 'Redirecting...';
+        finishBtn.style.opacity = '0.6';
+        finishBtn.style.cursor = 'not-allowed';
+      }
+      const notice = document.createElement('div');
+      notice.textContent = 'Please sign in with Google to finish onboarding. Redirecting you to sign-up to authenticate.';
+      notice.style.position = 'fixed';
+      notice.style.top = '20px';
+      notice.style.right = '20px';
+      notice.style.padding = '16px 20px';
+      notice.style.background = '#333';
+      notice.style.color = '#fff';
+      notice.style.borderRadius = '12px';
+      notice.style.boxShadow = '0 8px 24px rgba(0,0,0,0.18)';
+      notice.style.zIndex = '1000';
+      notice.style.maxWidth = '320px';
+      notice.style.fontSize = '14px';
+      notice.style.lineHeight = '1.4';
+      document.body.appendChild(notice);
+
+      const redirectParams = new URLSearchParams();
+      if (paymentId) redirectParams.set('payment_id', paymentId);
+      const emailParam = params.get('email');
+      if (emailParam) redirectParams.set('email', emailParam);
+      const redirectQuery = redirectParams.toString();
+      const redirectUrl = `/signup.html${redirectQuery ? `?${redirectQuery}` : ''}`;
+      setTimeout(() => {
+        window.location.replace(redirectUrl);
+      }, 1200);
+    }
     let uploadedResume = { path: null, publicUrl: null };
 
     // Step navigation
@@ -181,7 +218,7 @@
 
     const fd = new FormData();
     fd.append('file', file);
-    if (params.get('google_id')) fd.append('google_id', params.get('google_id'));
+    if (googleId) fd.append('google_id', googleId);
     const emailFromParams = params.get('email') || document.getElementById('email').value.trim();
     if (emailFromParams) fd.append('email', emailFromParams);
 
@@ -237,12 +274,23 @@
 
     // Finish onboarding
     document.getElementById('finishBtn').onclick = async () => {
-      const google_id = params.get('google_id');
-      const payment_id = params.get('payment_id');
+      const google_id = googleId;
+      const payment_id = paymentId;
       const email = document.getElementById('email').value.trim() || params.get('email');
       const name = document.getElementById('name').value.trim();
 
-      if (!google_id || !email) { alert('Missing Google sign-in context.'); return; }
+      if (!google_id) {
+        alert('Please sign in with Google to finish onboarding.');
+        finishBtn.disabled = false;
+        finishBtn.innerText = "Finish Setup";
+        return;
+      }
+      if (!email) {
+        alert('Please add your email so we can keep in touch.');
+        finishBtn.disabled = false;
+        finishBtn.innerText = "Finish Setup";
+        return;
+      }
 
       const payload = {
         google_id,
@@ -268,7 +316,6 @@
         onboarding_step: 'done'
       };
 
-      const finishBtn = document.getElementById('finishBtn');
       finishBtn.disabled = true;
       finishBtn.innerText = "Saving...";
 
