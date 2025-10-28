@@ -408,7 +408,7 @@
       if (r.ok) {
         const data = await r.json();
         if (data.found) {
-          const merged = { ...(profile || {}), name: data.name, email: data.email, applications_goal_per_day: data.goal_per_day, token };
+          const merged = { ...(profile || {}), name: data.name, email: data.email, applications_goal_per_day: data.goal_per_day, google_id: data.google_id, token };
           localStorage.setItem('jobsprint_profile', JSON.stringify(merged));
           userLine.textContent = data.name ? `Hello, ${data.name}` : 'Welcome back';
           goalNum.textContent = data.goal_per_day || 4;
