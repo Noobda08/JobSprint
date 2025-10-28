@@ -125,6 +125,7 @@
       <div class="dropdown" id="menu">
         <a href="onboarding.html">Edit onboarding info</a>
         <a href="#" id="exportBtn">Export board (JSON)</a>
+        <a href="#" id="deleteAccountBtn">Delete account</a>
         <a href="#" id="signoutBtn">Sign out</a>
       </div>
     </div>
@@ -427,6 +428,12 @@
     localStorage.setItem(KEY_BOARD, JSON.stringify(board));
   }
 
+  function clearLocalUserData() {
+    try { localStorage.removeItem(KEY_BOARD); } catch (_) {}
+    try { localStorage.removeItem(KEY_TODAY); } catch (_) {}
+    try { localStorage.removeItem('jobsprint_profile'); } catch (_) {}
+  }
+
   function formatShortDate(input) {
     if (!input) return '';
     const date = typeof input === 'number' ? new Date(input) : new Date(input);
@@ -663,6 +670,7 @@
   const chatSendBtn = document.getElementById('chatSendBtn');
   const closeChatBtn = document.getElementById('closeChatBtn');
   const toastEl = document.getElementById('toast');
+  const menu = document.getElementById('menu');
 
   let editingCardId = null;
   let workingCol = 'research';
@@ -1322,7 +1330,51 @@
     renderChatHistory();
   }
 
-  const menu = document.getElementById('menu');
+  async function deleteAccount() {
+    menu.style.display = 'none';
+    if (!confirm('This will permanently delete your JobSprint account and all saved data. Continue?')) {
+      return;
+    }
+    if (!confirm('Are you absolutely sure? This action cannot be undone.')) {
+      return;
+    }
+
+    let response;
+    try {
+      response = await fetch('/api/delete-user', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+    } catch (err) {
+      console.error('delete account request failed', err);
+      alert('Could not delete account. Please check your connection and try again.');
+      return;
+    }
+
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch (_) {
+      payload = {};
+    }
+
+    if (!response.ok || !payload?.success) {
+      const message = payload?.error
+        ? `Could not delete account (${payload.error}).`
+        : 'Could not delete account. Please try again.';
+      alert(message);
+      return;
+    }
+
+    clearLocalUserData();
+    board = emptyBoard();
+    renderBoard();
+    reflectToday();
+    alert('Your JobSprint account has been deleted. You can sign up again anytime to start fresh.');
+    location.href = '/signup.html?mode=signup';
+  }
+
   document.getElementById('hamBtn').onclick = () => menu.style.display = (menu.style.display === 'block' ? 'none' : 'block');
   document.getElementById('exportBtn').onclick = e => {
     e.preventDefault();
@@ -1334,6 +1386,10 @@
     a.click();
     URL.revokeObjectURL(url);
     menu.style.display = 'none';
+  };
+  document.getElementById('deleteAccountBtn').onclick = e => {
+    e.preventDefault();
+    deleteAccount();
   };
   document.getElementById('signoutBtn').onclick = e => {
     e.preventDefault();
