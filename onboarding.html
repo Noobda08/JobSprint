@@ -158,9 +158,23 @@
 
   <script>
     const params = new URLSearchParams(location.search);
-    const googleId = params.get('google_id');
+    let googleId = params.get('google_id');
     const paymentId = params.get('payment_id');
     const finishBtn = document.getElementById('finishBtn');
+
+    let storedProfileGoogleId = null;
+    try {
+      const storedProfile = localStorage.getItem('jobsprint_profile');
+      if (storedProfile) {
+        storedProfileGoogleId = JSON.parse(storedProfile)?.google_id || null;
+      }
+    } catch (err) {
+      console.warn('Could not read stored profile from localStorage', err);
+    }
+
+    if (!googleId && storedProfileGoogleId) {
+      googleId = storedProfileGoogleId;
+    }
 
     if (!googleId) {
       if (finishBtn) {
