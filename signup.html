@@ -25,6 +25,8 @@
     h1{font-size:20px;margin:8px 0 4px}
     .sub{color:var(--muted);font-size:14px;margin:0 0 18px}
     .g-btn-wrap{display:grid;place-items:center}
+    .error-banner{display:none;margin-bottom:16px;padding:12px;border-radius:10px;background:#fee2e2;color:#b91c1c;font-size:14px;line-height:1.45}
+    .error-banner.show{display:block}
     .terms{color:var(--muted);font-size:12px;margin-top:12px}
     @media (max-width: 900px){ .shell{grid-template-columns:1fr} .hero{display:none} }
   </style>
@@ -43,6 +45,8 @@
             <div class="sub">Get started with your Google account</div>
           </div>
         </div>
+
+        <div id="error-banner" class="error-banner" role="alert" aria-live="polite"></div>
 
         <!-- Google sign-in -->
         <div id="g_id_onload"
@@ -72,6 +76,30 @@
     </div>
   </div>
   <script>
+    const PRICING_REDIRECT_URL = '/index.html#pricing';
+
+    function resetErrorBanner() {
+      const banner = document.getElementById('error-banner');
+      if (banner) {
+        banner.classList.remove('show');
+        banner.textContent = '';
+      }
+    }
+
+    function showErrorBanner(message, redirectTo) {
+      const banner = document.getElementById('error-banner');
+      if (banner) {
+        banner.textContent = message;
+        banner.classList.add('show');
+      } else {
+        alert(message);
+      }
+
+      if (redirectTo) {
+        setTimeout(() => { location.href = redirectTo; }, 2500);
+      }
+    }
+
     function parseJwt (token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -88,9 +116,11 @@
         const name      = payload.name  || '';
         const email     = payload.email || '';
   
+        resetErrorBanner();
+
         const params     = new URLSearchParams(location.search);
         const mode       = params.get('mode') || 'signup';
-        const payment_id = params.get('payment_id') || '';
+        const payment_id = (params.get('payment_id') || '').trim();
   
         // 1) Check if user exists
         let found = false, token = '', profile_complete = false;
@@ -124,9 +154,30 @@
             onboarding_step: 'start'
           })
         });
-        const createData = await createRes.json();
+        let createData = {};
+        try {
+          createData = await createRes.json();
+        } catch (_) {
+          createData = {};
+        }
+
         if (!createRes.ok || !createData.success) {
-          alert('Could not create your account. Please try again.');
+          const errCode = createData && createData.error;
+          const errMessage = createData && createData.message
+            ? createData.message
+            : 'Could not create your account. Please try again.';
+
+          if (
+            createRes.status === 402 ||
+            createRes.status === 400 && typeof errCode === 'string' && errCode.startsWith('payment_') ||
+            errCode === 'payment_required' ||
+            errCode === 'payment_not_captured' ||
+            errCode === 'payment_verification_failed'
+          ) {
+            showErrorBanner(errMessage, PRICING_REDIRECT_URL);
+          } else {
+            showErrorBanner(errMessage);
+          }
           return;
         }
   
@@ -136,7 +187,7 @@
   
       } catch (err) {
         console.error(err);
-        alert('Google sign-in failed. Please try again.');
+        showErrorBanner('Google sign-in failed. Please try again.');
       }
     };
   </script>
