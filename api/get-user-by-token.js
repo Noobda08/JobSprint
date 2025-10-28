@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
 
     const { data, error } = await supabaseAdmin
       .from('users')
-      .select('email,name,goal_per_day')
+      .select('email,name,goal_per_day,google_id')
       .eq('token', token)
       .maybeSingle();
 
