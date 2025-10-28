@@ -69,6 +69,18 @@
     }
     button:hover { background: #ff7c1f; }
     .hidden { display: none; }
+    .field-hint {
+      font-size: 13px;
+      color: #666;
+      margin-top: 6px;
+    }
+    .field-hint a {
+      color: #ff7c1f;
+      text-decoration: none;
+    }
+    .field-hint a:hover {
+      text-decoration: underline;
+    }
     .step-indicator {
       text-align: right;
       font-size: 13px;
@@ -105,6 +117,7 @@
 
     <label>Upload Resume (PDF/DOCX)</label>
     <input type="file" id="resume_file" accept=".pdf,.doc,.docx" />
+    <div id="resumeStatus" class="field-hint"></div>
 
     <label>Full Name</label>
     <input type="text" id="name" placeholder="Your full name" />
@@ -211,6 +224,114 @@
     }
     let uploadedResume = { path: null, publicUrl: null };
 
+    const resumeStatusEl = document.getElementById('resumeStatus');
+    const updateResumeStatus = (url) => {
+      if (!resumeStatusEl) return;
+      if (url) {
+        resumeStatusEl.innerHTML = '';
+        resumeStatusEl.append('Resume on file: ');
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = 'View uploaded resume';
+        resumeStatusEl.appendChild(link);
+      } else {
+        resumeStatusEl.textContent = 'No resume uploaded yet.';
+      }
+    };
+
+    const populateFromProfile = (profile) => {
+      if (!profile || typeof profile !== 'object') {
+        updateResumeStatus();
+        return;
+      }
+      const {
+        name,
+        email,
+        phone,
+        city,
+        dob,
+        role,
+        experience,
+        resume_url,
+        career_story
+      } = profile;
+      if (name) document.getElementById('name').value = name;
+      if (email) document.getElementById('email').value = email;
+      if (phone) document.getElementById('phone').value = phone;
+      if (city) document.getElementById('city').value = city;
+      if (dob) document.getElementById('dob').value = dob;
+      if (role) document.getElementById('role').value = role;
+      if (experience !== undefined && experience !== null && experience !== '') {
+        document.getElementById('experience').value = experience;
+      }
+      if (career_story && typeof career_story === 'object') {
+        if (career_story.journey) document.getElementById('journey').value = career_story.journey;
+        if (career_story.strengths) document.getElementById('strengths').value = career_story.strengths;
+        if (career_story.flow_state_work) document.getElementById('flow').value = career_story.flow_state_work;
+        if (career_story.current_vs_next) document.getElementById('nextRole').value = career_story.current_vs_next;
+        if (career_story.long_term_vision) document.getElementById('vision').value = career_story.long_term_vision;
+      }
+      if (resume_url) {
+        uploadedResume = { path: resume_url, publicUrl: resume_url };
+        updateResumeStatus(resume_url);
+      } else {
+        uploadedResume = { path: null, publicUrl: null };
+        updateResumeStatus();
+      }
+    };
+
+    const loadExistingProfile = async (id) => {
+      if (!id) {
+        updateResumeStatus();
+        return;
+      }
+      if (resumeStatusEl) {
+        resumeStatusEl.textContent = 'Checking saved resume...';
+      }
+      try {
+        const response = await fetch(`/api/get-user?google_id=${encodeURIComponent(id)}`);
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          console.error('Failed to fetch profile', payload);
+          updateResumeStatus();
+          return;
+        }
+        if (!payload?.found) {
+          updateResumeStatus();
+          return;
+        }
+        populateFromProfile(payload);
+        try {
+          const { found, ...rest } = payload;
+          const existingRaw = localStorage.getItem('jobsprint_profile');
+          let existing = {};
+          if (existingRaw) {
+            try {
+              existing = JSON.parse(existingRaw) || {};
+            } catch (parseErr) {
+              console.warn('Could not parse stored profile', parseErr);
+              existing = {};
+            }
+          }
+          const merged = { ...existing, ...rest, google_id: id };
+          localStorage.setItem('jobsprint_profile', JSON.stringify(merged));
+        } catch (storageErr) {
+          console.warn('Could not sync profile to localStorage', storageErr);
+        }
+      } catch (err) {
+        console.error('Failed to load existing profile', err);
+        updateResumeStatus();
+      }
+    };
+
+    if (googleId) {
+      loadExistingProfile(googleId);
+    } else {
+      updateResumeStatus();
+    }
+
     // Step navigation
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
@@ -250,6 +371,8 @@
         path: resumeMeta.path || null,
         publicUrl: resumeMeta.public_url || null
       };
+      const uploadedUrl = uploadedResume.publicUrl || uploadedResume.path || null;
+      updateResumeStatus(uploadedUrl);
       if (f.name) document.getElementById('name').value = f.name;
       if (f.email) document.getElementById('email').value = f.email;
       if (f.phone) document.getElementById('phone').value = f.phone;
