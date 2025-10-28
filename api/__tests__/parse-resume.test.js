@@ -28,3 +28,31 @@ test('resolvePdfParseExport handles PDFParse class exports', async () => {
   assert.strictEqual(typeof text, 'string', 'text should be a string');
   assert.ok(text.toLowerCase().includes('hello pdf'));
 });
+
+test('resolvePdfParseExport configures workers for class-only exports', async () => {
+  class MockPdfParse {
+    constructor({ data }) {
+      this.data = data;
+    }
+    async load() {}
+    async getText() { return { text: 'Mock class text' }; }
+    async destroy() {}
+  }
+  MockPdfParse.setWorkerCalls = 0;
+  MockPdfParse.setWorker = src => {
+    MockPdfParse.workerSrc = src;
+    MockPdfParse.setWorkerCalls += 1;
+  };
+
+  const parser = resolvePdfParseExport({ PDFParse: MockPdfParse });
+  assert.ok(parser, 'parser should be created for class exports');
+
+  const buffer = getSamplePdfBuffer();
+  const first = await parser(buffer);
+  const second = await parser(buffer);
+
+  assert.ok(first && typeof first.text === 'string', 'first parse should return text');
+  assert.ok(second && typeof second.text === 'string', 'second parse should return text');
+  assert.strictEqual(MockPdfParse.setWorkerCalls, 1, 'worker should be configured only once');
+  assert.ok(MockPdfParse.workerSrc, 'worker source should be assigned');
+});

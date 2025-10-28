@@ -16,9 +16,12 @@ if (typeof global.Path2D === 'undefined' && Path2DPoly) global.Path2D = Path2DPo
 
 
 const crypto = require('crypto');
+const fs = require('node:fs');
+const path = require('node:path');
 const Busboy = require('busboy');
 let pdfParseLoadError = null;
 let pdfParse = null;
+const PDF_PARSE_WORKER_CONFIGURED = Symbol.for('pdfParseWorkerConfigured');
 
 function isPdfParseClassCandidate(fn) {
   if (typeof fn !== 'function' || !fn.prototype) return false;
@@ -35,8 +38,82 @@ function isClassLike(fn) {
   return names.some(name => name !== 'constructor');
 }
 
+function configurePdfParseWorker(Ctor) {
+  if (!Ctor || typeof Ctor !== 'function') return;
+
+  const hasSetWorker = typeof Ctor.setWorker === 'function';
+  const hasWorkerSrcProp = hasSetWorker || 'workerSrc' in Ctor;
+  if (!hasSetWorker && !hasWorkerSrcProp) return;
+
+  if (Ctor[PDF_PARSE_WORKER_CONFIGURED]) return;
+  if (typeof Ctor.workerSrc === 'string' && Ctor.workerSrc) {
+    Ctor[PDF_PARSE_WORKER_CONFIGURED] = true;
+    return;
+  }
+
+  let workerSrc = null;
+  let entryDir;
+  const candidates = [
+    () => require.resolve('pdf-parse/dist/pdf-parse/cjs/pdf.worker.mjs'),
+    () => require.resolve('pdf-parse/dist/worker/pdf.worker.mjs'),
+    () => {
+      if (entryDir === undefined) {
+        try {
+          entryDir = path.dirname(require.resolve('pdf-parse'));
+        } catch (_) {
+          entryDir = null;
+        }
+      }
+      if (!entryDir) return null;
+      const candidate = path.join(entryDir, 'pdf.worker.mjs');
+      return fs.existsSync(candidate) ? candidate : null;
+    },
+    () => {
+      if (entryDir === undefined) {
+        try {
+          entryDir = path.dirname(require.resolve('pdf-parse'));
+        } catch (_) {
+          entryDir = null;
+        }
+      }
+      if (!entryDir) return null;
+      const candidate = path.join(entryDir, '../worker/pdf.worker.mjs');
+      return fs.existsSync(candidate) ? candidate : null;
+    }
+  ];
+
+  for (const resolver of candidates) {
+    try {
+      workerSrc = resolver();
+      if (workerSrc) break;
+    } catch (_) {}
+  }
+
+  let configured = false;
+  if (workerSrc) {
+    if (hasSetWorker) {
+      try {
+        Ctor.setWorker(workerSrc);
+        configured = true;
+      } catch (_) {}
+    } else {
+      try {
+        Ctor.workerSrc = workerSrc;
+        configured = true;
+      } catch (_) {}
+    }
+  }
+
+  if (configured) {
+    Ctor[PDF_PARSE_WORKER_CONFIGURED] = true;
+  }
+}
+
 function createPdfParseClassWrapper(Ctor) {
   return async function parseWithClass(buffer) {
+    try {
+      configurePdfParseWorker(Ctor);
+    } catch (_) {}
     const instance = new Ctor({ data: buffer });
     let text = '';
     try {
