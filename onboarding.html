@@ -290,8 +290,11 @@
     document.getElementById('finishBtn').onclick = async () => {
       const google_id = googleId;
       const payment_id = paymentId;
-      const email = document.getElementById('email').value.trim() || params.get('email');
+      const emailInput = document.getElementById('email').value.trim();
+      const emailParam = params.get('email');
+      const email = emailInput || (emailParam ? emailParam.trim() : '');
       const name = document.getElementById('name').value.trim();
+      const dobValue = document.getElementById('dob').value.trim();
 
       if (!google_id) {
         alert('Please sign in with Google to finish onboarding.');
@@ -305,30 +308,68 @@
         finishBtn.innerText = "Finish Setup";
         return;
       }
+      if (!name) {
+        alert('Please share your full name so we can personalize your workspace.');
+        return;
+      }
+      if (!dobValue) {
+        alert('Please provide your date of birth so we can finalize your profile.');
+        return;
+      }
+      if (Number.isNaN(Date.parse(dobValue))) {
+        alert('Your date of birth looks invalid. Please use the format YYYY-MM-DD.');
+        return;
+      }
+
+      const normalize = (value) => {
+        const trimmed = typeof value === 'string' ? value.trim() : value;
+        return trimmed === '' || trimmed === undefined ? undefined : trimmed;
+      };
+
+      const phone = normalize(document.getElementById('phone').value);
+      const city = normalize(document.getElementById('city').value);
+      const role = normalize(document.getElementById('role').value);
+      const experienceRaw = document.getElementById('experience').value;
+      const experience = experienceRaw === '' ? undefined : Number(experienceRaw);
+      if (experience !== undefined && Number.isNaN(experience)) {
+        alert('Total experience must be a number.');
+        return;
+      }
+
+      const careerStoryEntries = {
+        journey: normalize(document.getElementById('journey').value),
+        strengths: normalize(document.getElementById('strengths').value),
+        flow_state_work: normalize(document.getElementById('flow').value),
+        current_vs_next: normalize(document.getElementById('nextRole').value),
+        long_term_vision: normalize(document.getElementById('vision').value)
+      };
+      const career_story = Object.fromEntries(
+        Object.entries(careerStoryEntries).filter(([, value]) => value !== undefined)
+      );
 
       const payload = {
         google_id,
         email,
         name,
         payment_id,
-        phone: document.getElementById('phone').value.trim(),
-        city: document.getElementById('city').value.trim(),
-        dob: document.getElementById('dob').value,
-        role: document.getElementById('role').value.trim(),
-        experience: Number(document.getElementById('experience').value || 0),
-        resume_url: uploadedResume.publicUrl || uploadedResume.path || undefined,
-        career_story: {
-          journey: document.getElementById('journey').value.trim(),
-          strengths: document.getElementById('strengths').value.trim(),
-          flow_state_work: document.getElementById('flow').value.trim(),
-          current_vs_next: document.getElementById('nextRole').value.trim(),
-          long_term_vision: document.getElementById('vision').value.trim()
-        },
+        dob: dobValue,
         plan_start: new Date().toISOString().slice(0,10),
         plan_end: new Date(Date.now() + 90*24*60*60*1000).toISOString().slice(0,10),
         profile_complete: true,
         onboarding_step: 'done'
       };
+
+      if (phone !== undefined) payload.phone = phone;
+      if (city !== undefined) payload.city = city;
+      if (role !== undefined) payload.role = role;
+      if (experience !== undefined) payload.experience = experience;
+
+      const resumeUrl = uploadedResume.publicUrl || uploadedResume.path || undefined;
+      if (resumeUrl) payload.resume_url = resumeUrl;
+
+      if (Object.keys(career_story).length > 0) {
+        payload.career_story = career_story;
+      }
 
       finishBtn.disabled = true;
       finishBtn.innerText = "Saving...";
@@ -339,10 +380,12 @@
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify(payload)
         });
-        const data = await resp.json();
+        const data = await resp.json().catch(() => ({}));
         if (!resp.ok || !data.success) {
           console.error(data);
-          alert("Could not save your onboarding. Please try again.");
+          const detailMessage = data?.detail || data?.error;
+          const message = detailMessage ? `Could not save your onboarding. ${detailMessage}` : 'Could not save your onboarding. Please try again.';
+          alert(message);
           finishBtn.disabled = false;
           finishBtn.innerText = "Finish Setup";
           return;

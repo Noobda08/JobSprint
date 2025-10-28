@@ -49,7 +49,7 @@ module.exports = async function handler(req, res) {
 
     if (phone !== undefined) patch.phone = phone;
     if (city !== undefined) patch.city = city;
-    if (dob !== undefined) patch.dob = dob;                // expect "YYYY-MM-DD"
+    if (dob !== undefined && dob) patch.dob = dob;          // expect "YYYY-MM-DD"
     if (experience !== undefined) patch.experience = Number(experience);
 
     if (career_story !== undefined) patch.career_story = career_story;
