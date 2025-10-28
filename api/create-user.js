@@ -1,5 +1,6 @@
 // api/create-user.js
 const crypto = require('crypto');
+const Razorpay = require('razorpay');
 const { supabaseAdmin } = require('./_supabase.js');
 
 module.exports = async function handler(req, res) {
@@ -38,10 +39,12 @@ module.exports = async function handler(req, res) {
     }
 
     // Build a PATCH object with only provided fields (avoid clobbering)
+    const paymentId = typeof payment_id === 'string' ? payment_id.trim() : payment_id;
+
     const patch = { google_id };
     if (email !== undefined) patch.email = email;
     if (name !== undefined) patch.name = name;
-    if (payment_id !== undefined) patch.payment_id = payment_id;
+    if (payment_id !== undefined) patch.payment_id = paymentId;
 
     if (role !== undefined) patch.role = role;
     if (applications_goal_per_day !== undefined) patch.goal_per_day = Number(applications_goal_per_day);
@@ -59,46 +62,61 @@ module.exports = async function handler(req, res) {
     if (profile_complete !== undefined) patch.profile_complete = !!profile_complete;
     if (onboarding_step !== undefined) patch.onboarding_step = onboarding_step;
 
-    // Ensure a token exists for this user (reuse if present, else create)
-    // Ensure a token always exist
-      let userToken;
+    const { data: existingUser, error: lookupError } = await supabaseAdmin
+      .from('users')
+      .select('token, payment_id')
+      .eq('google_id', google_id)
+      .maybeSingle();
+
+    if (lookupError) {
+      console.error('supabase lookup error:', lookupError);
+      return res.status(500).json({
+        error: 'supabase_lookup_failed',
+        detail: lookupError.message || String(lookupError)
+      });
+    }
+
+    const isNewUser = !existingUser;
+
+    if (isNewUser && !paymentId) {
+      return res.status(402).json({
+        error: 'payment_required',
+        message: 'Payment is required before creating a new account.'
+      });
+    }
+
+    if (paymentId) {
+      if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+        return res.status(500).json({
+          error: 'missing_razorpay_env',
+          message: 'Payment verification is unavailable. Please contact support.'
+        });
+      }
+
       try {
-        const { data: existing } = await supabaseAdmin
-          .from('users')
-          .select('token')
-          .eq('google_id', google_id)
-          .maybeSingle();
+        const razorpay = new Razorpay({
+          key_id: process.env.RAZORPAY_KEY_ID,
+          key_secret: process.env.RAZORPAY_KEY_SECRET,
+        });
 
-        userToken = existing?.token || crypto.randomUUID();
-    } catch (e) {
-      userToken = crypto.randomUUID();
-  }
+        const payment = await razorpay.payments.fetch(paymentId);
+        if (!payment || payment.status !== 'captured') {
+          return res.status(402).json({
+            error: 'payment_not_captured',
+            message: 'We could not confirm your payment. Please complete the checkout process first.'
+          });
+        }
+      } catch (err) {
+        console.error('razorpay verification error:', err);
+        return res.status(402).json({
+          error: 'payment_verification_failed',
+          message: 'Payment could not be verified. Please complete the payment and try again.'
+        });
+      }
+    }
 
-// ✅ Always include token in patch
-  patch.token = userToken;
-
-    
-    // let userToken = null;
-    // try {
-    //   const { data: existing } = await supabaseAdmin
-    //     .from('users')
-    //     .select('token')
-    //     .eq('google_id', google_id)
-    //     .maybeSingle();
-
-    //   if (existing && existing.token) {
-    //     userToken = existing.token;
-    //   } else {
-    //     userToken = crypto.randomUUID();
-    //     patch.token = userToken;
-    //   }
-    // } catch (_) {
-    //   // If lookup fails for any reason, still ensure we set a token
-    //   userToken = userToken || crypto.randomUUID();
-    //   patch.token = userToken; //modified
-      
-    //   //patch.token = patch.token || userToken; //old
-    // }
+    const userToken = existingUser?.token || crypto.randomUUID();
+    patch.token = userToken;
 
     patch.updated_at = new Date().toISOString();
 
