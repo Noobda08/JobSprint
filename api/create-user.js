@@ -28,7 +28,10 @@ module.exports = async function handler(req, res) {
       career_story, plan_start, plan_end,
 
       // flow flags
-      profile_complete, onboarding_step
+      profile_complete, onboarding_step,
+
+      // allow initial contact creation without payment
+      allow_payment_pending
     } = body;
 
     if (!google_id || !email) {
@@ -40,6 +43,8 @@ module.exports = async function handler(req, res) {
 
     // Build a PATCH object with only provided fields (avoid clobbering)
     const paymentId = typeof payment_id === 'string' ? payment_id.trim() : payment_id;
+
+    const allowPaymentPending = !!allow_payment_pending;
 
     const patch = { google_id };
     if (email !== undefined) patch.email = email;
@@ -64,7 +69,7 @@ module.exports = async function handler(req, res) {
 
     const { data: existingUser, error: lookupError } = await supabaseAdmin
       .from('users')
-      .select('token, payment_id')
+      .select('token, payment_id, profile_complete')
       .eq('google_id', google_id)
       .maybeSingle();
 
@@ -79,10 +84,15 @@ module.exports = async function handler(req, res) {
     const isNewUser = !existingUser;
 
     if (isNewUser && !paymentId) {
-      return res.status(402).json({
-        error: 'payment_required',
-        message: 'Payment is required before creating a new account.'
-      });
+      if (!allowPaymentPending) {
+        return res.status(402).json({
+          error: 'payment_required',
+          message: 'Payment is required before creating a new account.'
+        });
+      }
+
+      // ensure the shell account stays locked until payment completes
+      patch.profile_complete = false;
     }
 
     if (paymentId) {
@@ -113,6 +123,18 @@ module.exports = async function handler(req, res) {
           message: 'Payment could not be verified. Please complete the payment and try again.'
         });
       }
+    }
+
+    const hasIncomingPayment = !!(paymentId && paymentId.length);
+    const hasExistingPayment = !!(existingUser?.payment_id && String(existingUser.payment_id).trim().length);
+    const nextProfileComplete =
+      patch.profile_complete !== undefined ? patch.profile_complete : existingUser?.profile_complete;
+
+    if (nextProfileComplete && !hasIncomingPayment && !hasExistingPayment) {
+      return res.status(402).json({
+        error: 'payment_required',
+        message: 'Payment is required before completing onboarding.'
+      });
     }
 
     const userToken = existingUser?.token || crypto.randomUUID();
