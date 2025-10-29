@@ -7,6 +7,7 @@
 
   <!-- Google One Tap / Sign-In -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -27,6 +28,9 @@
     .g-btn-wrap{display:grid;place-items:center}
     .error-banner{display:none;margin-bottom:16px;padding:12px;border-radius:10px;background:#fee2e2;color:#b91c1c;font-size:14px;line-height:1.45}
     .error-banner.show{display:block}
+    .cta-button{width:100%;margin-top:18px;padding:12px 18px;border-radius:10px;border:none;background:var(--brand);color:#fff;font-weight:600;font-size:15px;cursor:pointer;transition:background .2s ease}
+    .cta-button:disabled{opacity:.65;cursor:not-allowed;background:#93b1ff}
+    .cta-button[hidden]{display:none}
     .terms{color:var(--muted);font-size:12px;margin-top:12px}
     @media (max-width: 900px){ .shell{grid-template-columns:1fr} .hero{display:none} }
   </style>
@@ -67,6 +71,10 @@
           </div>
         </div>
 
+        <button id="continue-payment" type="button" class="cta-button" hidden>
+          Continue to payment
+        </button>
+
         <p class="terms">
           By continuing you agree to our
           <a href="/privacy" target="_blank">privacy policy</a> and
@@ -77,6 +85,40 @@
   </div>
   <script>
     const PRICING_REDIRECT_URL = '/index.html#pricing';
+    const searchParams = new URLSearchParams(location.search);
+    const SIGNUP_STATE = {
+      plan: (searchParams.get('plan') || '').trim().toLowerCase(),
+      coupon: (searchParams.get('coupon') || '').trim(),
+      mode: (searchParams.get('mode') || 'signup').trim().toLowerCase(),
+      paymentIdFromQuery: (searchParams.get('payment_id') || '').trim(),
+      googlePayload: null,
+      googleCredential: '',
+      paymentId: '',
+    };
+
+    let razorpayLoaderPromise;
+    function ensureRazorpayLoaded() {
+      if (window.Razorpay) { return Promise.resolve(); }
+      if (!razorpayLoaderPromise) {
+        razorpayLoaderPromise = new Promise((resolve, reject) => {
+          const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+          if (existing && existing.getAttribute('data-loaded') === 'true') {
+            resolve();
+            return;
+          }
+          const script = existing || document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.async = true;
+          script.onload = () => {
+            script.setAttribute('data-loaded', 'true');
+            resolve();
+          };
+          script.onerror = () => reject(new Error('Failed to load payment gateway.'));
+          if (!existing) { document.head.appendChild(script); }
+        });
+      }
+      return razorpayLoaderPromise;
+    }
 
     function resetErrorBanner() {
       const banner = document.getElementById('error-banner');
@@ -100,6 +142,71 @@
       }
     }
 
+    async function startPayment() {
+      if (!SIGNUP_STATE.plan) {
+        throw new Error('Please pick a plan from the pricing page before continuing.');
+      }
+
+      const bodyPayload = {
+        plan: SIGNUP_STATE.plan,
+      };
+      if (SIGNUP_STATE.coupon) {
+        bodyPayload.coupon = SIGNUP_STATE.coupon;
+      }
+
+      const orderRes = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload),
+      });
+
+      if (!orderRes.ok) {
+        const errText = await orderRes.text().catch(() => '');
+        throw new Error(errText || 'Unable to start payment.');
+      }
+
+      const orderData = await orderRes.json();
+      await ensureRazorpayLoaded();
+
+      return new Promise((resolve, reject) => {
+        if (typeof window.Razorpay !== 'function') {
+          reject(new Error('Payment gateway unavailable.'));
+          return;
+        }
+
+        const rzp = new window.Razorpay({
+          key: orderData.keyId,
+          amount: orderData.amount,
+          currency: orderData.currency,
+          order_id: orderData.orderId,
+          name: 'JobSprint',
+          description: orderData.plan ? `JobSprint ${orderData.plan}` : 'JobSprint Plan',
+          prefill: {
+            name: SIGNUP_STATE.googlePayload?.name || '',
+            email: SIGNUP_STATE.googlePayload?.email || '',
+          },
+          handler: (response) => {
+            if (response && response.razorpay_payment_id) {
+              resolve(response.razorpay_payment_id);
+            } else {
+              reject(new Error('Payment did not complete.'));
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              reject(new Error('Payment window closed before completion.'));
+            },
+          },
+        });
+
+        try {
+          rzp.open();
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
     function parseJwt (token) {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -108,20 +215,35 @@
       ).join(''));
       return JSON.parse(jsonPayload);
     }
-  
+
+    const continueButton = document.getElementById('continue-payment');
+    function showContinueButton() {
+      if (continueButton) {
+        continueButton.disabled = false;
+        continueButton.textContent = 'Continue to payment';
+        continueButton.hidden = false;
+      }
+    }
+
+    function hideContinueButton() {
+      if (continueButton) {
+        continueButton.hidden = true;
+      }
+    }
+
     window.handleGoogleCredential = async function (response) {
       try {
         const payload   = parseJwt(response.credential);
         const google_id = payload.sub;
         const name      = payload.name  || '';
         const email     = payload.email || '';
-  
-        resetErrorBanner();
 
-        const params     = new URLSearchParams(location.search);
-        const mode       = params.get('mode') || 'signup';
-        const payment_id = (params.get('payment_id') || '').trim();
-  
+        resetErrorBanner();
+        hideContinueButton();
+
+        const mode       = SIGNUP_STATE.mode || 'signup';
+        const payment_id = SIGNUP_STATE.paymentIdFromQuery;
+
         // 1) Check if user exists
         let found = false, token = '', profile_complete = false;
         try {
@@ -131,65 +253,137 @@
             if (data.found) { found = true; token = data.token; profile_complete = !!data.profile_complete; }
           }
         } catch (e) { console.warn('get-user failed', e); }
-  
+
         // 2) Found user
         if (found) {
+          hideContinueButton();
           if (profile_complete) {
             location.href = '/workspace.html?u=' + encodeURIComponent(token);
           } else {
             // send back to onboarding to finish
             const qs = new URLSearchParams({ google_id, name, email, payment_id });
+            if (SIGNUP_STATE.plan) { qs.set('plan', SIGNUP_STATE.plan); }
             location.href = '/onboarding.html?' + qs.toString();
           }
           return;
         }
-  
-        // 3) New user → create shell record immediately
-        const createRes = await fetch('/api/create-user', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({
-            google_id, email, name, payment_id,
-            profile_complete: false,
-            onboarding_step: 'start'
-          })
-        });
-        let createData = {};
-        try {
-          createData = await createRes.json();
-        } catch (_) {
-          createData = {};
-        }
 
-        if (!createRes.ok || !createData.success) {
-          const errCode = createData && createData.error;
-          const errMessage = createData && createData.message
-            ? createData.message
-            : 'Could not create your account. Please try again.';
+        // 3) New user → wait for payment before creating
+        SIGNUP_STATE.googlePayload = { google_id, name, email, credential: response.credential };
+        SIGNUP_STATE.googleCredential = response.credential;
 
-          if (
-            createRes.status === 402 ||
-            createRes.status === 400 && typeof errCode === 'string' && errCode.startsWith('payment_') ||
-            errCode === 'payment_required' ||
-            errCode === 'payment_not_captured' ||
-            errCode === 'payment_verification_failed'
-          ) {
-            showErrorBanner(errMessage, PRICING_REDIRECT_URL);
-          } else {
-            showErrorBanner(errMessage);
-          }
+        if (mode === 'login') {
+          showErrorBanner('No active subscription found for this account. Please select a plan first.', PRICING_REDIRECT_URL);
           return;
         }
-  
-        // 4) Then go to onboarding
-        const qs = new URLSearchParams({ google_id, name, email, payment_id });
-        location.href = '/onboarding.html?' + qs.toString();
-  
+
+        if (SIGNUP_STATE.paymentIdFromQuery) {
+          try {
+            const existingPayment = SIGNUP_STATE.paymentIdFromQuery;
+            SIGNUP_STATE.paymentId = existingPayment;
+            await completeSignup(existingPayment);
+            return;
+          } catch (err) {
+            console.error('Existing payment verification failed', err);
+            SIGNUP_STATE.paymentIdFromQuery = '';
+            SIGNUP_STATE.paymentId = '';
+          }
+        }
+
+        if (!SIGNUP_STATE.plan) {
+          showErrorBanner('Please pick a plan from the pricing page before continuing.', PRICING_REDIRECT_URL);
+          return;
+        }
+
+        showContinueButton();
+
       } catch (err) {
         console.error(err);
         showErrorBanner('Google sign-in failed. Please try again.');
       }
     };
+
+    async function completeSignup(paymentId) {
+      if (!SIGNUP_STATE.googlePayload) {
+        throw new Error('Missing Google account details. Please sign in again.');
+      }
+
+      const { google_id, email, name } = SIGNUP_STATE.googlePayload;
+
+      const createRes = await fetch('/api/create-user', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          google_id,
+          email,
+          name,
+          payment_id: paymentId,
+          profile_complete: false,
+          onboarding_step: 'start',
+          plan: SIGNUP_STATE.plan || undefined,
+          coupon: SIGNUP_STATE.coupon || undefined,
+        })
+      });
+      let createData = {};
+      try {
+        createData = await createRes.json();
+      } catch (_) {
+        createData = {};
+      }
+
+      if (!createRes.ok || !createData.success) {
+        const errCode = createData && createData.error;
+        const errMessage = createData && createData.message
+          ? createData.message
+          : 'Could not create your account. Please try again.';
+
+        if (
+          createRes.status === 402 ||
+          createRes.status === 400 && typeof errCode === 'string' && errCode.startsWith('payment_') ||
+          errCode === 'payment_required' ||
+          errCode === 'payment_not_captured' ||
+          errCode === 'payment_verification_failed'
+        ) {
+          showErrorBanner(errMessage, PRICING_REDIRECT_URL);
+        } else {
+          showErrorBanner(errMessage);
+        }
+        throw new Error(errMessage);
+      }
+
+      const qs = new URLSearchParams({
+        google_id,
+        name,
+        email,
+        payment_id: paymentId,
+      });
+      if (SIGNUP_STATE.plan) {
+        qs.set('plan', SIGNUP_STATE.plan);
+      }
+      location.href = '/onboarding.html?' + qs.toString();
+    }
+
+    if (continueButton) {
+      continueButton.addEventListener('click', async () => {
+        resetErrorBanner();
+        continueButton.disabled = true;
+        continueButton.textContent = 'Processing payment...';
+        try {
+          const paymentId = await startPayment();
+          SIGNUP_STATE.paymentId = paymentId;
+          await completeSignup(paymentId);
+        } catch (err) {
+          console.error(err);
+          if (err && err.message) {
+            showErrorBanner(err.message);
+          } else {
+            showErrorBanner('Payment could not be completed. Please try again.');
+          }
+          continueButton.disabled = false;
+          continueButton.textContent = 'Continue to payment';
+        }
+      });
+    }
   </script>
 
   
