@@ -59,14 +59,40 @@ module.exports = async function handler(req, res) {
     if (city !== undefined) patch.city = city;
     if (dob !== undefined && dob) patch.dob = dob;          // expect "YYYY-MM-DD"
     if (experience !== undefined) patch.experience = Number(experience);
+
+    const normalizeCareerStory = (input) => {
+      if (input === undefined) return undefined;
+      if (input && typeof input === 'object' && !Array.isArray(input)) {
+        return { ...input };
+      }
+      if (input === null || input === '') return {};
+      return { narrative: String(input) };
+    };
+
+    let normalizedStory = normalizeCareerStory(career_story);
     if (current_ctc !== undefined) {
       const ctcValue = typeof current_ctc === 'string' ? current_ctc.trim() : current_ctc;
       if (ctcValue !== undefined && ctcValue !== null && ctcValue !== '') {
         patch.current_ctc = ctcValue;
+        if (!normalizedStory) normalizedStory = {};
+        if (typeof normalizedStory === 'object' && normalizedStory !== null) {
+          normalizedStory.current_ctc = ctcValue;
+          const existingComp = normalizedStory.compensation;
+          if (!existingComp || typeof existingComp !== 'object') {
+            normalizedStory.compensation = { current: ctcValue };
+          } else {
+            normalizedStory.compensation = { ...existingComp, current: ctcValue };
+          }
+        }
       }
     }
 
-    if (career_story !== undefined) patch.career_story = career_story;
+    if (normalizedStory && typeof normalizedStory === 'object') {
+      const keys = Object.keys(normalizedStory);
+      if (keys.length > 0) {
+        patch.career_story = normalizedStory;
+      }
+    }
     if (plan_start !== undefined) patch.plan_start = plan_start; // "YYYY-MM-DD"
     if (plan_end !== undefined) patch.plan_end = plan_end;       // "YYYY-MM-DD"
 
@@ -149,9 +175,20 @@ module.exports = async function handler(req, res) {
     patch.updated_at = new Date().toISOString();
 
     // Create or update the record keyed by google_id
-    const { error } = await supabaseAdmin
-      .from('users')
-      .upsert(patch, { onConflict: 'google_id' });
+    const performUpsert = () =>
+      supabaseAdmin
+        .from('users')
+        .upsert(patch, { onConflict: 'google_id' });
+
+    let { error } = await performUpsert();
+    if (error && patch.current_ctc !== undefined) {
+      const message = error.message || error.details || '';
+      if (typeof message === 'string' && /column\s+"?current_ctc"?/i.test(message)) {
+        console.warn('users.current_ctc column missing; storing value in career_story only');
+        delete patch.current_ctc;
+        ({ error } = await performUpsert());
+      }
+    }
 
     if (error) {
       console.error('supabase upsert error:', error);

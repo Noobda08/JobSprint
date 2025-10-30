@@ -375,6 +375,49 @@
       return trimmed;
     }
 
+    function resolveCurrentCTC(profile) {
+      if (!profile || typeof profile !== "object") return undefined;
+
+      const direct = profile.current_ctc ?? profile.currentCTC;
+      if (direct !== undefined && direct !== null && direct !== "") {
+        return direct;
+      }
+
+      const story = profile.career_story;
+      const normalizeStory = (value) => {
+        if (!value) return null;
+        if (typeof value === "object") return value;
+        if (typeof value === "string") {
+          const trimmed = value.trim();
+          if (!trimmed) return null;
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed && typeof parsed === "object") return parsed;
+          } catch (_) {
+            return { narrative: trimmed };
+          }
+          return null;
+        }
+        return null;
+      };
+
+      const storyObject = normalizeStory(story);
+      if (!storyObject || typeof storyObject !== "object") return undefined;
+
+      const storyDirect = storyObject.current_ctc ?? storyObject.currentCTC;
+      if (storyDirect !== undefined && storyDirect !== null && storyDirect !== "") {
+        return storyDirect;
+      }
+
+      const comp = storyObject.compensation;
+      if (comp && typeof comp === "object") {
+        const options = [comp.current, comp.current_ctc, comp.currentCTC, comp.current_salary, comp.currentSalary];
+        return options.find((value) => value !== undefined && value !== null && value !== "");
+      }
+
+      return undefined;
+    }
+
     function revealStory() {
       const loading = document.getElementById("loadingState");
       const story = document.getElementById("storyState");
@@ -431,8 +474,9 @@
         atsNoteEl.textContent = coachNotes[diagnostic.level] || "Good structure, but could use a little polish.";
       }
 
+      const currentCTC = resolveCurrentCTC(profile);
       const salaryData = getSalaryInsight({
-        currentCTC: profile.current_ctc,
+        currentCTC,
         yearsExp: profile.experience,
         roleId: profile.role,
         location: profile.city
@@ -443,7 +487,7 @@
       const hikeRangeEl = document.getElementById("hikeRange");
       const salaryNoteEl = document.getElementById("salaryNote");
 
-      if (currentCTCEl) currentCTCEl.textContent = formatCTC(profile.current_ctc);
+      if (currentCTCEl) currentCTCEl.textContent = formatCTC(currentCTC);
       if (nextCTCEl) nextCTCEl.textContent = salaryData.suggestedRange || "₹11 – ₹13 LPA";
       if (hikeRangeEl) hikeRangeEl.textContent = salaryData.hikePercent || "30–45%";
       if (salaryNoteEl) salaryNoteEl.textContent = salaryData.note || "Based on your experience and role, this is a realistic target for your next switch.";
