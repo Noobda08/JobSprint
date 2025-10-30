@@ -42,7 +42,7 @@
     h1 { margin-top: 0; color: #222; font-size: 28px; }
     p.sub { color: #555; margin-top: 4px; font-size: 15px; }
     label { display: block; margin: 16px 0 6px; font-weight: 600; }
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid #ddd;
@@ -50,7 +50,7 @@
       font-family: inherit;
       font-size: 15px;
     }
-    input:focus, textarea:focus {
+    input:focus, textarea:focus, select:focus {
       outline: none; border-color: #ffb36b;
       box-shadow: 0 0 0 2px rgba(255, 179, 107, 0.3);
     }
@@ -135,7 +135,108 @@
     <input type="date" id="dob" />
 
     <label>Current Role</label>
-    <input type="text" id="role" placeholder="e.g., Product Manager" />
+    <select id="role">
+      <option value="">Select your current role</option>
+      <optgroup label="Product, Design &amp; Strategy">
+        <option value="Product Manager">Product Manager</option>
+        <option value="Associate Product Manager">Associate Product Manager</option>
+        <option value="Senior Product Manager">Senior Product Manager</option>
+        <option value="Product Owner / Scrum Lead">Product Owner / Scrum Lead</option>
+        <option value="Product Analyst">Product Analyst</option>
+        <option value="Systems Analyst">Systems Analyst</option>
+        <option value="UX / UI Designer">UX / UI Designer</option>
+        <option value="Product Designer">Product Designer</option>
+        <option value="UX Researcher">UX Researcher</option>
+        <option value="Design Lead / Creative Director">Design Lead / Creative Director</option>
+        <option value="Business Analyst">Business Analyst</option>
+        <option value="Strategy / Management Consultant">Strategy / Management Consultant</option>
+      </optgroup>
+      <optgroup label="Engineering &amp; Technology (Software)">
+        <option value="Frontend Developer">Frontend Developer</option>
+        <option value="Backend Developer">Backend Developer</option>
+        <option value="Full-Stack Developer">Full-Stack Developer</option>
+        <option value="Software Engineer">Software Engineer</option>
+        <option value="DevOps / Cloud Engineer">DevOps / Cloud Engineer</option>
+        <option value="Mobile App Developer">Mobile App Developer</option>
+        <option value="QA Engineer / Test Automation Engineer">QA Engineer / Test Automation Engineer</option>
+        <option value="Data Engineer">Data Engineer</option>
+        <option value="Data Scientist / ML Engineer">Data Scientist / ML Engineer</option>
+        <option value="AI / Prompt Engineer">AI / Prompt Engineer</option>
+        <option value="Solution Architect">Solution Architect</option>
+        <option value="Tech Lead / Engineering Manager">Tech Lead / Engineering Manager</option>
+      </optgroup>
+      <optgroup label="Core Engineering &amp; Manufacturing">
+        <option value="Mechanical Engineer">Mechanical Engineer</option>
+        <option value="Electrical Engineer">Electrical Engineer</option>
+        <option value="Electronics / Instrumentation Engineer">Electronics / Instrumentation Engineer</option>
+        <option value="Civil Engineer">Civil Engineer</option>
+        <option value="Structural Engineer">Structural Engineer</option>
+        <option value="Chemical Engineer">Chemical Engineer</option>
+        <option value="Production / Manufacturing Engineer">Production / Manufacturing Engineer</option>
+        <option value="Quality Engineer / QA-QC">Quality Engineer / QA-QC</option>
+        <option value="Maintenance Engineer">Maintenance Engineer</option>
+        <option value="Plant Operations Manager">Plant Operations Manager</option>
+        <option value="R&amp;D Engineer / Design Engineer">R&amp;D Engineer / Design Engineer</option>
+        <option value="Industrial Engineer">Industrial Engineer</option>
+      </optgroup>
+      <optgroup label="Data, Analytics &amp; Finance">
+        <option value="Data Analyst">Data Analyst</option>
+        <option value="Business Intelligence (BI) Developer">Business Intelligence (BI) Developer</option>
+        <option value="Financial Analyst">Financial Analyst</option>
+        <option value="FP&amp;A / Finance Manager">FP&amp;A / Finance Manager</option>
+        <option value="Investment / Equity Analyst">Investment / Equity Analyst</option>
+        <option value="Risk / Credit Analyst">Risk / Credit Analyst</option>
+      </optgroup>
+      <optgroup label="Customer, Operations &amp; Support">
+        <option value="Customer Success Manager">Customer Success Manager</option>
+        <option value="Client Relationship Manager">Client Relationship Manager</option>
+        <option value="Product Support Specialist">Product Support Specialist</option>
+        <option value="Technical Support Engineer">Technical Support Engineer</option>
+        <option value="Operations Executive / Operations Manager">Operations Executive / Operations Manager</option>
+        <option value="Process / Quality Analyst">Process / Quality Analyst</option>
+        <option value="Project Coordinator / Project Manager">Project Coordinator / Project Manager</option>
+        <option value="Supply-Chain / Logistics Executive">Supply-Chain / Logistics Executive</option>
+        <option value="Procurement / Vendor Manager">Procurement / Vendor Manager</option>
+      </optgroup>
+      <optgroup label="Marketing, Sales &amp; Growth">
+        <option value="Digital Marketing Specialist">Digital Marketing Specialist</option>
+        <option value="Performance Marketing Manager">Performance Marketing Manager</option>
+        <option value="SEO / Content Strategist">SEO / Content Strategist</option>
+        <option value="Growth Marketer / Growth PM">Growth Marketer / Growth PM</option>
+        <option value="Brand Manager">Brand Manager</option>
+        <option value="Product Marketing Manager">Product Marketing Manager</option>
+        <option value="Sales Executive / Account Executive">Sales Executive / Account Executive</option>
+        <option value="Business Development Manager">Business Development Manager</option>
+        <option value="Inside Sales / Lead Gen Specialist">Inside Sales / Lead Gen Specialist</option>
+        <option value="Key Account Manager">Key Account Manager</option>
+        <option value="Partnership / Alliances Manager">Partnership / Alliances Manager</option>
+      </optgroup>
+      <optgroup label="HR, Talent &amp; Admin">
+        <option value="HR Executive / HR Manager">HR Executive / HR Manager</option>
+        <option value="Talent Acquisition Specialist">Talent Acquisition Specialist</option>
+        <option value="L&amp;D / Training Specialist">L&amp;D / Training Specialist</option>
+        <option value="People Operations">People Operations</option>
+        <option value="Office Admin / EA / Operations Coordinator">Office Admin / EA / Operations Coordinator</option>
+      </optgroup>
+      <optgroup label="IT, Security &amp; Infra">
+        <option value="System Administrator">System Administrator</option>
+        <option value="Network Engineer">Network Engineer</option>
+        <option value="IT Support Engineer">IT Support Engineer</option>
+        <option value="Cybersecurity Analyst">Cybersecurity Analyst</option>
+        <option value="Infrastructure Engineer">Infrastructure Engineer</option>
+      </optgroup>
+      <optgroup label="Education, Content &amp; Training">
+        <option value="Instructional Designer">Instructional Designer</option>
+        <option value="Content Writer / Editor">Content Writer / Editor</option>
+        <option value="Technical Writer">Technical Writer</option>
+        <option value="Trainer / Coach">Trainer / Coach</option>
+      </optgroup>
+      <optgroup label="Others">
+        <option value="Legal Associate / Compliance Officer">Legal Associate / Compliance Officer</option>
+        <option value="Research Associate">Research Associate</option>
+        <option value="Entrepreneur / Founder / Co-founder">Entrepreneur / Founder / Co-founder</option>
+      </optgroup>
+    </select>
 
     <label>Total Experience (years)</label>
     <input type="number" id="experience" min="0" placeholder="e.g., 5" />
@@ -177,6 +278,28 @@
     let googleId = params.get('google_id');
     const paymentId = params.get('payment_id');
     const finishBtn = document.getElementById('finishBtn');
+    const roleSelect = document.getElementById('role');
+
+    const setRoleValue = (value) => {
+      if (!roleSelect) return;
+      if (typeof value !== 'string') {
+        roleSelect.value = '';
+        return;
+      }
+      const trimmed = value.trim();
+      if (!trimmed) {
+        roleSelect.value = '';
+        return;
+      }
+      const hasOption = Array.from(roleSelect.options || []).some(
+        (option) => option.value === trimmed
+      );
+      if (!hasOption) {
+        const customOption = new Option(trimmed, trimmed);
+        roleSelect.add(customOption);
+      }
+      roleSelect.value = trimmed;
+    };
 
     let storedProfileGoogleId = null;
     try {
@@ -266,7 +389,11 @@
       if (phone) document.getElementById('phone').value = phone;
       if (city) document.getElementById('city').value = city;
       if (dob) document.getElementById('dob').value = dob;
-      if (role) document.getElementById('role').value = role;
+      if (role) {
+        setRoleValue(role);
+      } else if (roleSelect) {
+        roleSelect.value = '';
+      }
       if (experience !== undefined && experience !== null && experience !== '') {
         document.getElementById('experience').value = experience;
       }
@@ -383,7 +510,7 @@
       if (f.phone) document.getElementById('phone').value = f.phone;
       if (f.city) document.getElementById('city').value = f.city;
       if (f.dob) document.getElementById('dob').value = f.dob;
-      if (f.role) document.getElementById('role').value = f.role;
+      if (f.role) setRoleValue(f.role);
       if (typeof f.experience === 'number') document.getElementById('experience').value = f.experience;
 
       const confidence = f._confidence || j.parsed?._confidence;
