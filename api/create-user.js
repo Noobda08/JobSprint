@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
 
       // onboarding basics
       role, applications_goal_per_day, resume_url,
-      phone, city, dob, experience,
+      phone, city, dob, experience, current_ctc,
 
       // story & plan
       career_story, plan_start, plan_end,
@@ -59,8 +59,82 @@ module.exports = async function handler(req, res) {
     if (city !== undefined) patch.city = city;
     if (dob !== undefined && dob) patch.dob = dob;          // expect "YYYY-MM-DD"
     if (experience !== undefined) patch.experience = Number(experience);
+    const normalizeStoryPayload = (value) => {
+      if (value === null || value === undefined) return null;
+      if (typeof value !== 'object') return null;
+      try {
+        return JSON.parse(JSON.stringify(value));
+      } catch (_) {
+        return { ...value };
+      }
+    };
 
-    if (career_story !== undefined) patch.career_story = career_story;
+    const isMissingColumnError = (err) => {
+      if (!err) return false;
+      const message = [err.message, err.details, err.hint]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return message.includes('column') && message.includes('current_ctc');
+    };
+
+    const sanitizedCareerStory = career_story !== undefined ? normalizeStoryPayload(career_story) : undefined;
+    let sanitizedCurrentCTC = undefined;
+    if (current_ctc !== undefined) {
+      const ctcValue = typeof current_ctc === 'string' ? current_ctc.trim() : current_ctc;
+      if (ctcValue !== undefined && ctcValue !== null && ctcValue !== '') {
+        sanitizedCurrentCTC = String(ctcValue);
+      }
+    }
+
+    let shouldStoreCTCInColumn = false;
+    let shouldStoreCTCInStory = false;
+
+    if (sanitizedCurrentCTC !== undefined) {
+      const { error: ctcColumnError } = await supabaseAdmin
+        .from('users')
+        .select('current_ctc')
+        .eq('google_id', google_id)
+        .maybeSingle();
+
+      if (!ctcColumnError) {
+        shouldStoreCTCInColumn = true;
+      } else if (isMissingColumnError(ctcColumnError)) {
+        shouldStoreCTCInStory = true;
+      } else {
+        console.warn('current_ctc column check returned unexpected error; storing in story fallback', ctcColumnError);
+        shouldStoreCTCInStory = true;
+      }
+    }
+
+    let careerStoryPayload = sanitizedCareerStory;
+
+    if (shouldStoreCTCInStory && sanitizedCurrentCTC !== undefined) {
+      if (!careerStoryPayload || typeof careerStoryPayload !== 'object') {
+        const { data: existingStoryData, error: storyLookupError } = await supabaseAdmin
+          .from('users')
+          .select('career_story')
+          .eq('google_id', google_id)
+          .maybeSingle();
+
+        if (storyLookupError) {
+          console.warn('Could not load existing career story; initializing fresh object', storyLookupError);
+        }
+
+        if (existingStoryData && existingStoryData.career_story && typeof existingStoryData.career_story === 'object') {
+          careerStoryPayload = normalizeStoryPayload(existingStoryData.career_story) || {};
+        } else {
+          careerStoryPayload = {};
+        }
+      }
+
+      careerStoryPayload.current_ctc = sanitizedCurrentCTC;
+    }
+
+    if (careerStoryPayload !== undefined) patch.career_story = careerStoryPayload;
+    if (shouldStoreCTCInColumn && sanitizedCurrentCTC !== undefined) {
+      patch.current_ctc = sanitizedCurrentCTC;
+    }
     if (plan_start !== undefined) patch.plan_start = plan_start; // "YYYY-MM-DD"
     if (plan_end !== undefined) patch.plan_end = plan_end;       // "YYYY-MM-DD"
 
