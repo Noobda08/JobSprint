@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
 
       // onboarding basics
       role, applications_goal_per_day, resume_url,
-      phone, city, dob, experience,
+      phone, city, dob, experience, current_ctc,
 
       // story & plan
       career_story, plan_start, plan_end,
@@ -59,6 +59,12 @@ module.exports = async function handler(req, res) {
     if (city !== undefined) patch.city = city;
     if (dob !== undefined && dob) patch.dob = dob;          // expect "YYYY-MM-DD"
     if (experience !== undefined) patch.experience = Number(experience);
+    if (current_ctc !== undefined) {
+      const ctcValue = typeof current_ctc === 'string' ? current_ctc.trim() : current_ctc;
+      if (ctcValue !== undefined && ctcValue !== null && ctcValue !== '') {
+        patch.current_ctc = ctcValue;
+      }
+    }
 
     if (career_story !== undefined) patch.career_story = career_story;
     if (plan_start !== undefined) patch.plan_start = plan_start; // "YYYY-MM-DD"
