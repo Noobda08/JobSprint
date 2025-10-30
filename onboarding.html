@@ -140,6 +140,9 @@
     <label>Total Experience (years)</label>
     <input type="number" id="experience" min="0" placeholder="e.g., 5" />
 
+    <label>Current CTC</label>
+    <input type="text" id="currentCTC" placeholder="e.g., ₹ 18 LPA" />
+
     <button id="nextBtn">Next: Tell your story →</button>
   </div>
 
@@ -254,6 +257,7 @@
         dob,
         role,
         experience,
+        current_ctc,
         resume_url,
         career_story
       } = profile;
@@ -266,6 +270,7 @@
       if (experience !== undefined && experience !== null && experience !== '') {
         document.getElementById('experience').value = experience;
       }
+      if (current_ctc) document.getElementById('currentCTC').value = current_ctc;
       if (career_story && typeof career_story === 'object') {
         if (career_story.journey) document.getElementById('journey').value = career_story.journey;
         if (career_story.strengths) document.getElementById('strengths').value = career_story.strengths;
@@ -454,6 +459,7 @@
       const role = normalize(document.getElementById('role').value);
       const experienceRaw = document.getElementById('experience').value;
       const experience = experienceRaw === '' ? undefined : Number(experienceRaw);
+      const currentCTC = normalize(document.getElementById('currentCTC').value);
       if (experience !== undefined && Number.isNaN(experience)) {
         alert('Total experience must be a number.');
         return;
@@ -486,6 +492,7 @@
       if (city !== undefined) payload.city = city;
       if (role !== undefined) payload.role = role;
       if (experience !== undefined) payload.experience = experience;
+      if (currentCTC !== undefined) payload.current_ctc = currentCTC;
 
       const resumeUrl = uploadedResume.publicUrl || uploadedResume.path || undefined;
       if (resumeUrl) payload.resume_url = resumeUrl;
