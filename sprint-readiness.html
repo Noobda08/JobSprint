@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobSprint • Sprint Readiness</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg1: #fff6ec;
+      --bg2: #ffe0c8;
+      --ink: #2c200f;
+      --muted: #6f5b45;
+      --brand: #ff9a4f;
+      --brand-dark: #ff7c1f;
+      --card: rgba(255, 255, 255, 0.92);
+      --card-border: rgba(255, 196, 146, 0.55);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: linear-gradient(120deg, var(--bg1), var(--bg2));
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 24px 120px;
+      position: relative;
+    }
+    .floating-blob {
+      position: fixed;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.28);
+      filter: blur(0.1px);
+      animation: float 14s ease-in-out infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .floating-blob:nth-child(1) { width: 160px; height: 160px; top: 12vh; left: 6vw; animation-delay: 0s; }
+    .floating-blob:nth-child(2) { width: 120px; height: 120px; bottom: 10vh; right: 8vw; animation-delay: 3s; }
+    .floating-blob:nth-child(3) { width: 90px; height: 90px; top: 48vh; right: 20vw; animation-delay: 6s; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-24px) scale(1.05); }
+    }
+    .story-shell {
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 28px;
+      padding: 40px;
+      border: 1px solid rgba(255, 190, 138, 0.45);
+      box-shadow: 0 18px 48px rgba(215, 125, 60, 0.18);
+      overflow: hidden;
+    }
+    @media (max-width: 680px) {
+      .story-shell { padding: 32px 22px 36px; border-radius: 24px; }
+    }
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      text-align: center;
+    }
+    .loading h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 600;
+    }
+    .loading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .spinner {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 6px solid rgba(255, 255, 255, 0.7);
+      border-top-color: var(--brand);
+      animation: spin 1.2s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .story {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+    .story.visible {
+      display: block;
+      opacity: 1;
+    }
+    h2.story-heading {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    p.story-paragraph {
+      margin: 16px 0 26px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .ats-card {
+      background: var(--card);
+      border-radius: 22px;
+      padding: 28px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 12px 36px rgba(204, 114, 40, 0.16);
+      display: grid;
+      gap: 16px;
+    }
+    .ats-score {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .ats-score strong {
+      font-size: 42px;
+      font-weight: 600;
+      color: var(--brand-dark);
+    }
+    .ats-score span {
+      font-size: 15px;
+      color: var(--muted);
+    }
+    .ats-note {
+      font-size: 16px;
+      font-weight: 500;
+      color: #8a5524;
+    }
+    ul.ats-fixes {
+      margin: 0;
+      padding: 0 0 0 20px;
+      color: #6d543f;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+    }
+    .btn-primary {
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 22px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      box-shadow: 0 10px 24px rgba(255, 140, 60, 0.32);
+    }
+    .btn-primary:hover {
+      background: var(--brand-dark);
+      transform: translateY(-1px);
+    }
+    .btn-text {
+      background: none;
+      border: none;
+      color: #8a5524;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      padding: 10px 12px 10px 4px;
+    }
+    .btn-text:hover {
+      text-decoration: underline;
+    }
+    .whisper {
+      margin-top: 6px;
+      font-size: 13px;
+      color: rgba(111, 91, 69, 0.9);
+    }
+    .visual-placeholder {
+      margin: 32px 0 18px;
+      background: linear-gradient(135deg, rgba(255, 229, 205, 0.9), rgba(255, 201, 161, 0.65));
+      border-radius: 20px;
+      padding: 26px;
+      border: 1px dashed rgba(255, 166, 105, 0.6);
+      color: #8c5424;
+      font-size: 15px;
+      line-height: 1.6;
+      box-shadow: inset 0 0 0 1px rgba(255, 200, 150, 0.35);
+    }
+    .soft-divider {
+      height: 60px;
+      display: grid;
+      place-items: center;
+    }
+    .soft-divider::before {
+      content: "";
+      width: 160px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255, 221, 191, 0), rgba(255, 173, 110, 0.7), rgba(255, 221, 191, 0));
+      opacity: 0.8;
+    }
+    .salary-callout {
+      background: var(--card);
+      border-radius: 22px;
+      padding: 26px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 16px 40px rgba(206, 118, 45, 0.15);
+      display: grid;
+      gap: 14px;
+    }
+    .salary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+    .salary-item {
+      background: rgba(255, 238, 220, 0.6);
+      border-radius: 16px;
+      padding: 18px;
+      border: 1px solid rgba(255, 183, 120, 0.45);
+    }
+    .salary-item strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    .closing-line {
+      margin: 32px 0 38px;
+      font-size: 18px;
+      font-weight: 500;
+      color: #7a4e23;
+    }
+    .final-cta {
+      display: flex;
+      justify-content: center;
+    }
+    .hidden-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 0;
+      height: 0;
+    }
+    @media (max-width: 520px) {
+      .actions-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .btn-primary, .btn-text {
+        width: 100%;
+      }
+      .btn-text {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="floating-blob"></div>
+  <div class="floating-blob"></div>
+  <div class="floating-blob"></div>
+  <main class="page">
+    <article class="story-shell">
+      <section class="loading" id="loadingState" aria-live="polite">
+        <div class="spinner" role="presentation"></div>
+        <h1>Analyzing your resume…</h1>
+        <p>Hang tight, we’re preparing your sprint summary.</p>
+      </section>
+
+      <section class="story" id="storyState" aria-hidden="true">
+        <header>
+          <h2 class="story-heading">Let’s see how ready your resume is to sprint.</h2>
+          <p class="story-paragraph">We’ve gone through your resume line by line to see how easily a recruiter or an ATS can understand your story.</p>
+        </header>
+
+        <div class="ats-card" id="atsCard">
+          <div class="ats-score">
+            <strong id="atsScore">—</strong>
+            <span id="atsLevel">Loading insights…</span>
+          </div>
+          <div class="ats-note" id="atsNote">Good structure, but could use a little polish.</div>
+          <ul class="ats-fixes" id="atsFixes"></ul>
+          <div class="actions-row">
+            <button class="btn-primary" id="uploadResumeBtn">Upload Updated Resume</button>
+            <button class="btn-text" id="skipToNext">Skip and Continue →</button>
+          </div>
+          <div class="whisper" id="uploadStatus"></div>
+        </div>
+
+        <input type="file" class="hidden-input" id="resumeInput" accept=".pdf,.doc,.docx" />
+
+        <section id="act2" style="margin-top: 56px;">
+          <h2 class="story-heading">Where most job hunts go off-track…</h2>
+          <p class="story-paragraph">Most professionals start with enthusiasm but lose rhythm after a few weeks. That’s where JobSprint steps in — a proven CRM-like system for your career. It helps you stay consistent, track every application, and see real progress, one sprint at a time.</p>
+          <div class="visual-placeholder">Imagine a calm kanban board steadily filling with wins. Your opportunities glide from “Research” to “Offer,” with gentle nudges keeping you in rhythm. That’s the workspace waiting for you.</div>
+          <p class="story-paragraph">We’ll help you treat your job search like a project — structured, measurable, and winnable.</p>
+        </section>
+
+        <div class="soft-divider"></div>
+
+        <section id="act3">
+          <p class="story-paragraph" style="margin-top:0;">Before we continue, one last thing… let’s talk about your next milestone.</p>
+          <p class="story-paragraph">Based on what you’ve shared — your role, experience, and current package — here’s what people like you typically achieve when they switch.</p>
+          <div class="salary-callout">
+            <div class="salary-grid">
+              <div class="salary-item">
+                <strong>Your current CTC</strong>
+                <span id="currentCTC">₹9 LPA</span>
+              </div>
+              <div class="salary-item">
+                <strong>Next realistic CTC</strong>
+                <span id="nextCTC">₹11 – ₹13 LPA</span>
+              </div>
+              <div class="salary-item">
+                <strong>Typical hike</strong>
+                <span id="hikeRange">30–45%</span>
+              </div>
+            </div>
+            <p class="whisper" id="salaryNote">Based on your experience and role, this is a realistic target for your next switch.</p>
+          </div>
+          <div class="closing-line">You’re ready to start your sprint. Let’s build momentum from day one.</div>
+        </section>
+
+        <div class="final-cta">
+          <button class="btn-primary" id="continueBtn">Continue to Workspace</button>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <script>
+    const LOADING_DELAY_MS = 1400;
+
+    function getATSDiagnostic(resumeText) {
+      return {
+        score: 78,
+        level: "good",
+        fixes: [
+          "Add clear 'Work Experience' and 'Education' headers.",
+          "Reduce resume length to 1–2 pages.",
+          "Avoid using tables or columns that confuse ATS scanners."
+        ]
+      };
+    }
+
+    function getSalaryInsight({ currentCTC, yearsExp, roleId, location }) {
+      return {
+        suggestedRange: "₹11L – ₹13.5L",
+        hikePercent: "30–45%",
+        note: "Based on your experience and role, this is a realistic target for your next switch."
+      };
+    }
+
+    function formatCTC(ctc) {
+      if (!ctc) return "₹9 LPA";
+      if (typeof ctc === "number") {
+        return `₹${ctc.toLocaleString("en-IN")} LPA`;
+      }
+      const trimmed = String(ctc).trim();
+      if (/^\d+(\.\d+)?$/.test(trimmed)) {
+        return `₹${parseFloat(trimmed).toLocaleString("en-IN")} LPA`;
+      }
+      if (!trimmed.includes("₹")) {
+        return `₹${trimmed}`;
+      }
+      return trimmed;
+    }
+
+    function revealStory() {
+      const loading = document.getElementById("loadingState");
+      const story = document.getElementById("storyState");
+      if (loading) {
+        loading.style.display = "none";
+      }
+      if (story) {
+        story.classList.add("visible");
+        story.setAttribute("aria-hidden", "false");
+      }
+    }
+
+    function hydrateStory() {
+      let profile = {};
+      try {
+        profile = JSON.parse(localStorage.getItem("jobsprint_profile") || "{}") || {};
+      } catch (err) {
+        console.warn("Could not parse stored profile", err);
+      }
+
+      const resumeText = profile.resume_text || "";
+      const diagnostic = getATSDiagnostic(resumeText);
+      const atsScoreEl = document.getElementById("atsScore");
+      const atsLevelEl = document.getElementById("atsLevel");
+      const atsFixesEl = document.getElementById("atsFixes");
+      const atsNoteEl = document.getElementById("atsNote");
+      if (atsScoreEl) {
+        atsScoreEl.textContent = `${diagnostic.score} / 100`;
+      }
+      if (atsLevelEl) {
+        const levelMessages = {
+          great: "ATS-friendliness: Crystal clear and recruiter-ready.",
+          good: "ATS-friendliness: Good structure, just needs a little polish.",
+          average: "ATS-friendliness: Promising — we can sharpen it more.",
+          poor: "ATS-friendliness: Let’s rebuild it together, one win at a time."
+        };
+        atsLevelEl.textContent = levelMessages[diagnostic.level] || "ATS-friendliness: Here’s how it scored.";
+      }
+      if (atsFixesEl) {
+        atsFixesEl.innerHTML = "";
+        (diagnostic.fixes || []).forEach((tip) => {
+          const li = document.createElement("li");
+          li.textContent = tip;
+          atsFixesEl.appendChild(li);
+        });
+      }
+      if (atsNoteEl) {
+        const coachNotes = {
+          great: "Recruiters will love how quickly your story flows.",
+          good: "Good structure — a quick tune-up will make it shine.",
+          average: "Let’s highlight your wins so they stand out instantly.",
+          poor: "We’ll reshape this into a story hiring managers can’t ignore."
+        };
+        atsNoteEl.textContent = coachNotes[diagnostic.level] || "Good structure, but could use a little polish.";
+      }
+
+      const salaryData = getSalaryInsight({
+        currentCTC: profile.current_ctc,
+        yearsExp: profile.experience,
+        roleId: profile.role,
+        location: profile.city
+      });
+
+      const currentCTCEl = document.getElementById("currentCTC");
+      const nextCTCEl = document.getElementById("nextCTC");
+      const hikeRangeEl = document.getElementById("hikeRange");
+      const salaryNoteEl = document.getElementById("salaryNote");
+
+      if (currentCTCEl) currentCTCEl.textContent = formatCTC(profile.current_ctc);
+      if (nextCTCEl) nextCTCEl.textContent = salaryData.suggestedRange || "₹11 – ₹13 LPA";
+      if (hikeRangeEl) hikeRangeEl.textContent = salaryData.hikePercent || "30–45%";
+      if (salaryNoteEl) salaryNoteEl.textContent = salaryData.note || "Based on your experience and role, this is a realistic target for your next switch.";
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      hydrateStory();
+      setTimeout(revealStory, LOADING_DELAY_MS);
+
+      const skipBtn = document.getElementById("skipToNext");
+      const act2 = document.getElementById("act2");
+      skipBtn?.addEventListener("click", () => {
+        act2?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      const uploadBtn = document.getElementById("uploadResumeBtn");
+      const resumeInput = document.getElementById("resumeInput");
+      const uploadStatus = document.getElementById("uploadStatus");
+      uploadBtn?.addEventListener("click", () => {
+        resumeInput?.click();
+      });
+      resumeInput?.addEventListener("change", (event) => {
+        const file = event.target?.files?.[0];
+        if (!file) return;
+        if (uploadStatus) {
+          uploadStatus.textContent = `Got it — we’ll scan ${file.name} next.`;
+        }
+      });
+
+      const continueBtn = document.getElementById("continueBtn");
+      continueBtn?.addEventListener("click", () => {
+        try {
+          localStorage.setItem("jobsprint_readiness_seen", new Date().toISOString());
+        } catch (err) {
+          console.warn("Could not mark readiness screen as seen", err);
+        }
+        window.location.href = "/workspace.html";
+      });
+    });
+  </script>
+</body>
+</html>
