@@ -237,7 +237,6 @@
         <option value="Entrepreneur / Founder / Co-founder">Entrepreneur / Founder / Co-founder</option>
       </optgroup>
     </select>
-    <div class="field-hint">Scroll to browse or start typing to jump to a matching role.</div>
 
     <label>Total Experience (years)</label>
     <input type="number" id="experience" min="0" placeholder="e.g., 5" />
@@ -280,72 +279,6 @@
     const paymentId = params.get('payment_id');
     const finishBtn = document.getElementById('finishBtn');
     const roleSelect = document.getElementById('role');
-
-    const enableSelectTypeAhead = (selectEl) => {
-      if (!selectEl) return;
-      let searchTerm = '';
-      let resetTimer = null;
-
-      const resetSearch = () => {
-        searchTerm = '';
-        if (resetTimer) {
-          clearTimeout(resetTimer);
-          resetTimer = null;
-        }
-      };
-
-      const scheduleReset = () => {
-        if (resetTimer) clearTimeout(resetTimer);
-        resetTimer = setTimeout(resetSearch, 700);
-      };
-
-      const getOptions = () => Array.from(selectEl.options || []).filter((option) => !option.disabled && option.value);
-
-      const findMatch = (term) => {
-        if (!term) return null;
-        const normalized = term.toLowerCase();
-        const options = getOptions();
-        const prefixMatch = options.find((option) => option.textContent.toLowerCase().startsWith(normalized));
-        if (prefixMatch) return prefixMatch;
-        return options.find((option) => option.textContent.toLowerCase().includes(normalized));
-      };
-
-      selectEl.addEventListener('keydown', (event) => {
-        if (event.key === 'Backspace') {
-          if (searchTerm.length > 0) {
-            searchTerm = searchTerm.slice(0, -1);
-            const match = findMatch(searchTerm);
-            if (match) {
-              selectEl.value = match.value;
-              selectEl.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-            event.preventDefault();
-            scheduleReset();
-          }
-          return;
-        }
-
-        const isCharacterKey = event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
-        if (!isCharacterKey) {
-          if (event.key === 'Escape') resetSearch();
-          return;
-        }
-
-        searchTerm += event.key.toLowerCase();
-        const match = findMatch(searchTerm);
-        if (match) {
-          selectEl.value = match.value;
-          selectEl.dispatchEvent(new Event('input', { bubbles: true }));
-          selectEl.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        event.preventDefault();
-        scheduleReset();
-      });
-
-      selectEl.addEventListener('blur', resetSearch);
-    };
-
-    enableSelectTypeAhead(roleSelect);
 
     const setRoleValue = (value) => {
       if (!roleSelect) return;
@@ -464,8 +397,7 @@
       if (experience !== undefined && experience !== null && experience !== '') {
         document.getElementById('experience').value = experience;
       }
-      const resolvedCTC = current_ctc || (career_story && typeof career_story === 'object' ? career_story.current_ctc : undefined);
-      if (resolvedCTC) document.getElementById('currentCTC').value = resolvedCTC;
+      if (current_ctc) document.getElementById('currentCTC').value = current_ctc;
       if (career_story && typeof career_story === 'object') {
         if (career_story.journey) document.getElementById('journey').value = career_story.journey;
         if (career_story.strengths) document.getElementById('strengths').value = career_story.strengths;
@@ -720,7 +652,7 @@
           return;
         }
         alert("🎉 Onboarding complete! Redirecting...");
-        window.location.href = data.redirect_url || "/workspace.html";
+        window.location.href = data.redirect_url || "/sprint-readiness.html";
       } catch (err) {
         console.error(err);
         alert("Something went wrong. Please try again.");
