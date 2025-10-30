@@ -384,6 +384,21 @@
         resume_url,
         career_story
       } = profile;
+
+      const deriveCurrentCtc = (direct, story) => {
+        if (direct !== undefined && direct !== null && direct !== '') return direct;
+        if (!story || typeof story !== 'object') return undefined;
+        const directFromStory = story.current_ctc ?? story.currentCTC;
+        if (directFromStory !== undefined && directFromStory !== null && directFromStory !== '') {
+          return directFromStory;
+        }
+        const comp = story.compensation;
+        if (comp && typeof comp === 'object') {
+          const options = [comp.current, comp.current_ctc, comp.currentCTC, comp.current_salary, comp.currentSalary];
+          return options.find((value) => value !== undefined && value !== null && value !== '');
+        }
+        return undefined;
+      };
       if (name) document.getElementById('name').value = name;
       if (email) document.getElementById('email').value = email;
       if (phone) document.getElementById('phone').value = phone;
@@ -397,7 +412,10 @@
       if (experience !== undefined && experience !== null && experience !== '') {
         document.getElementById('experience').value = experience;
       }
-      if (current_ctc) document.getElementById('currentCTC').value = current_ctc;
+      const resolvedCtc = deriveCurrentCtc(current_ctc, career_story);
+      if (resolvedCtc !== undefined) {
+        document.getElementById('currentCTC').value = resolvedCtc;
+      }
       if (career_story && typeof career_story === 'object') {
         if (career_story.journey) document.getElementById('journey').value = career_story.journey;
         if (career_story.strengths) document.getElementById('strengths').value = career_story.strengths;
