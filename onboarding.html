@@ -603,6 +603,10 @@
         Object.entries(careerStoryEntries).filter(([, value]) => value !== undefined)
       );
 
+      if (currentCTC !== undefined) {
+        career_story.current_ctc = currentCTC;
+      }
+
       const payload = {
         google_id,
         email,

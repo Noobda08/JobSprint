@@ -66,7 +66,24 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    if (career_story !== undefined) patch.career_story = career_story;
+        if (storyLookupError) {
+          console.warn('Could not load existing career story; initializing fresh object', storyLookupError);
+        }
+
+        if (existingStoryData && existingStoryData.career_story && typeof existingStoryData.career_story === 'object') {
+          careerStoryPayload = normalizeStoryPayload(existingStoryData.career_story) || {};
+        } else {
+          careerStoryPayload = {};
+        }
+      }
+
+      careerStoryPayload.current_ctc = sanitizedCurrentCTC;
+    }
+
+    if (careerStoryPayload !== undefined) patch.career_story = careerStoryPayload;
+    if (shouldStoreCTCInColumn && sanitizedCurrentCTC !== undefined) {
+      patch.current_ctc = sanitizedCurrentCTC;
+    }
     if (plan_start !== undefined) patch.plan_start = plan_start; // "YYYY-MM-DD"
     if (plan_end !== undefined) patch.plan_end = plan_end;       // "YYYY-MM-DD"
 
