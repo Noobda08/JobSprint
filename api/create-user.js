@@ -195,7 +195,7 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({ error: 'supabase_upsert_failed', detail: error.message || String(error) });
     }
 
-    const shouldShowReadiness = isNewUser && !!nextProfileComplete;
+    const shouldShowReadiness = (!existingUser || !existingUser.profile_complete) && !!nextProfileComplete;
     const redirectUrl = shouldShowReadiness
       ? `/sprint-readiness.html?u=${encodeURIComponent(userToken)}`
       : `/workspace.html?u=${encodeURIComponent(userToken)}`;
