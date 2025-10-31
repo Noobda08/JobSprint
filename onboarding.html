@@ -69,6 +69,26 @@
     }
     button:hover { background: #ff7c1f; }
     .hidden { display: none; }
+    .back-to-workspace {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: rgba(255,255,255,0.85);
+      color: #ff7c1f;
+      border: 1px solid rgba(255, 180, 120, 0.6);
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(255, 160, 90, 0.2);
+      z-index: 10;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .back-to-workspace:hover {
+      background: #ff9a4f;
+      color: #fff;
+    }
     .field-hint {
       font-size: 13px;
       color: #666;
@@ -104,6 +124,8 @@
   </style>
 </head>
 <body>
+
+  <button id="backToWorkspace" class="back-to-workspace hidden">← Back to workspace</button>
 
   <!-- floating doodles -->
   <div class="floating" style="width:100px;height:100px;top:80px;left:60px;animation-delay:0s;"></div>
@@ -279,6 +301,49 @@
     const paymentId = params.get('payment_id');
     const finishBtn = document.getElementById('finishBtn');
     const roleSelect = document.getElementById('role');
+    const backToWorkspaceBtn = document.getElementById('backToWorkspace');
+
+    const readStoredProfile = () => {
+      try {
+        const raw = localStorage.getItem('jobsprint_profile');
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (err) {
+        console.warn('Could not parse stored profile', err);
+        return {};
+      }
+    };
+
+    const writeStoredProfile = (profile) => {
+      try {
+        localStorage.setItem('jobsprint_profile', JSON.stringify(profile || {}));
+      } catch (err) {
+        console.warn('Could not sync profile to localStorage', err);
+      }
+    };
+
+    const getStoredToken = () => {
+      const stored = readStoredProfile();
+      const token = stored?.token;
+      if (typeof token === 'string' && token.trim()) {
+        return token.trim();
+      }
+      return null;
+    };
+
+    const redirectToWorkspace = () => {
+      try {
+        localStorage.setItem('jobsprint_readiness_seen', new Date().toISOString());
+      } catch (err) {
+        console.warn('Could not mark readiness seen', err);
+      }
+      const token = getStoredToken();
+      const destination = token ? `/workspace.html?u=${encodeURIComponent(token)}` : '/workspace.html';
+      window.location.href = destination;
+    };
+
+    backToWorkspaceBtn?.addEventListener('click', redirectToWorkspace);
 
     const setRoleValue = (value) => {
       if (!roleSelect) return;
@@ -301,14 +366,10 @@
       roleSelect.value = trimmed;
     };
 
-    let storedProfileGoogleId = null;
-    try {
-      const storedProfile = localStorage.getItem('jobsprint_profile');
-      if (storedProfile) {
-        storedProfileGoogleId = JSON.parse(storedProfile)?.google_id || null;
-      }
-    } catch (err) {
-      console.warn('Could not read stored profile from localStorage', err);
+    const initialStoredProfile = readStoredProfile();
+    let storedProfileGoogleId = initialStoredProfile?.google_id || null;
+    if (initialStoredProfile?.token) {
+      backToWorkspaceBtn?.classList.remove('hidden');
     }
 
     if (!googleId && storedProfileGoogleId) {
@@ -455,21 +516,13 @@
         populateFromProfile(payload);
         try {
           const { found, ...rest } = payload;
-          const existingRaw = localStorage.getItem('jobsprint_profile');
-          let existing = {};
-          if (existingRaw) {
-            try {
-              existing = JSON.parse(existingRaw) || {};
-            } catch (parseErr) {
-              console.warn('Could not parse stored profile', parseErr);
-              existing = {};
-            }
-          }
+          const existing = readStoredProfile();
           const merged = { ...existing, ...rest, google_id: id };
-          localStorage.setItem('jobsprint_profile', JSON.stringify(merged));
+          writeStoredProfile(merged);
         } catch (storageErr) {
           console.warn('Could not sync profile to localStorage', storageErr);
         }
+        backToWorkspaceBtn?.classList.remove('hidden');
       } catch (err) {
         console.error('Failed to load existing profile', err);
         updateResumeStatus();
@@ -664,6 +717,22 @@
           finishBtn.disabled = false;
           finishBtn.innerText = "Finish Setup";
           return;
+        }
+        try {
+          const existing = readStoredProfile();
+          const storageUpdate = { google_id };
+          Object.entries(payload).forEach(([key, value]) => {
+            if (value !== undefined) {
+              storageUpdate[key] = value;
+            }
+          });
+          if (data.token) {
+            storageUpdate.token = data.token;
+          }
+          const mergedProfile = { ...existing, ...storageUpdate };
+          writeStoredProfile(mergedProfile);
+        } catch (storageErr) {
+          console.warn('Could not update stored profile after onboarding', storageErr);
         }
         alert("🎉 Onboarding complete! Redirecting...");
         window.location.href = data.redirect_url || "/sprint-readiness.html";

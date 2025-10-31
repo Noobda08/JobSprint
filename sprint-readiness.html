@@ -340,6 +340,44 @@
   <script>
     const LOADING_DELAY_MS = 1400;
 
+    const readStoredProfile = () => {
+      try {
+        const raw = localStorage.getItem("jobsprint_profile");
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch (err) {
+        console.warn("Could not parse stored profile", err);
+        return {};
+      }
+    };
+
+    const writeStoredProfile = (profile) => {
+      try {
+        localStorage.setItem("jobsprint_profile", JSON.stringify(profile || {}));
+      } catch (err) {
+        console.warn("Could not persist profile", err);
+      }
+    };
+
+    const getStoredToken = () => {
+      const stored = readStoredProfile();
+      const token = stored?.token;
+      if (typeof token === "string" && token.trim()) {
+        return token.trim();
+      }
+      return null;
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const tokenParam = params.get("u");
+    if (tokenParam) {
+      const existingProfile = readStoredProfile();
+      if (existingProfile.token !== tokenParam) {
+        writeStoredProfile({ ...existingProfile, token: tokenParam });
+      }
+    }
+
     function getATSDiagnostic(resumeText) {
       return {
         score: 78,
@@ -431,12 +469,7 @@
     }
 
     function hydrateStory() {
-      let profile = {};
-      try {
-        profile = JSON.parse(localStorage.getItem("jobsprint_profile") || "{}") || {};
-      } catch (err) {
-        console.warn("Could not parse stored profile", err);
-      }
+      const profile = readStoredProfile();
 
       const resumeText = profile.resume_text || "";
       const diagnostic = getATSDiagnostic(resumeText);
@@ -524,7 +557,9 @@
         } catch (err) {
           console.warn("Could not mark readiness screen as seen", err);
         }
-        window.location.href = "/workspace.html";
+        const token = tokenParam || getStoredToken();
+        const destination = token ? `/workspace.html?u=${encodeURIComponent(token)}` : "/workspace.html";
+        window.location.href = destination;
       });
     });
   </script>
