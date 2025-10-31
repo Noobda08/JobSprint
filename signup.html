@@ -28,6 +28,9 @@
     .g-btn-wrap{display:grid;place-items:center}
     .error-banner{display:none;margin-bottom:16px;padding:12px;border-radius:10px;background:#fee2e2;color:#b91c1c;font-size:14px;line-height:1.45}
     .error-banner.show{display:block}
+    .success-banner{display:none;margin-top:12px;margin-bottom:4px;padding:12px 14px;border-radius:10px;background:#ecfdf3;color:#027a48;font-size:14px;line-height:1.4;align-items:flex-start;gap:10px;border:1px solid #a6f4c5}
+    .success-banner.show{display:flex}
+    .success-banner .icon{flex-shrink:0;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#12b76a;color:#fff;font-size:12px;font-weight:700;margin-top:1px}
     .cta-button{width:100%;margin-top:18px;padding:12px 18px;border-radius:10px;border:none;background:var(--brand);color:#fff;font-weight:600;font-size:15px;cursor:pointer;transition:background .2s ease}
     .cta-button:disabled{opacity:.65;cursor:not-allowed;background:#93b1ff}
     .cta-button[hidden]{display:none}
@@ -69,6 +72,11 @@
             data-text="continue_with"
             data-logo_alignment="left">
           </div>
+        </div>
+
+        <div id="signup-success" class="success-banner" role="status" aria-live="polite">
+          <div class="icon" aria-hidden="true">✓</div>
+          <div id="signup-success-text">Signed in successfully. Continue to payment to finish setting up your account.</div>
         </div>
 
         <button id="continue-payment" type="button" class="cta-button" hidden>
@@ -217,17 +225,32 @@
     }
 
     const continueButton = document.getElementById('continue-payment');
+    const successBanner = document.getElementById('signup-success');
+    const successBannerText = document.getElementById('signup-success-text');
     function showContinueButton() {
       if (continueButton) {
         continueButton.disabled = false;
         continueButton.textContent = 'Continue to payment';
         continueButton.hidden = false;
       }
+      if (successBanner) {
+        const name = SIGNUP_STATE.googlePayload?.name || '';
+        const email = SIGNUP_STATE.googlePayload?.email || '';
+        if (successBannerText) {
+          const detail = name || email;
+          const messageDetail = detail ? `Signed in as ${detail}.` : 'Signed in successfully.';
+          successBannerText.textContent = `${messageDetail} Continue to payment to finish setting up your account.`;
+        }
+        successBanner.classList.add('show');
+      }
     }
 
     function hideContinueButton() {
       if (continueButton) {
         continueButton.hidden = true;
+      }
+      if (successBanner) {
+        successBanner.classList.remove('show');
       }
     }
 
