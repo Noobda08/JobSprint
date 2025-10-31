@@ -183,7 +183,7 @@ module.exports = async function handler(req, res) {
     let { error } = await performUpsert();
     if (error && patch.current_ctc !== undefined) {
       const message = error.message || error.details || '';
-      if (typeof message === 'string' && /column\s+"?current_ctc"?/i.test(message)) {
+      if (typeof message === 'string' && /current_ctc/i.test(message)) {
         console.warn('users.current_ctc column missing; storing value in career_story only');
         delete patch.current_ctc;
         ({ error } = await performUpsert());
