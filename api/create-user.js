@@ -195,10 +195,15 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({ error: 'supabase_upsert_failed', detail: error.message || String(error) });
     }
 
+    const shouldShowReadiness = isNewUser && !!nextProfileComplete;
+    const redirectUrl = shouldShowReadiness
+      ? `/sprint-readiness.html?u=${encodeURIComponent(userToken)}`
+      : `/workspace.html?u=${encodeURIComponent(userToken)}`;
+
     return res.status(200).json({
       success: true,
       token: userToken,
-      redirect_url: `/workspace.html?u=${encodeURIComponent(userToken)}`
+      redirect_url: redirectUrl
     });
   } catch (e) {
     console.error('create-user fatal:', e);
