@@ -13,7 +13,7 @@
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(120deg,var(--bg1),var(--bg2));color:var(--ink)}
-  .app{min-height:100vh;display:flex;flex-direction:column}
+  .app{min-height:100vh;display:flex;flex-direction:column;transition:margin-left .32s ease}
 
   /* Topbar */
   .top{
@@ -26,6 +26,9 @@
   .navspacer{flex:1}
   .pill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #f2caa6;border-radius:999px;padding:6px 10px;color:#a2591b}
   .ham{width:36px;height:36px;border-radius:10px;border:1px solid #f2caa6;background:#fff;cursor:pointer}
+
+  .coach-nav-btn{background:#fff;border:1px solid #f2caa6;border-radius:999px;padding:8px 14px;font-weight:600;color:#a25a1b;cursor:pointer;transition:background .2s ease,box-shadow .2s ease}
+  .coach-nav-btn:hover{background:#fff5eb;box-shadow:0 4px 10px rgba(255,154,79,.18)}
 
   .dropdown{position:absolute;right:16px;top:60px;background:#fff;border:1px solid #f2caa6;border-radius:14px;box-shadow:var(--shadow);padding:8px;display:none;min-width:230px}
   .dropdown a{display:block;padding:10px 12px;border-radius:10px;color:#5a3a1a;text-decoration:none}
@@ -103,12 +106,104 @@
   .drawer-input textarea{min-height:70px}
   .toast{position:fixed;top:20px;right:20px;background:#fff;border:1px solid #f0d3b5;border-radius:12px;box-shadow:var(--shadow);padding:12px 16px;font-size:13px;color:#724b1c;display:none;z-index:60}
   .toggle-switch{display:flex;align-items:center;gap:8px;font-size:13px;color:#7a4e23}
+  .sprint-coach{position:fixed;left:0;top:0;bottom:0;width:300px;background:rgba(255,255,255,.95);border-right:1px solid #f2caa6;box-shadow:var(--shadow);transform:translateX(-110%);transition:transform .32s ease;z-index:35;display:flex;flex-direction:column}
+  .sprint-coach.open{transform:translateX(0)}
+  .coach-inner{flex:1;display:flex;flex-direction:column;gap:18px;padding:24px 20px;overflow-y:auto;background:linear-gradient(160deg,#fff8f2,#ffe9d6)}
+  .coach-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .coach-header h2{margin:0;font-size:22px}
+  .coach-subtitle{margin:4px 0 0;font-size:12px;color:#a77b4a}
+  .coach-profile{margin:8px 0 0;font-size:12px;color:#a25a1b;font-weight:600}
+  .coach-close{background:#fff;border:1px solid #f2caa6;border-radius:10px;width:32px;height:32px;cursor:pointer;color:#a25a1b}
+  .coach-close:hover{background:#fff3e6}
+  .coach-section{background:rgba(255,255,255,.86);border:1px solid #f4d7b8;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 20px rgba(255,154,79,.08)}
+  .coach-section-title{font-weight:600;text-transform:uppercase;font-size:12px;letter-spacing:.6px;color:#c2773f}
+  .coach-quote{font-size:14px;color:#7a4e23;line-height:1.5}
+  .coach-mini-btn{align-self:flex-start;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:12px}
+  .coach-mini-btn:hover{background:var(--brand-d)}
+  .coach-mini-btn.outline{background:#fff;color:#a25a1b;border:1px solid #f2caa6}
+  .coach-mini-btn.outline:hover{background:#fff5eb}
+  .coach-progress{display:flex;flex-direction:column;gap:8px}
+  .coach-progress-bar{background:#ffe8d6;border-radius:999px;overflow:hidden;height:10px}
+  .coach-progress-fill{height:100%;background:linear-gradient(90deg,#ffb36f,#ff8b3d);width:0;transition:width .4s ease;border-radius:999px}
+  .coach-progress-text{font-size:13px;font-weight:600;color:#7a4e23}
+  .coach-note{font-size:12px;color:#a8743d}
+  .coach-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .coach-stat{background:#fff8f2;border:1px solid #f4d7b8;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;font-size:12px;color:#7a4e23}
+  .coach-stat strong{font-size:16px;color:#a25a1b}
+  .coach-metric{display:flex;justify-content:space-between;font-size:13px;color:#7a4e23}
+  .coach-metric strong{color:#a25a1b}
+  .coach-suggestion{font-size:12px;color:#a8743d;line-height:1.4}
+  .coach-section-headline{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#c2773f;font-weight:600;gap:8px}
+  .coach-icon-btn{background:#fff;border:1px solid #f2caa6;border-radius:50%;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;color:#c2773f}
+  .coach-icon-btn:hover{background:#fff5eb}
+  .coach-tips{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:#7a4e23;font-size:13px}
+  .coach-footer{text-align:center;font-size:11px;color:#b98953;padding-bottom:10px;display:flex;flex-direction:column;gap:4px}
+  .coach-tab{position:fixed;left:0;top:180px;transform:rotate(-90deg);transform-origin:left top;background:var(--brand);color:#fff;border:0;border-radius:12px 12px 0 0;padding:10px 18px;font-weight:600;letter-spacing:.4px;cursor:pointer;box-shadow:0 10px 20px rgba(0,0,0,.12);z-index:34}
+  .coach-tab.hidden{opacity:0;pointer-events:none}
+  .coach-tab:hover{background:var(--brand-d)}
+  .app.coach-open{margin-left:300px}
+  .coach-inner::-webkit-scrollbar{width:6px}
+  .coach-inner::-webkit-scrollbar-thumb{background:rgba(255,154,79,.5);border-radius:999px}
+  @media (max-width: 960px){.app.coach-open{margin-left:0}.sprint-coach{width:min(320px,85vw)}.coach-grid{grid-template-columns:1fr}}
   @media (max-width: 980px){ .board{grid-template-columns:1fr 1fr} }
   @media (max-width: 640px){ .board{grid-template-columns:1fr} .row{grid-template-columns:1fr} .pill{display:none} }
 </style>
 </head>
 <body>
 <div class="app">
+  <button class="coach-tab" id="coachTab" type="button" aria-controls="sprintCoachPanel">🏁 Sprint Coach</button>
+  <aside class="sprint-coach" id="sprintCoachPanel" aria-hidden="true">
+    <div class="coach-inner">
+      <div class="coach-header">
+        <div>
+          <h2>🏁 Sprint Coach</h2>
+          <p class="coach-subtitle">Your daily guide to consistency and progress.</p>
+          <p class="coach-profile" id="coachProfileLine">Hey there! You&rsquo;re 80% ready to sprint.</p>
+        </div>
+        <button class="coach-close" id="coachCloseBtn" type="button" aria-label="Close Sprint Coach">✕</button>
+      </div>
+
+      <section class="coach-section" aria-labelledby="coachMotivationTitle">
+        <div class="coach-section-title" id="coachMotivationTitle">Daily Motivation</div>
+        <p class="coach-quote" id="coachQuoteText">Consistency beats intensity. One application today can change everything.</p>
+        <button class="coach-mini-btn" id="newQuoteBtn" type="button">New quote</button>
+      </section>
+
+      <section class="coach-section" aria-labelledby="coachGoalsTitle">
+        <div class="coach-section-title" id="coachGoalsTitle">Your Sprint Goals</div>
+        <div class="coach-progress">
+          <div class="coach-progress-bar"><div class="coach-progress-fill" id="goalProgressFill"></div></div>
+          <div class="coach-progress-text" id="goalProgressText">0 of 0 applications today</div>
+        </div>
+        <div class="coach-note" id="goalStreakText">Keep it going!</div>
+      </section>
+
+      <section class="coach-section" aria-labelledby="coachInsightsTitle">
+        <div class="coach-section-title" id="coachInsightsTitle">Quick Insights</div>
+        <div class="coach-grid" id="coachInsightsGrid"></div>
+      </section>
+
+      <section class="coach-section" aria-labelledby="coachHealthTitle">
+        <div class="coach-section-title" id="coachHealthTitle">Career Health</div>
+        <div class="coach-metric"><span>Resume Score</span><strong id="coachResumeScore">85</strong></div>
+        <div class="coach-metric"><span>JD Fit Avg</span><strong id="coachJDFit">72</strong></div>
+        <div class="coach-suggestion" id="coachSuggestion">Top suggestion: Add measurable outcomes in your Experience section.</div>
+        <button class="coach-mini-btn outline" id="recheckResumeBtn" type="button">Recheck Resume</button>
+      </section>
+
+      <section class="coach-section" aria-labelledby="coachTipsTitle">
+        <div class="coach-section-headline" id="coachTipsTitle"><span>Coach Tips</span>
+          <button class="coach-icon-btn" id="refreshTipsBtn" type="button" aria-label="Refresh tips">⟳</button>
+        </div>
+        <ul class="coach-tips" id="coachTipsList"></ul>
+      </section>
+
+      <footer class="coach-footer">
+        <div>Powered by JobSprint</div>
+        <div>AI insights coming soon ✨</div>
+      </footer>
+    </div>
+  </aside>
   <!-- top bar -->
   <div class="top">
     <div class="topin">
@@ -120,6 +215,7 @@
         </div>
       </div>
       <div class="navspacer"></div>
+      <button class="coach-nav-btn" id="coachToggleBtn" type="button" aria-expanded="false" aria-controls="sprintCoachPanel">🏁 Sprint Coach</button>
       <div class="pill" id="goalPill">Goal: <strong id="goalNum">4</strong> / day</div>
       <button class="ham" id="hamBtn">☰</button>
       <div class="dropdown" id="menu">
@@ -283,6 +379,81 @@
   const KEY_TODAY = `jobsprint_today_${token}`;
   const profile = JSON.parse(localStorage.getItem('jobsprint_profile') || '{}');
 
+  const motivationalQuotes = [
+    'Consistency beats intensity. One application today can change everything.',
+    'Small sprints build big wins 💪',
+    'Stack tiny moments of focus and the offers will follow.',
+    'Your future self is thanking you for showing up right now.',
+    'Keep the momentum—progress loves persistence.'
+  ];
+
+  const coachTipsPool = [
+    'Follow up on applications you sent 3 days ago.',
+    'Try customizing your resume for top-fit JDs.',
+    'Review your job sprint board once before bed.',
+    'Reach out to a new connection in your target industry today.',
+    'Share a quick win with an accountability buddy.',
+    'Block 20 minutes tonight to prep for tomorrow’s sprint.'
+  ];
+
+  function getMotivationalQuote(prevIndex = -1) {
+    if (!motivationalQuotes.length) {
+      return { text: 'You have everything you need to take the next step.', index: -1 };
+    }
+    let idx = Math.floor(Math.random() * motivationalQuotes.length);
+    if (motivationalQuotes.length > 1) {
+      while (idx === prevIndex) {
+        idx = Math.floor(Math.random() * motivationalQuotes.length);
+      }
+    }
+    return { text: motivationalQuotes[idx], index: idx };
+  }
+
+  function getCoachTips() {
+    if (!coachTipsPool.length) return ['Celebrate a recent win to stay energized.'];
+    const tips = [];
+    const used = new Set();
+    while (tips.length < 3 && used.size < coachTipsPool.length) {
+      const choice = Math.floor(Math.random() * coachTipsPool.length);
+      if (used.has(choice)) continue;
+      used.add(choice);
+      tips.push(coachTipsPool[choice]);
+    }
+    return tips;
+  }
+
+  function getGoalProgress() {
+    return {
+      dailyTarget: 3,
+      completed: 1,
+      streakDays: 5
+    };
+  }
+
+  function getUserSprintStats() {
+    return {
+      applicationsAdded: 12,
+      responsesReceived: 3,
+      interviewsScheduled: 1,
+      averageFitScore: 76
+    };
+  }
+
+  function getATSScore() {
+    let storedProfile = {};
+    try {
+      storedProfile = JSON.parse(localStorage.getItem('jobsprint_profile') || '{}');
+    } catch (_) {
+      storedProfile = {};
+    }
+    const userName = storedProfile?.name || 'Sprinter';
+    const atsScore = typeof storedProfile?.ats_readiness === 'number' ? Math.round(storedProfile.ats_readiness) : 82;
+    const resumeScore = typeof storedProfile?.resume_score === 'number' ? Math.round(storedProfile.resume_score) : 85;
+    const jdFitAvg = typeof storedProfile?.jd_fit_avg === 'number' ? Math.round(storedProfile.jd_fit_avg) : 72;
+    const topSuggestion = storedProfile?.top_suggestion || 'Add measurable outcomes in your Experience section.';
+    return { userName, atsScore, resumeScore, jdFitAvg, topSuggestion };
+  }
+
   const COLUMNS = ['research','applied','screening','interviewing','offer','rejected'];
   const LANE_TITLES = {
     research: 'Research / To Apply',
@@ -402,6 +573,143 @@
   const goalNum = document.getElementById('goalNum');
   const todayCountEl = document.getElementById('todayCount');
   const weekCountEl = document.getElementById('weekCount');
+  const sprintCoachPanel = document.getElementById('sprintCoachPanel');
+  const coachToggleBtn = document.getElementById('coachToggleBtn');
+  const coachCloseBtn = document.getElementById('coachCloseBtn');
+  const coachTabBtn = document.getElementById('coachTab');
+  const coachProfileLine = document.getElementById('coachProfileLine');
+  const coachQuoteText = document.getElementById('coachQuoteText');
+  const newQuoteBtn = document.getElementById('newQuoteBtn');
+  const goalProgressFill = document.getElementById('goalProgressFill');
+  const goalProgressText = document.getElementById('goalProgressText');
+  const goalStreakText = document.getElementById('goalStreakText');
+  const coachInsightsGrid = document.getElementById('coachInsightsGrid');
+  const coachResumeScore = document.getElementById('coachResumeScore');
+  const coachJDFit = document.getElementById('coachJDFit');
+  const coachSuggestion = document.getElementById('coachSuggestion');
+  const recheckResumeBtn = document.getElementById('recheckResumeBtn');
+  const coachTipsList = document.getElementById('coachTipsList');
+  const refreshTipsBtn = document.getElementById('refreshTipsBtn');
+  const appShell = document.querySelector('.app');
+
+  let currentQuoteIndex = -1;
+  let lastCoachTips = [];
+
+  function setCoachOpen(open) {
+    if (!sprintCoachPanel) return;
+    sprintCoachPanel.classList.toggle('open', open);
+    sprintCoachPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    if (appShell) appShell.classList.toggle('coach-open', open);
+    if (coachToggleBtn) {
+      coachToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      coachToggleBtn.textContent = open ? 'Close Coach' : '🏁 Sprint Coach';
+    }
+    if (coachTabBtn) {
+      coachTabBtn.classList.toggle('hidden', open);
+      coachTabBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+  }
+
+  function toggleCoach() {
+    const isOpen = sprintCoachPanel?.classList.contains('open');
+    setCoachOpen(!isOpen);
+  }
+
+  function showNewQuote() {
+    const { text, index } = getMotivationalQuote(currentQuoteIndex);
+    currentQuoteIndex = index;
+    if (coachQuoteText) coachQuoteText.textContent = text;
+  }
+
+  function renderGoalProgress() {
+    const goal = getGoalProgress();
+    const target = Math.max(goal.dailyTarget || 0, 0);
+    const completed = Math.max(goal.completed || 0, 0);
+    const percent = target > 0 ? Math.min(100, Math.round((completed / target) * 100)) : 0;
+    if (goalProgressFill) goalProgressFill.style.width = `${percent}%`;
+    if (goalProgressText) goalProgressText.textContent = `${completed} of ${target} applications today`;
+    if (goalStreakText) {
+      const streak = Math.max(goal.streakDays || 0, 0);
+      goalStreakText.textContent = streak
+        ? `You’re on a ${streak}-day streak 🔥 Keep it going!`
+        : 'Start a new streak today—you got this!';
+    }
+  }
+
+  function renderInsights() {
+    if (!coachInsightsGrid) return;
+    coachInsightsGrid.innerHTML = '';
+    const stats = getUserSprintStats();
+    const items = [
+      { label: 'Applications Added', value: stats.applicationsAdded },
+      { label: 'Responses Received', value: stats.responsesReceived },
+      { label: 'Interviews Scheduled', value: stats.interviewsScheduled },
+      { label: 'Average Fit Score', value: `${stats.averageFitScore}%` }
+    ];
+    items.forEach(({ label, value }) => {
+      const card = document.createElement('div');
+      card.className = 'coach-stat';
+      const title = document.createElement('span');
+      title.textContent = label;
+      const strong = document.createElement('strong');
+      strong.textContent = value;
+      card.append(strong, title);
+      coachInsightsGrid.appendChild(card);
+    });
+  }
+
+  function renderCareerHealth() {
+    const { userName, atsScore, resumeScore, jdFitAvg, topSuggestion } = getATSScore();
+    if (coachProfileLine) coachProfileLine.textContent = `Hey, ${userName}! You’re ${atsScore}% ready to sprint.`;
+    if (coachResumeScore) coachResumeScore.textContent = resumeScore;
+    if (coachJDFit) coachJDFit.textContent = jdFitAvg;
+    if (coachSuggestion) coachSuggestion.textContent = `Top suggestion: ${topSuggestion}`;
+  }
+
+  function renderCoachTips(forceNew = false) {
+    if (!coachTipsList) return;
+    if (!lastCoachTips.length || forceNew) {
+      lastCoachTips = getCoachTips();
+    }
+    coachTipsList.innerHTML = '';
+    lastCoachTips.forEach(tip => {
+      const item = document.createElement('li');
+      item.textContent = tip;
+      coachTipsList.appendChild(item);
+    });
+  }
+
+  function hydrateSprintCoach() {
+    if (!sprintCoachPanel) return;
+    if (currentQuoteIndex === -1) showNewQuote();
+    else if (coachQuoteText && motivationalQuotes[currentQuoteIndex]) {
+      coachQuoteText.textContent = motivationalQuotes[currentQuoteIndex];
+    }
+    renderGoalProgress();
+    renderInsights();
+    renderCareerHealth();
+    renderCoachTips();
+  }
+
+  function initSprintCoach() {
+    if (!sprintCoachPanel) return;
+    setCoachOpen(false);
+    hydrateSprintCoach();
+    coachToggleBtn?.addEventListener('click', toggleCoach);
+    coachCloseBtn?.addEventListener('click', () => setCoachOpen(false));
+    coachTabBtn?.addEventListener('click', () => setCoachOpen(true));
+    newQuoteBtn?.addEventListener('click', () => {
+      showNewQuote();
+    });
+    refreshTipsBtn?.addEventListener('click', () => {
+      renderCoachTips(true);
+    });
+    recheckResumeBtn?.addEventListener('click', () => {
+      location.href = `/sprint-readiness.html?u=${encodeURIComponent(token)}`;
+    });
+  }
+
+  initSprintCoach();
 
   (async () => {
     try {
@@ -413,14 +721,17 @@
           localStorage.setItem('jobsprint_profile', JSON.stringify(merged));
           userLine.textContent = data.name ? `Hello, ${data.name}` : 'Welcome back';
           goalNum.textContent = data.goal_per_day || 4;
+          hydrateSprintCoach();
           return;
         }
       }
       userLine.textContent = profile?.name ? `Hello, ${profile.name}` : 'Welcome back';
       goalNum.textContent = profile?.applications_goal_per_day || 4;
+      hydrateSprintCoach();
     } catch {
       userLine.textContent = profile?.name ? `Hello, ${profile.name}` : 'Welcome back';
       goalNum.textContent = profile?.applications_goal_per_day || 4;
+      hydrateSprintCoach();
     }
   })();
 
