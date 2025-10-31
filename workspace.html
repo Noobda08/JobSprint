@@ -4,146 +4,146 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>JobSprint • Workspace</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles/theme.css"/>
 <style>
   :root{
-    --bg1:#FFF6EC; --bg2:#FFE0C8; --ink:#222; --muted:#6b6b6b;
-    --card:#fff; --line:#eee; --brand:#ff9a4f; --brand-d:#ff7c1f;
-    --lane:#fff8f2; --shadow:0 10px 30px rgba(0,0,0,.08);
+    --bg1:#f0f6ff; --bg2:#e1edff; --ink:#0b1a33; --muted:#4b6078;
+    --card:#fff; --line:#d5e3f7; --brand:#0a66c2; --brand-d:#084a91;
+    --lane:#eef5ff; --shadow:0 12px 34px rgba(10,102,194,.12);
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(120deg,var(--bg1),var(--bg2));color:var(--ink)}
+  body{margin:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(120deg,var(--bg1),var(--bg2));color:var(--ink)}
   .app{min-height:100vh;display:flex;flex-direction:column;transition:margin-left .32s ease}
 
   /* Topbar */
   .top{
     position:sticky;top:0;z-index:10;backdrop-filter:saturate(140%) blur(6px);
-    background:rgba(255,255,255,.65);border-bottom:1px solid #f1dcc9;
+    background:rgba(255,255,255,.72);border-bottom:1px solid #d2e4ff;
   }
   .topin{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:12px 16px}
   .brand{display:flex;align-items:center;gap:10px}
-  .badge{width:36px;height:36px;border-radius:12px;background:#ffe8d6;display:grid;place-items:center;font-weight:700;color:#c25a0b}
+  .badge{width:36px;height:36px;border-radius:12px;background:#e6f0ff;display:grid;place-items:center;font-weight:700;color:#0a3d91}
   .navspacer{flex:1}
-  .pill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #f2caa6;border-radius:999px;padding:6px 10px;color:#a2591b}
-  .ham{width:36px;height:36px;border-radius:10px;border:1px solid #f2caa6;background:#fff;cursor:pointer}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #c8d9f4;border-radius:999px;padding:6px 10px;color:#0f3e7c}
+  .ham{width:36px;height:36px;border-radius:10px;border:1px solid #c8d9f4;background:#fff;cursor:pointer}
 
-  .coach-nav-btn{background:#fff;border:1px solid #f2caa6;border-radius:999px;padding:8px 14px;font-weight:600;color:#a25a1b;cursor:pointer;transition:background .2s ease,box-shadow .2s ease}
-  .coach-nav-btn:hover{background:#fff5eb;box-shadow:0 4px 10px rgba(255,154,79,.18)}
+  .coach-nav-btn{background:#fff;border:1px solid #c8d9f4;border-radius:999px;padding:8px 14px;font-weight:600;color:#0f3e7c;cursor:pointer;transition:background .2s ease,box-shadow .2s ease}
+  .coach-nav-btn:hover{background:#edf4ff;box-shadow:0 4px 12px rgba(10,102,194,.18)}
 
-  .dropdown{position:absolute;right:16px;top:60px;background:#fff;border:1px solid #f2caa6;border-radius:14px;box-shadow:var(--shadow);padding:8px;display:none;min-width:230px}
-  .dropdown a{display:block;padding:10px 12px;border-radius:10px;color:#5a3a1a;text-decoration:none}
-  .dropdown a:hover{background:#fff5eb}
+  .dropdown{position:absolute;right:16px;top:60px;background:#fff;border:1px solid #c8d9f4;border-radius:14px;box-shadow:var(--shadow);padding:8px;display:none;min-width:230px}
+  .dropdown a{display:block;padding:10px 12px;border-radius:10px;color:#1e3f73;text-decoration:none}
+  .dropdown a:hover{background:#edf4ff}
 
   /* Header stats */
   .head{max-width:1200px;margin:18px auto 0;padding:0 16px 14px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-  .stat{background:rgba(255,255,255,.85);border:1px solid #f2caa6;border-radius:12px;padding:10px 14px;display:flex;gap:10px;align-items:center}
+  .stat{background:rgba(255,255,255,.85);border:1px solid #c8d9f4;border-radius:12px;padding:10px 14px;display:flex;gap:10px;align-items:center}
   .stat strong{font-weight:600}
   .btn{background:var(--brand);border:0;color:#fff;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
   .btn:hover{background:var(--brand-d)}
-  .btn.ghost{background:#fff;border:1px solid #f2caa6;color:#a25a1b}
+  .btn.ghost{background:#fff;border:1px solid #c8d9f4;color:#0f3e7c}
 
   /* Board */
   .board{max-width:1200px;margin:14px auto;padding:0 16px 40px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
-  .lane{background:rgba(255,255,255,.88);border:1px solid #f2caa6;border-radius:16px;min-height:320px;display:flex;flex-direction:column}
-  .lanehead{padding:12px 12px 10px;border-bottom:1px solid #f5d6b8;display:flex;flex-direction:column;gap:6px;min-height:148px}
+  .lane{background:rgba(255,255,255,.88);border:1px solid #c8d9f4;border-radius:16px;min-height:320px;display:flex;flex-direction:column}
+  .lanehead{padding:12px 12px 10px;border-bottom:1px solid #d7e6ff;display:flex;flex-direction:column;gap:6px;min-height:148px}
   .lanehead-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .lanehead h3{margin:0;font-size:16px}
   .lane-desc{margin:6px 0 0;font-size:12px;color:#9f9f9f;line-height:1.4}
-  .count{font-size:12px;color:#9a6a3a;background:#fff5eb;border:1px solid #f2caa6;border-radius:999px;padding:2px 8px}
+  .count{font-size:12px;color:#2f4f86;background:#edf4ff;border:1px solid #c8d9f4;border-radius:999px;padding:2px 8px}
   .cards{flex:1;padding:10px;display:grid;gap:10px}
-  .card{background:#fff;border:1px solid #f2caa6;border-radius:12px;padding:12px;box-shadow:var(--shadow);cursor:grab;display:flex;flex-direction:column;gap:8px}
+  .card{background:#fff;border:1px solid #c8d9f4;border-radius:12px;padding:12px;box-shadow:var(--shadow);cursor:grab;display:flex;flex-direction:column;gap:8px}
   .card strong{font-weight:600}
   .card small{color:var(--muted)}
   .card-header{font-size:14px;line-height:1.4}
-  .card-role{color:#7a6a55;font-size:13px}
+  .card-role{color:#3b5a85;font-size:13px}
   .card-badges{display:flex;flex-wrap:wrap;gap:6px}
-  .card-badge{background:#fff5eb;border:1px solid #f2caa6;border-radius:999px;padding:2px 8px;font-size:11px;color:#8a5d2b;white-space:nowrap}
-  .card-badge.more{background:#ffe8d6;color:#a2591b;font-weight:600}
-  .empty{flex:1;display:grid;place-items:center;color:#b07a45;font-size:13px;padding:18px}
+  .card-badge{background:#edf4ff;border:1px solid #c8d9f4;border-radius:999px;padding:2px 8px;font-size:11px;color:#2d4c8a;white-space:nowrap}
+  .card-badge.more{background:#e6f0ff;color:#0f3e7c;font-weight:600}
+  .empty{flex:1;display:grid;place-items:center;color:#385b8a;font-size:13px;padding:18px}
 
   /* Modal */
   .modalBG{position:fixed;inset:0;background:rgba(0,0,0,.25);display:none;align-items:center;justify-content:center;z-index:30;padding:20px;overflow:auto}
-  .modal{background:#fff;border:1px solid #f2caa6;border-radius:14px;box-shadow:var(--shadow);width:min(560px,92%);max-height:calc(100vh - 40px);padding:16px;overflow:auto}
+  .modal{background:#fff;border:1px solid #c8d9f4;border-radius:14px;box-shadow:var(--shadow);width:min(560px,92%);max-height:calc(100vh - 40px);padding:16px;overflow:auto}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   label{font-size:13px;font-weight:600}
-  input,textarea{width:100%;padding:10px;border:1px solid #f0d3b5;border-radius:10px;font-family:inherit}
+  input,textarea{width:100%;padding:10px;border:1px solid #c9dfff;border-radius:10px;font-family:inherit}
   textarea{min-height:80px;resize:vertical}
 
   .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
-  .section{margin-top:16px;padding:14px;border:1px solid #f5d6b8;border-radius:12px;background:#fff8f2}
+  .section{margin-top:16px;padding:14px;border:1px solid #d7e6ff;border-radius:12px;background:#eef5ff}
   .section h4{margin:0 0 8px;font-size:15px}
   .fit-panel button{margin-top:6px}
-  .fit-results{margin-top:10px;border-top:1px solid #f2e0ce;padding-top:10px;font-size:13px;color:#6b5234}
-  .fit-band{display:inline-flex;align-items:center;gap:6px;margin-left:6px;font-size:12px;padding:2px 8px;border-radius:999px;background:#ffe5cc;color:#9a5b1f}
+  .fit-results{margin-top:10px;border-top:1px solid #d6e5ff;padding-top:10px;font-size:13px;color:#2c4f80}
+  .fit-band{display:inline-flex;align-items:center;gap:6px;margin-left:6px;font-size:12px;padding:2px 8px;border-radius:999px;background:#dceaff;color:#0f3e7c}
   .fit-list{margin:6px 0 0;padding-left:18px}
-  .badge-pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #f2caa6;border-radius:999px;padding:4px 10px;font-size:12px;color:#9a5b1f}
+  .badge-pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #c8d9f4;border-radius:999px;padding:4px 10px;font-size:12px;color:#0f3e7c}
   .questions-add{display:flex;gap:8px;margin-bottom:10px}
   .questions-add input{flex:1}
-  .question-item{border:1px solid #f2d6b6;border-radius:12px;margin-bottom:10px;background:#fff}
-  .question-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #f5e2cf}
-  .question-head input{flex:1;border:none;padding:0;font-weight:600;color:#7a4e23}
-  .question-head button{background:none;border:0;font-size:16px;cursor:pointer;color:#a56a33}
+  .question-item{border:1px solid #cddffa;border-radius:12px;margin-bottom:10px;background:#fff}
+  .question-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #dbe7ff}
+  .question-head input{flex:1;border:none;padding:0;font-weight:600;color:#2c4f80}
+  .question-head button{background:none;border:0;font-size:16px;cursor:pointer;color:#275291}
   .question-body{padding:12px;display:none;flex-direction:column;gap:10px}
   .question-body textarea{min-height:90px}
   .stage-details{margin-top:14px}
-  .stage-details h5{margin:0 0 6px;font-size:14px;color:#8a5d2b}
+  .stage-details h5{margin:0 0 6px;font-size:14px;color:#2d4c8a}
   .stage-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .stage-grid.full{grid-template-columns:1fr}
-  .stage-note{font-size:12px;color:#8f7357;margin-top:4px}
-  .stage-round{display:flex;flex-direction:column;gap:6px;border:1px solid #f2d6b6;border-radius:10px;padding:10px;background:#fff8f2;margin-bottom:10px}
+  .stage-note{font-size:12px;color:#4b6b94;margin-top:4px}
+  .stage-round{display:flex;flex-direction:column;gap:6px;border:1px solid #cddffa;border-radius:10px;padding:10px;background:#eef5ff;margin-bottom:10px}
   .stage-round .row-inline{display:flex;gap:8px}
   .stage-round .row-inline input{flex:1}
   .stage-round button{align-self:flex-end}
   .drawerBG{position:fixed;inset:0;display:none;align-items:stretch;justify-content:flex-end;background:rgba(0,0,0,.25);z-index:40}
-  .drawer{width:min(360px,90vw);background:#fff;height:100%;border-left:1px solid #f0d3b5;box-shadow:var(--shadow);display:flex;flex-direction:column}
-  .drawer-head{padding:14px 16px;border-bottom:1px solid #f5e2cf;display:flex;align-items:center;justify-content:space-between}
+  .drawer{width:min(360px,90vw);background:#fff;height:100%;border-left:1px solid #c9dfff;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .drawer-head{padding:14px 16px;border-bottom:1px solid #dbe7ff;display:flex;align-items:center;justify-content:space-between}
   .drawer-head h4{margin:0;font-size:16px}
   .drawer-body{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
   .drawer-body .msg{padding:10px 12px;border-radius:10px;max-width:90%;font-size:13px;line-height:1.4}
-  .drawer-body .msg.user{background:#ffe5cc;align-self:flex-end}
+  .drawer-body .msg.user{background:#dceaff;align-self:flex-end}
   .drawer-body .msg.ai{background:#f6f6f6;border:1px solid #ececec;align-self:flex-start}
-  .drawer-input{padding:12px 16px;border-top:1px solid #f5e2cf;display:flex;flex-direction:column;gap:8px}
+  .drawer-input{padding:12px 16px;border-top:1px solid #dbe7ff;display:flex;flex-direction:column;gap:8px}
   .drawer-input textarea{min-height:70px}
-  .toast{position:fixed;top:20px;right:20px;background:#fff;border:1px solid #f0d3b5;border-radius:12px;box-shadow:var(--shadow);padding:12px 16px;font-size:13px;color:#724b1c;display:none;z-index:60}
-  .toggle-switch{display:flex;align-items:center;gap:8px;font-size:13px;color:#7a4e23}
-  .sprint-coach{position:fixed;left:0;top:0;bottom:0;width:300px;background:rgba(255,255,255,.95);border-right:1px solid #f2caa6;box-shadow:var(--shadow);transform:translateX(-110%);transition:transform .32s ease;z-index:35;display:flex;flex-direction:column}
+  .toggle-switch{display:flex;align-items:center;gap:8px;font-size:13px;color:#2c4f80}
+  .sprint-coach{position:fixed;left:0;top:0;bottom:0;width:300px;background:rgba(255,255,255,.95);border-right:1px solid #c8d9f4;box-shadow:var(--shadow);transform:translateX(-110%);transition:transform .32s ease;z-index:35;display:flex;flex-direction:column}
   .sprint-coach.open{transform:translateX(0)}
-  .coach-inner{flex:1;display:flex;flex-direction:column;gap:18px;padding:24px 20px;overflow-y:auto;background:linear-gradient(160deg,#fff8f2,#ffe9d6)}
+  .coach-inner{flex:1;display:flex;flex-direction:column;gap:18px;padding:24px 20px;overflow-y:auto;background:linear-gradient(160deg,#eef5ff,#e4f0ff)}
   .coach-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
   .coach-header h2{margin:0;font-size:22px}
-  .coach-subtitle{margin:4px 0 0;font-size:12px;color:#a77b4a}
-  .coach-profile{margin:8px 0 0;font-size:12px;color:#a25a1b;font-weight:600}
-  .coach-close{background:#fff;border:1px solid #f2caa6;border-radius:10px;width:32px;height:32px;cursor:pointer;color:#a25a1b}
-  .coach-close:hover{background:#fff3e6}
-  .coach-section{background:rgba(255,255,255,.86);border:1px solid #f4d7b8;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 20px rgba(255,154,79,.08)}
-  .coach-section-title{font-weight:600;text-transform:uppercase;font-size:12px;letter-spacing:.6px;color:#c2773f}
-  .coach-quote{font-size:14px;color:#7a4e23;line-height:1.5}
+  .coach-subtitle{margin:4px 0 0;font-size:12px;color:#2f568f}
+  .coach-profile{margin:8px 0 0;font-size:12px;color:#0f3e7c;font-weight:600}
+  .coach-close{background:#fff;border:1px solid #c8d9f4;border-radius:10px;width:32px;height:32px;cursor:pointer;color:#0f3e7c}
+  .coach-close:hover{background:#edf4ff}
+  .coach-section{background:rgba(255,255,255,.86);border:1px solid #cfe0fb;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 20px rgba(10,102,194,.1)}
+  .coach-section-title{font-weight:600;text-transform:uppercase;font-size:12px;letter-spacing:.6px;color:#1f4f94}
+  .coach-quote{font-size:14px;color:#2c4f80;line-height:1.5}
   .coach-mini-btn{align-self:flex-start;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:12px}
   .coach-mini-btn:hover{background:var(--brand-d)}
-  .coach-mini-btn.outline{background:#fff;color:#a25a1b;border:1px solid #f2caa6}
-  .coach-mini-btn.outline:hover{background:#fff5eb}
+  .coach-mini-btn.outline{background:#fff;color:#0f3e7c;border:1px solid #c8d9f4}
+  .coach-mini-btn.outline:hover{background:#edf4ff}
   .coach-progress{display:flex;flex-direction:column;gap:8px}
-  .coach-progress-bar{background:#ffe8d6;border-radius:999px;overflow:hidden;height:10px}
-  .coach-progress-fill{height:100%;background:linear-gradient(90deg,#ffb36f,#ff8b3d);width:0;transition:width .4s ease;border-radius:999px}
-  .coach-progress-text{font-size:13px;font-weight:600;color:#7a4e23}
-  .coach-note{font-size:12px;color:#a8743d}
+  .coach-progress-bar{background:#e6f0ff;border-radius:999px;overflow:hidden;height:10px}
+  .coach-progress-fill{height:100%;background:linear-gradient(90deg,#4ba0ff,#1da1f2);width:0;transition:width .4s ease;border-radius:999px}
+  .coach-progress-text{font-size:13px;font-weight:600;color:#2c4f80}
+  .coach-note{font-size:12px;color:#3260a3}
   .coach-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .coach-stat{background:#fff8f2;border:1px solid #f4d7b8;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;font-size:12px;color:#7a4e23}
-  .coach-stat strong{font-size:16px;color:#a25a1b}
-  .coach-metric{display:flex;justify-content:space-between;font-size:13px;color:#7a4e23}
-  .coach-metric strong{color:#a25a1b}
-  .coach-suggestion{font-size:12px;color:#a8743d;line-height:1.4}
-  .coach-section-headline{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#c2773f;font-weight:600;gap:8px}
-  .coach-icon-btn{background:#fff;border:1px solid #f2caa6;border-radius:50%;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;color:#c2773f}
-  .coach-icon-btn:hover{background:#fff5eb}
-  .coach-tips{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:#7a4e23;font-size:13px}
-  .coach-footer{text-align:center;font-size:11px;color:#b98953;padding-bottom:10px;display:flex;flex-direction:column;gap:4px}
+  .coach-stat{background:#eef5ff;border:1px solid #cfe0fb;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;font-size:12px;color:#2c4f80}
+  .coach-stat strong{font-size:16px;color:#0f3e7c}
+  .coach-metric{display:flex;justify-content:space-between;font-size:13px;color:#2c4f80}
+  .coach-metric strong{color:#0f3e7c}
+  .coach-suggestion{font-size:12px;color:#3260a3;line-height:1.4}
+  .coach-section-headline{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#1f4f94;font-weight:600;gap:8px}
+  .coach-icon-btn{background:#fff;border:1px solid #c8d9f4;border-radius:50%;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;color:#1f4f94}
+  .coach-icon-btn:hover{background:#edf4ff}
+  .coach-tips{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:#2c4f80;font-size:13px}
+  .coach-footer{text-align:center;font-size:11px;color:#4a6ba3;padding-bottom:10px;display:flex;flex-direction:column;gap:4px}
   .coach-tab{position:fixed;left:0;top:180px;transform:rotate(-90deg);transform-origin:left top;background:var(--brand);color:#fff;border:0;border-radius:12px 12px 0 0;padding:10px 18px;font-weight:600;letter-spacing:.4px;cursor:pointer;box-shadow:0 10px 20px rgba(0,0,0,.12);z-index:34}
   .coach-tab.hidden{opacity:0;pointer-events:none}
   .coach-tab:hover{background:var(--brand-d)}
   .app.coach-open{margin-left:300px}
   .coach-inner::-webkit-scrollbar{width:6px}
-  .coach-inner::-webkit-scrollbar-thumb{background:rgba(255,154,79,.5);border-radius:999px}
+  .coach-inner::-webkit-scrollbar-thumb{background:rgba(10,102,194,.35);border-radius:999px}
   @media (max-width: 960px){.app.coach-open{margin-left:0}.sprint-coach{width:min(320px,85vw)}.coach-grid{grid-template-columns:1fr}}
   @media (max-width: 980px){ .board{grid-template-columns:1fr 1fr} }
   @media (max-width: 640px){ .board{grid-template-columns:1fr} .row{grid-template-columns:1fr} .pill{display:none} }
@@ -211,7 +211,7 @@
         <div class="badge">J</div>
         <div>
           <div style="font-weight:700;">JobSprint</div>
-          <div id="userLine" style="font-size:12px;color:#8a6a4b;">Welcome back</div>
+          <div id="userLine" style="font-size:12px;color:#2c4f80;">Welcome back</div>
         </div>
       </div>
       <div class="navspacer"></div>
@@ -320,7 +320,7 @@
 
     <div class="section fit-panel">
       <h4 style="display:flex;align-items:center;gap:8px">Fit Analysis</h4>
-      <p style="margin:0;font-size:12px;color:#8a6d4d">Use your profile and the JD to understand how well you match.</p>
+      <p style="margin:0;font-size:12px;color:#2c4f80">Use your profile and the JD to understand how well you match.</p>
       <button class="btn ghost" id="analyzeFitBtn" type="button" style="align-self:flex-start">Analyze Fit</button>
       <div class="fit-results" id="fitResults" style="display:none"></div>
     </div>
@@ -365,8 +365,8 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
 
+<script src="scripts/theme.js"></script>
 <script>
   const qs = new URLSearchParams(location.search);
   const token = qs.get('u') || (JSON.parse(localStorage.getItem('jobsprint_profile')||'{}').token) || 'guest';
@@ -464,6 +464,28 @@
     rejected: 'Rejected'
   };
   const STOP_WORDS = new Set(['about','above','after','again','against','all','also','am','an','and','any','are','as','at','be','because','been','before','being','below','between','both','but','by','can','could','did','do','does','doing','down','during','each','few','for','from','further','had','has','have','having','he','her','here','hers','herself','him','himself','his','how','if','in','into','is','it','its','itself','just','more','most','my','myself','no','nor','not','now','of','off','on','once','only','or','other','our','ours','ourselves','out','over','own','same','she','should','so','some','such','than','that','the','their','theirs','them','themselves','then','there','these','they','this','those','through','to','too','under','until','up','very','was','we','were','what','when','where','which','while','who','whom','why','will','with','you','your','yours','yourself','yourselves']);
+
+  const notify = (message, options) => {
+    if (window.JobSprintUI && typeof window.JobSprintUI.showToast === 'function') {
+      return window.JobSprintUI.showToast(message, options || {});
+    }
+    return null;
+  };
+
+  const notifyLoading = (message, options) => {
+    if (window.JobSprintUI && typeof window.JobSprintUI.showLoadingToast === 'function') {
+      return window.JobSprintUI.showLoadingToast(message, options || {});
+    }
+    return null;
+  };
+
+  const redirectWithToast = (url, message) => {
+    const toast = notifyLoading(message || 'Redirecting…');
+    setTimeout(() => {
+      toast?.update?.('Almost there…');
+      window.location.href = url;
+    }, 180);
+  };
 
   function generateId(prefix='c') {
     return `${prefix}_${Math.random().toString(16).slice(2)}${Date.now().toString(16)}`;
@@ -810,7 +832,7 @@
     const overflow = badges.length > 5 ? `<span class="card-badge more">+${badges.length - 5}</span>` : '';
     const linkUrl = card.link ? escapeHtml(card.link) : '';
     const link = card.link ? `<div><small><a href="${linkUrl}" target="_blank" rel="noopener">Job link</a></small></div>` : '';
-    const notes = card.notes ? `<div style="color:#7a6a55;font-size:13px">${escapeHtml(card.notes).replace(/\n/g,'<br/>')}</div>` : '';
+    const notes = card.notes ? `<div style="color:#3b5a85;font-size:13px">${escapeHtml(card.notes).replace(/\n/g,'<br/>')}</div>` : '';
     return `
       <div class="card" draggable="true" data-id="${card.id}">
         ${header}
@@ -980,7 +1002,6 @@
   const chatInput = document.getElementById('chatInput');
   const chatSendBtn = document.getElementById('chatSendBtn');
   const closeChatBtn = document.getElementById('closeChatBtn');
-  const toastEl = document.getElementById('toast');
   const menu = document.getElementById('menu');
 
   let editingCardId = null;
@@ -990,7 +1011,6 @@
   let workingCard = null;
   let questionExpansion = {};
   let chatHistory = [];
-  let toastTimer = null;
 
   function setModalVisibility(show) {
     modalBG.style.display = show ? 'flex' : 'none';
@@ -1112,7 +1132,7 @@
     if (!workingCard) return;
     const jd = jobDescEl.value.trim();
     if (!jd) {
-      alert('Paste the job description first.');
+      notify('Paste the job description first.', { variant: 'danger' });
       return;
     }
     const keywords = extractKeywords(jd, 20);
@@ -1185,7 +1205,7 @@
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
       removeBtn.textContent = '✕';
-      removeBtn.style.color = '#a56a33';
+      removeBtn.style.color = '#275291';
       removeBtn.addEventListener('click', () => {
         workingCard.questions = workingCard.questions.filter(itemQ => itemQ.id !== q.id);
         delete questionExpansion[q.id];
@@ -1531,7 +1551,7 @@
     const updated = syncModalToState();
     if (!updated) return;
     if (!updated.company || !updated.role) {
-      alert('Please enter Company and Role');
+      notify('Please enter Company and Role', { variant: 'danger' });
       return;
     }
     if (editingCardId) {
@@ -1561,7 +1581,7 @@
     board[located.col][located.idx] = merged;
     moveCard(editingCardId, 'applied');
     closeModal();
-    showToast('Application marked as Applied.');
+    notify('Application marked as Applied.', { variant: 'success' });
   }
 
   function deleteCard() {
@@ -1579,16 +1599,7 @@
     saveBoard();
     renderBoard();
     closeModal();
-    showToast('Application deleted.');
-  }
-
-  function showToast(message) {
-    toastEl.textContent = message;
-    toastEl.style.display = 'block';
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-      toastEl.style.display = 'none';
-    }, 2400);
+    notify('Application deleted.', { variant: 'success' });
   }
 
   function openChat() {
@@ -1651,6 +1662,7 @@
     }
 
     let response;
+    const deletingToast = notifyLoading('Deleting your account…');
     try {
       response = await fetch('/api/delete-user', {
         method: 'POST',
@@ -1659,7 +1671,8 @@
       });
     } catch (err) {
       console.error('delete account request failed', err);
-      alert('Could not delete account. Please check your connection and try again.');
+      deletingToast?.dismiss?.();
+      notify('Could not delete account. Please check your connection and try again.', { variant: 'danger' });
       return;
     }
 
@@ -1674,16 +1687,18 @@
       const message = payload?.error
         ? `Could not delete account (${payload.error}).`
         : 'Could not delete account. Please try again.';
-      alert(message);
+      deletingToast?.dismiss?.();
+      notify(message, { variant: 'danger' });
       return;
     }
 
+    deletingToast?.dismiss?.();
     clearLocalUserData();
     board = emptyBoard();
     renderBoard();
     reflectToday();
-    alert('Your JobSprint account has been deleted. You can sign up again anytime to start fresh.');
-    location.href = '/signup.html?mode=signup';
+    notify('Your JobSprint account has been deleted. You can sign up again anytime to start fresh.', { variant: 'success' });
+    redirectWithToast('/signup.html?mode=signup', 'Taking you to sign-up…');
   }
 
   document.getElementById('hamBtn').onclick = () => menu.style.display = (menu.style.display === 'block' ? 'none' : 'block');
@@ -1697,6 +1712,7 @@
     a.click();
     URL.revokeObjectURL(url);
     menu.style.display = 'none';
+    notify('Workspace exported — check your downloads.', { variant: 'success', duration: 6000 });
   };
   document.getElementById('deleteAccountBtn').onclick = e => {
     e.preventDefault();
@@ -1705,7 +1721,8 @@
   document.getElementById('signoutBtn').onclick = e => {
     e.preventDefault();
     localStorage.removeItem('jobsprint_profile');
-    location.href = '/signup.html?mode=login';
+    notify('Signed out — see you soon!', { variant: 'info', duration: 5200 });
+    redirectWithToast('/signup.html?mode=login', 'Taking you to sign-in…');
   };
 
   document.getElementById('addBtn').onclick = openModalForNew;

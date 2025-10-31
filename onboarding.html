@@ -6,121 +6,39 @@
   <title>JobSprint Onboarding</title>
 
   <!-- Font & Style -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/theme.css" />
   <style>
-    body {
-      margin: 0;
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(120deg, #FFF6EC, #FFE0C8);
-      overflow-x: hidden;
-      color: #333;
-    }
-    .floating {
-      position: absolute;
-      background: rgba(255,255,255,0.3);
-      border-radius: 50%;
-      animation: float 12s infinite ease-in-out;
-      pointer-events: none;
-      z-index: 0;
-    }
-    @keyframes float {
-      0%,100% { transform: translateY(0) rotate(0); }
-      50% { transform: translateY(-30px) rotate(20deg); }
-    }
-    .container {
-      position: relative;
-      z-index: 1;
-      max-width: 720px;
-      margin: 60px auto;
-      background: rgba(255,255,255,0.9);
-      border-radius: 24px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
-      padding: 40px 50px;
-      text-align: left;
-      transition: all 0.4s ease;
-    }
-    h1 { margin-top: 0; color: #222; font-size: 28px; }
-    p.sub { color: #555; margin-top: 4px; font-size: 15px; }
-    label { display: block; margin: 16px 0 6px; font-weight: 600; }
-    input, textarea, select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 15px;
-    }
-    input:focus, textarea:focus, select:focus {
-      outline: none; border-color: #ffb36b;
-      box-shadow: 0 0 0 2px rgba(255, 179, 107, 0.3);
-    }
-    textarea { resize: vertical; min-height: 90px; }
-    button {
-      background: #ff9a4f;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 24px;
-      font-weight: 600;
-      font-size: 15px;
-      cursor: pointer;
-      margin-top: 24px;
-      transition: background 0.3s;
-    }
-    button:hover { background: #ff7c1f; }
-    .hidden { display: none; }
-    .back-to-workspace {
-      position: fixed;
-      top: 24px;
-      right: 24px;
-      background: rgba(255,255,255,0.85);
-      color: #ff7c1f;
-      border: 1px solid rgba(255, 180, 120, 0.6);
-      border-radius: 999px;
-      padding: 10px 18px;
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-      box-shadow: 0 6px 18px rgba(255, 160, 90, 0.2);
-      z-index: 10;
-      transition: background 0.3s ease, color 0.3s ease;
-    }
-    .back-to-workspace:hover {
-      background: #ff9a4f;
-      color: #fff;
-    }
-    .field-hint {
-      font-size: 13px;
-      color: #666;
-      margin-top: 6px;
-    }
-    .field-hint a {
-      color: #ff7c1f;
-      text-decoration: none;
-    }
-    .field-hint a:hover {
-      text-decoration: underline;
-    }
-    .step-indicator {
-      text-align: right;
-      font-size: 13px;
-      color: #777;
-      margin-bottom: 20px;
-    }
-    .footer-note {
-      text-align: center;
-      font-size: 13px;
-      color: #666;
-      margin-top: 24px;
-      opacity: 0.8;
-    }
-    .animate-fade {
-      animation: fadeIn 0.5s ease;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);background:transparent;overflow-x:hidden}
+    .floating{position:absolute;background:rgba(13,110,253,0.12);border-radius:50%;animation:float 14s ease-in-out infinite;pointer-events:none;z-index:0}
+    .floating:nth-of-type(1){width:160px;height:160px;top:12vh;left:8vw}
+    .floating:nth-of-type(2){width:110px;height:110px;bottom:12vh;right:12vw;animation-delay:-4s}
+    .floating:nth-of-type(3){width:90px;height:90px;top:48vh;right:24vw;animation-delay:-8s}
+    @keyframes float{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(14px,-18px,0)}}
+    .page-shell{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:72px 24px 120px}
+    .stage-card{background:rgba(255,255,255,0.9);border-radius:28px;border:1px solid rgba(10,102,194,0.16);box-shadow:var(--shadow-sm);padding:48px 56px;margin-bottom:32px;backdrop-filter:blur(12px)}
+    .stage-card header{margin-bottom:24px}
+    h1{margin:0;font-size:30px;font-weight:700;color:var(--ink)}
+    p.sub{margin:8px 0 0;color:var(--muted);font-size:15px;line-height:1.6}
+    label{display:block;margin:18px 0 8px;font-weight:600;color:var(--ink)}
+    textarea{resize:vertical;min-height:110px}
+    .field-hint{font-size:13px;color:var(--muted);margin-top:6px}
+    .field-hint a{color:var(--brand);text-decoration:none}
+    .field-hint a:hover{text-decoration:underline}
+    .actions{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap}
+    .primary-btn{background:linear-gradient(135deg,var(--brand),var(--brand-accent));color:#fff;border:none;border-radius:14px;padding:12px 22px;font-weight:600;font-size:15px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .2s ease,box-shadow .2s ease}
+    .primary-btn:hover{transform:translateY(-1px);box-shadow:0 18px 32px rgba(10,102,194,0.2)}
+    .ghost-btn{background:rgba(255,255,255,0.85);color:var(--brand-strong);border:1px solid rgba(10,102,194,0.16);border-radius:14px;padding:12px 22px;font-weight:600;font-size:15px;cursor:pointer;transition:background .2s ease,box-shadow .2s ease}
+    .ghost-btn:hover{background:rgba(10,102,194,0.08);box-shadow:0 10px 22px rgba(10,102,194,0.12)}
+    .back-to-workspace{position:fixed;top:24px;right:24px;background:rgba(255,255,255,0.92);color:var(--brand-strong);border:1px solid rgba(10,102,194,0.2);border-radius:999px;padding:10px 18px;font-weight:600;font-size:13px;cursor:pointer;box-shadow:var(--shadow-sm);z-index:10;transition:transform .2s ease,box-shadow .2s ease}
+    .back-to-workspace:hover{transform:translateY(-1px);box-shadow:0 16px 30px rgba(10,102,194,0.18)}
+    .hidden{display:none}
+    .step-indicator{text-align:right;font-size:13px;color:var(--muted);margin-bottom:24px;font-weight:600}
+    .footer-note{text-align:center;font-size:13px;color:var(--muted);margin-top:24px}
+    .section-title{margin-top:32px;font-size:18px;font-weight:700;color:var(--ink)}
+    .dual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    @media(max-width:720px){.stage-card{padding:36px 24px}.dual-grid{grid-template-columns:1fr}.back-to-workspace{right:16px} .page-shell{padding-top:110px}}
   </style>
 </head>
 <body>
@@ -128,11 +46,12 @@
   <button id="backToWorkspace" class="back-to-workspace hidden">← Back to workspace</button>
 
   <!-- floating doodles -->
-  <div class="floating" style="width:100px;height:100px;top:80px;left:60px;animation-delay:0s;"></div>
-  <div class="floating" style="width:80px;height:80px;bottom:100px;right:120px;animation-delay:4s;"></div>
-  <div class="floating" style="width:60px;height:60px;top:200px;right:50px;animation-delay:2s;"></div>
+  <div class="floating" style="animation-delay:0s;"></div>
+  <div class="floating" style="animation-delay:-4s;"></div>
+  <div class="floating" style="animation-delay:-8s;"></div>
 
-  <div class="container animate-fade" id="step1">
+  <div class="page-shell">
+  <section class="stage-card animate-fade" id="step1">
     <div class="step-indicator">Step 1 of 2</div>
     <h1>Let’s start with your basics 🌱</h1>
     <p class="sub">Upload your resume and I’ll fill what I can. You can edit anything anytime.</p>
@@ -266,10 +185,12 @@
     <label>Current CTC</label>
     <input type="text" id="currentCTC" placeholder="e.g., ₹ 18 LPA" />
 
-    <button id="nextBtn">Next: Tell your story →</button>
-  </div>
+    <div class="actions">
+      <button id="nextBtn" class="primary-btn" type="button">Next: Tell your story →</button>
+    </div>
+  </section>
 
-  <div class="container hidden animate-fade" id="step2">
+  <section class="stage-card hidden animate-fade" id="step2">
     <div class="step-indicator">Step 2 of 2</div>
     <h1>Now, let’s talk about <em>you</em> 🌻</h1>
     <p class="sub">Don’t overthink — just answer from the heart.</p>
@@ -289,12 +210,16 @@
     <label>Your long-term career vision</label>
     <textarea id="vision" placeholder="How do you see yourself growing in 5 years?"></textarea>
 
-    <button id="backBtn">← Back</button>
-    <button id="finishBtn">Finish Setup</button>
-  </div>
+    <div class="actions">
+      <button id="backBtn" class="ghost-btn" type="button">← Back</button>
+      <button id="finishBtn" class="primary-btn" type="button">Finish Setup</button>
+    </div>
+  </section>
 
   <p class="footer-note">We believe every job seeker deserves structure, clarity, and calm. 🌤️</p>
+  </div>
 
+  <script src="scripts/theme.js"></script>
   <script>
     const params = new URLSearchParams(location.search);
     let googleId = params.get('google_id');
@@ -302,6 +227,28 @@
     const finishBtn = document.getElementById('finishBtn');
     const roleSelect = document.getElementById('role');
     const backToWorkspaceBtn = document.getElementById('backToWorkspace');
+
+    const notify = (message, options) => {
+      if (window.JobSprintUI && typeof window.JobSprintUI.showToast === 'function') {
+        return window.JobSprintUI.showToast(message, options || {});
+      }
+      return null;
+    };
+
+    const notifyLoading = (message, options) => {
+      if (window.JobSprintUI && typeof window.JobSprintUI.showLoadingToast === 'function') {
+        return window.JobSprintUI.showLoadingToast(message, options || {});
+      }
+      return null;
+    };
+
+    const redirectWithToast = (url, message) => {
+      const toast = notifyLoading(message || 'Redirecting…');
+      setTimeout(() => {
+        toast?.update?.('Almost there…');
+        window.location.href = url;
+      }, 180);
+    };
 
     const readStoredProfile = () => {
       try {
@@ -340,7 +287,7 @@
       }
       const token = getStoredToken();
       const destination = token ? `/workspace.html?u=${encodeURIComponent(token)}` : '/workspace.html';
-      window.location.href = destination;
+      redirectWithToast(destination, 'Opening your workspace…');
     };
 
     backToWorkspaceBtn?.addEventListener('click', redirectToWorkspace);
@@ -383,31 +330,14 @@
         finishBtn.style.opacity = '0.6';
         finishBtn.style.cursor = 'not-allowed';
       }
-      const notice = document.createElement('div');
-      notice.textContent = 'Please sign in with Google to finish onboarding. Redirecting you to sign-up to authenticate.';
-      notice.style.position = 'fixed';
-      notice.style.top = '20px';
-      notice.style.right = '20px';
-      notice.style.padding = '16px 20px';
-      notice.style.background = '#333';
-      notice.style.color = '#fff';
-      notice.style.borderRadius = '12px';
-      notice.style.boxShadow = '0 8px 24px rgba(0,0,0,0.18)';
-      notice.style.zIndex = '1000';
-      notice.style.maxWidth = '320px';
-      notice.style.fontSize = '14px';
-      notice.style.lineHeight = '1.4';
-      document.body.appendChild(notice);
-
+      notify('Please sign in with Google to finish onboarding. Redirecting you to sign-up.', { variant: 'warning' });
       const redirectParams = new URLSearchParams();
       if (paymentId) redirectParams.set('payment_id', paymentId);
       const emailParam = params.get('email');
       if (emailParam) redirectParams.set('email', emailParam);
       const redirectQuery = redirectParams.toString();
       const redirectUrl = `/signup.html${redirectQuery ? `?${redirectQuery}` : ''}`;
-      setTimeout(() => {
-        window.location.replace(redirectUrl);
-      }, 1200);
+      redirectWithToast(redirectUrl, 'Taking you to sign-in…');
     }
     let uploadedResume = { path: null, publicUrl: null };
 
@@ -560,12 +490,14 @@
     const emailFromParams = params.get('email') || document.getElementById('email').value.trim();
     if (emailFromParams) fd.append('email', emailFromParams);
 
+    const parsingToast = notifyLoading('Parsing your resume…');
     try {
       const r = await fetch('/api/parse-resume', { method: 'POST', body: fd });
       const j = await r.json();
       if (!r.ok || !j.success) {
+        parsingToast?.dismiss?.();
         const reason = j?.detail || j?.error || 'Use PDF/DOCX or fill manually.';
-        alert(`Could not parse resume. ${reason}`);
+        notify(`Could not parse resume. ${reason}`, { variant: 'danger' });
         return;
       }
       const f = j.fields || {};
@@ -590,12 +522,14 @@
       if (profileHints?.linkedin) console.info('LinkedIn detected:', profileHints.linkedin);
       if (profileHints?.github) console.info('GitHub detected:', profileHints.github);
 
-      alert('✨ Resume parsed with advanced heuristics! Review and adjust if needed.');
+      parsingToast?.dismiss?.();
+      notify('✨ Resume parsed with advanced heuristics! Review and adjust if needed.', { variant: 'success' });
     }
     catch (err)
     {
+      parsingToast?.dismiss?.();
       console.error(err);
-      alert('Parsing failed. Please fill fields manually.');
+      notify('Parsing failed. Please fill fields manually.', { variant: 'danger' });
     }
 });
        
@@ -623,27 +557,27 @@
       const dobValue = document.getElementById('dob').value.trim();
 
       if (!google_id) {
-        alert('Please sign in with Google to finish onboarding.');
+        notify('Please sign in with Google to finish onboarding.', { variant: 'danger' });
         finishBtn.disabled = false;
         finishBtn.innerText = "Finish Setup";
         return;
       }
       if (!email) {
-        alert('Please add your email so we can keep in touch.');
+        notify('Please add your email so we can keep in touch.', { variant: 'danger' });
         finishBtn.disabled = false;
         finishBtn.innerText = "Finish Setup";
         return;
       }
       if (!name) {
-        alert('Please share your full name so we can personalize your workspace.');
+        notify('Please share your full name so we can personalize your workspace.', { variant: 'danger' });
         return;
       }
       if (!dobValue) {
-        alert('Please provide your date of birth so we can finalize your profile.');
+        notify('Please provide your date of birth so we can finalize your profile.', { variant: 'danger' });
         return;
       }
       if (Number.isNaN(Date.parse(dobValue))) {
-        alert('Your date of birth looks invalid. Please use the format YYYY-MM-DD.');
+        notify('Your date of birth looks invalid. Please use the format YYYY-MM-DD.', { variant: 'danger' });
         return;
       }
 
@@ -659,7 +593,7 @@
       const experience = experienceRaw === '' ? undefined : Number(experienceRaw);
       const currentCTC = normalize(document.getElementById('currentCTC').value);
       if (experience !== undefined && Number.isNaN(experience)) {
-        alert('Total experience must be a number.');
+        notify('Total experience must be a number.', { variant: 'danger' });
         return;
       }
 
@@ -702,7 +636,9 @@
       finishBtn.disabled = true;
       finishBtn.innerText = "Saving...";
 
+      let savingToast = null;
       try {
+        savingToast = notifyLoading('Saving your onboarding…');
         const resp = await fetch('/api/create-user', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
@@ -713,11 +649,13 @@
           console.error(data);
           const detailMessage = data?.detail || data?.error;
           const message = detailMessage ? `Could not save your onboarding. ${detailMessage}` : 'Could not save your onboarding. Please try again.';
-          alert(message);
+          savingToast?.dismiss?.();
+          notify(message, { variant: 'danger' });
           finishBtn.disabled = false;
           finishBtn.innerText = "Finish Setup";
           return;
         }
+        savingToast?.dismiss?.();
         try {
           const existing = readStoredProfile();
           const storageUpdate = { google_id };
@@ -734,11 +672,12 @@
         } catch (storageErr) {
           console.warn('Could not update stored profile after onboarding', storageErr);
         }
-        alert("🎉 Onboarding complete! Redirecting...");
-        window.location.href = data.redirect_url || "/sprint-readiness.html";
+        notify('🎉 Onboarding complete! Redirecting...', { variant: 'success' });
+        redirectWithToast(data.redirect_url || "/sprint-readiness.html", 'Preparing your sprint readiness…');
       } catch (err) {
         console.error(err);
-        alert("Something went wrong. Please try again.");
+        savingToast?.dismiss?.();
+        notify('Something went wrong. Please try again.', { variant: 'danger' });
         finishBtn.disabled = false;
         finishBtn.innerText = "Finish Setup";
       }
