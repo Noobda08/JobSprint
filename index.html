@@ -14,23 +14,23 @@
     .wrap{max-width:1120px;margin:0 auto;padding:20px}
 
     /* NAV */
-    .nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .logo{display:flex;align-items:center;gap:10px;font-weight:800}
     .logo img{height:150px;width:auto}
     .btn{display:inline-block;padding:12px 16px;border-radius:12px;font-weight:700;text-decoration:none;white-space:nowrap}
     .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
     .btn.secondary{border:1px solid var(--brand);color:var(--brand)}
-    .nav .cta{display:flex;gap:10px}
+    .nav .cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 
     /* HERO */
     .hero{margin-top:18px;padding:80px 40px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#fff,#f6fbff);min-height:88vh;display:flex;align-items:center;position:relative}
-    .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:center}
+    .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:center;grid-template-areas:"copy illus" "cta illus"}
+    .copy{grid-area:copy;max-width:600px;line-height:1.7}
     .eyebrow{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted);background:#fff}
     .h1{font-size:40px;font-weight:800;line-height:1.1;margin:10px 0;max-width:620px}
-    .copy{max-width:600px;line-height:1.7}
     .sub{font-size:18px;color:var(--muted);line-height:1.6;margin:12px 0}
-    .hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
-    .illus{background:var(--card);border:1px solid var(--line);border-radius:16px;min-height:280px;display:grid;place-items:center;color:var(--muted);padding:16px}
+    .hero-cta{grid-area:cta;display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;align-self:start}
+    .illus{grid-area:illus;background:var(--card);border:1px solid var(--line);border-radius:16px;min-height:280px;display:grid;place-items:center;color:var(--muted);padding:16px}
     .illus img{width:100%;max-width:100%;height:auto;display:block;border-radius:12px;box-shadow:0 12px 24px rgba(10,102,194,0.08)}
     .scroll-cue{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);opacity:.8;font-size:13px;color:var(--muted)}
 
@@ -79,14 +79,27 @@
       .wrap{padding:16px}
       .h1{font-size:32px}
       .hero{min-height:auto;padding:48px 20px}
-      .hero-grid{grid-template-columns:1fr}
+      .hero-grid{grid-template-columns:1fr;grid-template-areas:"copy" "illus" "cta"}
       .illus{min-height:200px}
       .cards{grid-template-columns:1fr}
       .step{grid-template-columns:1fr}
       .price-grid{grid-template-columns:1fr}
       .price-card.highlight{transform:translateY(-6px) scale(1.02)}
+      .nav{gap:16px}
       .nav .cta{gap:8px}
       .btn{padding:10px 14px}
+    }
+
+    @media (max-width:640px){
+      .nav{flex-direction:column;align-items:flex-start}
+      .logo img{height:72px}
+      .nav .cta{width:100%;justify-content:stretch}
+      .nav .cta .btn{flex:1;min-width:0;text-align:center;white-space:normal}
+      .hero{padding:40px 18px}
+      .h1{font-size:28px}
+      .sub{font-size:16px}
+      .hero-cta{flex-direction:column;align-items:stretch;margin-top:24px}
+      .hero-cta .btn{width:100%;text-align:center}
     }
   </style>
 </head>
@@ -97,7 +110,7 @@
       <div class="logo"><img src="logo.png" alt="JobSprint logo"></div>
       <div class="cta">
         <a class="btn secondary" href="signup.html?mode=login">Log In</a>
-        <a class="btn primary" href="/signup.html?plan=sprint">₹999 / 90 days</a>
+        <a class="btn primary" href="#pricing">Sign Up</a>
       </div>
     </nav>
 
@@ -109,13 +122,13 @@
           <h1 class="h1">You’re closer to your next offer than you think.</h1>
           <p class="sub">JobSprint helps you stay consistent, focused, and ready — turning your job hunt into a clear 90-day journey with visible progress.</p>
           <p class="sub">Because finding the right job isn’t about luck — it’s about building your own pipeline and following through until you close the deal.</p>
-          <div class="hero-cta">
-            <a class="btn primary" href="/signup.html?plan=sprint">Start Your 90-Day Sprint</a>
-            <a class="btn secondary" href="#comfort">Learn How It Works</a>
-          </div>
         </div>
         <div class="illus">
           <img src="Media.png" alt="Illustration of a job application pipeline board with stages from applied to offer" loading="lazy">
+        </div>
+        <div class="hero-cta">
+          <a class="btn primary" href="/signup.html?plan=sprint">Start Your 90-Day Sprint</a>
+          <a class="btn secondary" href="#comfort">Learn How It Works</a>
         </div>
       </div>
       <div class="scroll-cue"><a href="#comfort" style="text-decoration:none;color:var(--muted)">See how it works ↓</a></div>
