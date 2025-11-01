@@ -78,6 +78,11 @@
   /* Modal */
   .modalBG{position:fixed;inset:0;background:rgba(0,0,0,.25);display:none;align-items:center;justify-content:center;z-index:30;padding:20px;overflow:auto}
   .modal{background:#fff;border:1px solid #c8d9f4;border-radius:14px;box-shadow:var(--shadow);width:min(560px,92%);max-height:calc(100vh - 40px);padding:16px;overflow:auto}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .modal-title-block{display:flex;flex-direction:column;gap:6px;flex:1}
+  .modal-title-block h3{margin:4px 0 0}
+  .modal-close{background:transparent;border:0;color:#275291;font-size:20px;line-height:1;font-weight:600;border-radius:8px;padding:6px 8px;cursor:pointer}
+  .modal-close:hover{background:#edf4ff}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   label{font-size:13px;font-weight:600}
   input,textarea{width:100%;padding:10px;border:1px solid #c9dfff;border-radius:10px;font-family:inherit}
@@ -86,7 +91,9 @@
   .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
   .section{margin-top:16px;padding:14px;border:1px solid #d7e6ff;border-radius:12px;background:#eef5ff}
   .section h4{margin:0 0 8px;font-size:15px}
-  .fit-panel button{margin-top:6px}
+  .job-fit{display:flex;flex-direction:column;gap:10px}
+  .job-fit-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .job-fit-copy{margin:4px 0 0;font-size:12px;color:#2c4f80}
   .fit-results{margin-top:10px;border-top:1px solid #d6e5ff;padding-top:10px;font-size:13px;color:#2c4f80}
   .fit-band{display:inline-flex;align-items:center;gap:6px;margin-left:6px;font-size:12px;padding:2px 8px;border-radius:999px;background:#dceaff;color:#0f3e7c}
   .fit-list{margin:6px 0 0;padding-left:18px}
@@ -99,15 +106,17 @@
   .question-head button{background:none;border:0;font-size:16px;cursor:pointer;color:#275291}
   .question-body{padding:12px;display:none;flex-direction:column;gap:10px}
   .question-body textarea{min-height:90px}
-  .stage-details{margin-top:14px}
-  .stage-details h5{margin:0 0 6px;font-size:14px;color:#2d4c8a}
-  .stage-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .stage-grid.full{grid-template-columns:1fr}
+  .stage-meta{display:flex;flex-direction:column;gap:8px}
+  .stage-meta-note{font-size:12px;color:#4b6b94}
+  .stage-meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+  .stage-meta-item{background:#f4f7ff;border:1px solid #dbe7ff;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;font-size:12px;color:#2c4f80}
+  .stage-meta-item.full{grid-column:1 / -1}
+  .stage-meta-item.muted .stage-meta-value{color:#4b6b94;font-weight:500}
+  .stage-meta-label{text-transform:uppercase;letter-spacing:.4px;font-weight:600;font-size:11px;color:#5271a6}
+  .stage-meta-value{font-weight:600;font-size:13px;color:#153971;white-space:pre-line;word-break:break-word}
+  .stage-meta-empty{font-size:12px;color:#4b6b94}
+  .stage-meta-stack{display:flex;flex-direction:column;gap:8px}
   .stage-note{font-size:12px;color:#4b6b94;margin-top:4px}
-  .stage-round{display:flex;flex-direction:column;gap:6px;border:1px solid #cddffa;border-radius:10px;padding:10px;background:#eef5ff;margin-bottom:10px}
-  .stage-round .row-inline{display:flex;gap:8px}
-  .stage-round .row-inline input{flex:1}
-  .stage-round button{align-self:flex-end}
   .drawerBG{position:fixed;inset:0;display:none;align-items:stretch;justify-content:flex-end;background:rgba(0,0,0,.25);z-index:40}
   .drawer{width:min(360px,90vw);background:#fff;height:100%;border-left:1px solid #c9dfff;box-shadow:var(--shadow);display:flex;flex-direction:column}
   .drawer-head{padding:14px 16px;border-bottom:1px solid #dbe7ff;display:flex;align-items:center;justify-content:space-between}
@@ -304,7 +313,13 @@
 <!-- modal -->
 <div class="modalBG" id="modalBG" aria-hidden="true">
   <div class="modal">
-    <h3 style="margin:4px 0 12px" id="modalTitle">New Application</h3>
+    <div class="modal-head">
+      <div class="modal-title-block">
+        <h3 id="modalTitle">New Application</h3>
+        <div class="stage-meta" id="stageDetailsContent"></div>
+      </div>
+        <button class="modal-close" id="modalCloseBtn" type="button" aria-label="Close">✕</button>
+    </div>
     <div class="row">
       <div>
         <label>Company</label>
@@ -326,15 +341,15 @@
     <label style="margin-top:10px">Notes</label>
     <textarea id="m_notes" placeholder="Anything important about this application..."></textarea>
 
-    <div class="section" id="jobDescSection">
-      <h4>Job Description</h4>
+    <div class="section job-fit" id="jobFitSection">
+      <div class="job-fit-head">
+        <div>
+          <h4>Job Description &amp; Fit</h4>
+          <p class="job-fit-copy">Paste the JD and analyze how well you match before saving.</p>
+        </div>
+        <button class="btn ghost" id="analyzeFitBtn" type="button" style="align-self:flex-start">Analyze Fit</button>
+      </div>
       <textarea id="m_jobdesc" placeholder="Paste JD here"></textarea>
-    </div>
-
-    <div class="section fit-panel">
-      <h4 style="display:flex;align-items:center;gap:8px">Fit Analysis</h4>
-      <p style="margin:0;font-size:12px;color:#2c4f80">Use your profile and the JD to understand how well you match.</p>
-      <button class="btn ghost" id="analyzeFitBtn" type="button" style="align-self:flex-start">Analyze Fit</button>
       <div class="fit-results" id="fitResults" style="display:none"></div>
     </div>
 
@@ -350,14 +365,8 @@
       <div id="questionsList"></div>
     </div>
 
-    <div class="section stage-details" id="stageDetailsSection">
-      <h4 style="margin-bottom:4px">Stage Details</h4>
-      <div id="stageDetailsContent"></div>
-    </div>
-
     <div class="actions">
       <button class="btn ghost" id="deleteBtn" style="margin-right:auto;display:none">Delete</button>
-      <button class="btn ghost" id="cancelBtn">Cancel</button>
       <button class="btn ghost" id="markAppliedBtn" style="display:none">Mark as Applied</button>
       <button class="btn" id="saveBtn">Add</button>
     </div>
@@ -994,6 +1003,7 @@
 
   const modalBG = document.getElementById('modalBG');
   const modalTitle = document.getElementById('modalTitle');
+  const modalCloseBtn = document.getElementById('modalCloseBtn');
   const saveBtn = document.getElementById('saveBtn');
   const deleteBtn = document.getElementById('deleteBtn');
   const markAppliedBtn = document.getElementById('markAppliedBtn');
@@ -1260,7 +1270,7 @@
     stageDetailsContent.innerHTML = '';
     if (!workingCard) return;
     const note = document.createElement('div');
-    note.className = 'stage-note';
+    note.className = 'stage-meta-note';
     note.textContent = `Details shown on cards in the “${LANE_TITLES[modalStage]}” lane.`;
     stageDetailsContent.appendChild(note);
     const builder = {
@@ -1271,225 +1281,127 @@
       offer: buildOfferDetails,
       rejected: buildRejectedDetails
     }[modalStage];
-    if (builder) {
-      stageDetailsContent.appendChild(builder());
+    if (!builder) return;
+    const content = builder();
+    if (content) stageDetailsContent.appendChild(content);
+    else {
+      const empty = document.createElement('div');
+      empty.className = 'stage-meta-empty';
+      empty.textContent = 'No extra details for this stage yet.';
+      stageDetailsContent.appendChild(empty);
     }
   }
 
-  function buildResearchDetails() {
+  function createStageGrid() {
     const grid = document.createElement('div');
-    grid.className = 'stage-grid';
-    const resumeWrap = document.createElement('div');
-    const resumeLabel = document.createElement('label');
-    resumeLabel.textContent = 'Resume version';
-    const resumeInput = document.createElement('input');
-    resumeInput.id = 'stage_resume';
-    resumeInput.value = workingCard.resumeVersion || 'Resume v1';
-    resumeInput.addEventListener('input', e => { workingCard.resumeVersion = e.target.value || 'Resume v1'; });
-    resumeWrap.append(resumeLabel, resumeInput);
-    const savedWrap = document.createElement('div');
-    const savedLabel = document.createElement('label');
-    savedLabel.textContent = 'Saved on';
-    const savedInput = document.createElement('input');
-    savedInput.type = 'date';
-    savedInput.id = 'stage_saved';
-    const savedValue = workingCard.savedAt ? new Date(workingCard.savedAt).toISOString().slice(0, 10) : todayKeyDate();
-    savedInput.value = savedValue;
-    savedInput.addEventListener('change', e => {
-      if (e.target.value) {
-        const date = new Date(e.target.value);
-        if (!Number.isNaN(date.getTime())) workingCard.savedAt = date.getTime();
-      }
+    grid.className = 'stage-meta-grid';
+    return grid;
+  }
+
+  function createStageStack() {
+    const stack = document.createElement('div');
+    stack.className = 'stage-meta-stack';
+    return stack;
+  }
+
+  function createStageItem(label, value, options = {}) {
+    const item = document.createElement('div');
+    item.className = 'stage-meta-item';
+    if (options.full) item.classList.add('full');
+    if (options.muted) item.classList.add('muted');
+    const labelEl = document.createElement('span');
+    labelEl.className = 'stage-meta-label';
+    labelEl.textContent = label;
+    const valueEl = document.createElement('span');
+    valueEl.className = 'stage-meta-value';
+    valueEl.textContent = value || '—';
+    item.append(labelEl, valueEl);
+    return item;
+  }
+
+  function formatDateDisplay(value) {
+    if (!value) return '—';
+    const date = typeof value === 'number' ? new Date(value) : new Date(value);
+    if (Number.isNaN(date.getTime())) return '—';
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  function formatDateTimeDisplay(value) {
+    if (!value) return '—';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '—';
+    return date.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
     });
-    savedWrap.append(savedLabel, savedInput);
-    grid.append(resumeWrap, savedWrap);
+  }
+
+  function buildResearchDetails() {
+    const grid = createStageGrid();
+    grid.append(
+      createStageItem('Resume version', workingCard.resumeVersion || 'Resume v1'),
+      createStageItem('Saved on', formatDateDisplay(workingCard.savedAt))
+    );
     return grid;
   }
 
   function buildAppliedDetails() {
-    const grid = document.createElement('div');
-    grid.className = 'stage-grid';
-    const dateWrap = document.createElement('div');
-    const dateLabel = document.createElement('label');
-    dateLabel.textContent = 'Applied on';
-    const dateInput = document.createElement('input');
-    dateInput.type = 'date';
-    dateInput.id = 'stage_applied_date';
-    dateInput.value = workingCard.appliedInfo?.date || '';
-    dateInput.addEventListener('change', e => { workingCard.appliedInfo.date = e.target.value; });
-    dateWrap.append(dateLabel, dateInput);
-    const sourceWrap = document.createElement('div');
-    const sourceLabel = document.createElement('label');
-    sourceLabel.textContent = 'Source';
-    const sourceInput = document.createElement('input');
-    sourceInput.type = 'text';
-    sourceInput.id = 'stage_applied_source';
-    sourceInput.placeholder = 'LinkedIn, Referral, ...';
-    sourceInput.value = workingCard.appliedInfo?.source || '';
-    sourceInput.addEventListener('input', e => { workingCard.appliedInfo.source = e.target.value; });
-    sourceWrap.append(sourceLabel, sourceInput);
-    grid.append(dateWrap, sourceWrap);
+    const applied = workingCard.appliedInfo || {};
+    const grid = createStageGrid();
+    grid.append(
+      createStageItem('Applied on', formatDateDisplay(applied.date)),
+      createStageItem('Source', applied.source || '—')
+    );
     return grid;
   }
 
   function buildScreeningDetails() {
-    const container = document.createElement('div');
-    const grid = document.createElement('div');
-    grid.className = 'stage-grid';
-    const statusWrap = document.createElement('div');
-    const statusLabel = document.createElement('label');
-    statusLabel.textContent = 'Status';
-    const toggle = document.createElement('label');
-    toggle.className = 'toggle-switch';
-    const repliedInput = document.createElement('input');
-    repliedInput.type = 'checkbox';
-    repliedInput.id = 'stage_screening_replied';
-    repliedInput.checked = !!workingCard.screeningInfo?.replied;
-    repliedInput.addEventListener('change', e => { workingCard.screeningInfo.replied = e.target.checked; });
-    const repliedText = document.createElement('span');
-    repliedText.textContent = 'Replied';
-    toggle.append(repliedInput, repliedText);
-    statusWrap.append(statusLabel, toggle);
-    const dueWrap = document.createElement('div');
-    const dueLabel = document.createElement('label');
-    dueLabel.textContent = 'Assessment due';
-    const dueInput = document.createElement('input');
-    dueInput.type = 'date';
-    dueInput.id = 'stage_assessment_due';
-    dueInput.value = workingCard.screeningInfo?.assessmentDue || '';
-    dueInput.addEventListener('change', e => { workingCard.screeningInfo.assessmentDue = e.target.value; });
-    dueWrap.append(dueLabel, dueInput);
-    grid.append(statusWrap, dueWrap);
-    const infoWrap = document.createElement('div');
-    infoWrap.className = 'stage-grid full';
-    const infoInner = document.createElement('div');
-    const infoLabel = document.createElement('label');
-    infoLabel.textContent = 'Info shared';
-    const infoTextarea = document.createElement('textarea');
-    infoTextarea.id = 'stage_info_shared';
-    infoTextarea.value = workingCard.screeningInfo?.infoShared || '';
-    infoTextarea.addEventListener('input', e => { workingCard.screeningInfo.infoShared = e.target.value; });
-    infoInner.append(infoLabel, infoTextarea);
-    infoWrap.append(infoInner);
-    container.append(grid, infoWrap);
-    return container;
+    const info = workingCard.screeningInfo || {};
+    const grid = createStageGrid();
+    grid.append(
+      createStageItem('Status', info.replied ? 'Replied' : 'Awaiting reply'),
+      createStageItem('Assessment due', formatDateDisplay(info.assessmentDue))
+    );
+    const details = info.infoShared?.trim();
+    grid.append(createStageItem('Info shared', details || 'Nothing noted yet.', { full: true, muted: !details }));
+    return grid;
   }
 
   function buildInterviewingDetails() {
-    const container = document.createElement('div');
-    (workingCard.interviewingRounds || []).forEach(round => {
-      const block = document.createElement('div');
-      block.className = 'stage-round';
-      block.dataset.round = round.id;
-      const inline = document.createElement('div');
-      inline.className = 'row-inline';
-      const nameInput = document.createElement('input');
-      nameInput.type = 'text';
-      nameInput.placeholder = 'Round name (Tech 1)';
-      nameInput.value = round.name || '';
-      nameInput.addEventListener('input', e => { round.name = e.target.value; });
-      const dateInput = document.createElement('input');
-      dateInput.type = 'datetime-local';
-      dateInput.value = round.datetime || '';
-      dateInput.addEventListener('change', e => { round.datetime = e.target.value; });
-      inline.append(nameInput, dateInput);
-      const removeBtn = document.createElement('button');
-      removeBtn.type = 'button';
-      removeBtn.className = 'btn ghost';
-      removeBtn.textContent = 'Remove';
-      removeBtn.addEventListener('click', () => {
-        workingCard.interviewingRounds = workingCard.interviewingRounds.filter(r => r.id !== round.id);
-        renderStageDetails();
-      });
-      block.append(inline, removeBtn);
-      container.appendChild(block);
-    });
-    const addBtn = document.createElement('button');
-    addBtn.type = 'button';
-    addBtn.className = 'btn ghost';
-    addBtn.textContent = 'Add round';
-    addBtn.addEventListener('click', () => {
-      workingCard.interviewingRounds = workingCard.interviewingRounds || [];
-      workingCard.interviewingRounds.push({ id: generateId('r'), name: '', datetime: '' });
-      renderStageDetails();
-    });
-    container.appendChild(addBtn);
-    if (!workingCard.interviewingRounds.length) {
-      const note = document.createElement('div');
-      note.className = 'stage-note';
-      note.style.marginTop = '6px';
-      note.textContent = 'Track each upcoming interview round with timing.';
-      container.appendChild(note);
+    const rounds = workingCard.interviewingRounds || [];
+    if (!rounds.length) {
+      return createStageItem('Interview rounds', 'No interview rounds added yet.', { full: true, muted: true });
     }
-    return container;
+    const stack = createStageStack();
+    rounds.forEach((round, idx) => {
+      const name = round?.name?.trim();
+      const when = formatDateTimeDisplay(round?.datetime);
+      const item = createStageItem(`Round ${idx + 1}`, [name || 'Interview', when !== '—' ? when : 'Timing TBD'].join('\n'), { full: true });
+      stack.appendChild(item);
+    });
+    return stack;
   }
 
   function buildOfferDetails() {
-    const container = document.createElement('div');
-    const grid = document.createElement('div');
-    grid.className = 'stage-grid';
-    const ctcWrap = document.createElement('div');
-    const ctcLabel = document.createElement('label');
-    ctcLabel.textContent = 'CTC';
-    const ctcInput = document.createElement('input');
-    ctcInput.type = 'text';
-    ctcInput.id = 'stage_offer_ctc';
-    ctcInput.placeholder = '₹ / $ ...';
-    ctcInput.value = workingCard.offerInfo?.ctc || '';
-    ctcInput.addEventListener('input', e => { workingCard.offerInfo.ctc = e.target.value; });
-    ctcWrap.append(ctcLabel, ctcInput);
-    const joinWrap = document.createElement('div');
-    const joinLabel = document.createElement('label');
-    joinLabel.textContent = 'Joining date';
-    const joinInput = document.createElement('input');
-    joinInput.type = 'date';
-    joinInput.id = 'stage_offer_joining';
-    joinInput.value = workingCard.offerInfo?.joiningDate || '';
-    joinInput.addEventListener('change', e => { workingCard.offerInfo.joiningDate = e.target.value; });
-    joinWrap.append(joinLabel, joinInput);
-    grid.append(ctcWrap, joinWrap);
-    const statusWrap = document.createElement('div');
-    statusWrap.className = 'stage-grid full';
-    const statusInner = document.createElement('div');
-    const statusLabel = document.createElement('label');
-    statusLabel.textContent = 'Status';
-    const statusSelect = document.createElement('select');
-    statusSelect.id = 'stage_offer_status';
-    ['','Verbal','Written'].forEach(opt => {
-      const option = document.createElement('option');
-      option.value = opt;
-      option.textContent = opt || 'Select';
-      if ((workingCard.offerInfo?.status || '') === opt) option.selected = true;
-      statusSelect.appendChild(option);
-    });
-    statusSelect.addEventListener('change', e => { workingCard.offerInfo.status = e.target.value; });
-    statusInner.append(statusLabel, statusSelect);
-    statusWrap.append(statusInner);
-    container.append(grid, statusWrap);
-    return container;
+    const offer = workingCard.offerInfo || {};
+    const grid = createStageGrid();
+    grid.append(
+      createStageItem('CTC', offer.ctc || '—'),
+      createStageItem('Joining date', formatDateDisplay(offer.joiningDate)),
+      createStageItem('Status', offer.status || '—', { full: true })
+    );
+    return grid;
   }
 
   function buildRejectedDetails() {
-    const grid = document.createElement('div');
-    grid.className = 'stage-grid full';
-    const reasonWrap = document.createElement('div');
-    const reasonLabel = document.createElement('label');
-    reasonLabel.textContent = 'Reason';
-    const reasonArea = document.createElement('textarea');
-    reasonArea.id = 'stage_reject_reason';
-    reasonArea.value = workingCard.rejectedInfo?.reason || '';
-    reasonArea.addEventListener('input', e => { workingCard.rejectedInfo.reason = e.target.value; });
-    reasonWrap.append(reasonLabel, reasonArea);
-    const dateWrap = document.createElement('div');
-    const dateLabel = document.createElement('label');
-    dateLabel.textContent = 'Date';
-    const dateInput = document.createElement('input');
-    dateInput.type = 'date';
-    dateInput.id = 'stage_reject_date';
-    dateInput.value = workingCard.rejectedInfo?.date || '';
-    dateInput.addEventListener('change', e => { workingCard.rejectedInfo.date = e.target.value; });
-    dateWrap.append(dateLabel, dateInput);
-    grid.append(reasonWrap, dateWrap);
+    const reject = workingCard.rejectedInfo || {};
+    const grid = createStageGrid();
+    grid.append(
+      createStageItem('Reason', reject.reason || 'No reason added yet.', { full: true, muted: !reject.reason }),
+      createStageItem('Date', formatDateDisplay(reject.date))
+    );
     return grid;
   }
 
@@ -1739,7 +1651,7 @@
   };
 
   document.getElementById('addBtn').onclick = openModalForNew;
-  document.getElementById('cancelBtn').onclick = closeModal;
+  modalCloseBtn.onclick = closeModal;
   saveBtn.onclick = upsertCard;
   deleteBtn.onclick = deleteCard;
   markAppliedBtn.onclick = markAsApplied;
