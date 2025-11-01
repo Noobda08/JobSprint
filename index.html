@@ -24,13 +24,14 @@
 
     /* HERO */
     .hero{margin-top:18px;padding:80px 40px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#fff,#f6fbff);min-height:88vh;display:flex;align-items:center;position:relative}
-    .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:center}
+    .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:center;grid-template-areas:"copy illus" "cta illus"}
+    .hero .copy{grid-area:copy}
     .eyebrow{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted);background:#fff}
     .h1{font-size:40px;font-weight:800;line-height:1.1;margin:10px 0;max-width:620px}
     .copy{max-width:600px;line-height:1.7}
     .sub{font-size:18px;color:var(--muted);line-height:1.6;margin:12px 0}
-    .hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
-    .illus{background:var(--card);border:1px solid var(--line);border-radius:16px;min-height:280px;display:grid;place-items:center;color:var(--muted);padding:16px}
+    .hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;grid-area:cta}
+    .illus{background:var(--card);border:1px solid var(--line);border-radius:16px;min-height:280px;display:grid;place-items:center;color:var(--muted);padding:16px;grid-area:illus}
     .illus img{width:100%;max-width:100%;height:auto;display:block;border-radius:12px;box-shadow:0 12px 24px rgba(10,102,194,0.08)}
     .scroll-cue{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);opacity:.8;font-size:13px;color:var(--muted)}
 
@@ -79,7 +80,7 @@
       .wrap{padding:16px}
       .h1{font-size:32px}
       .hero{min-height:auto;padding:48px 20px}
-      .hero-grid{grid-template-columns:1fr}
+      .hero-grid{grid-template-columns:1fr;grid-template-areas:"copy" "illus" "cta"}
       .illus{min-height:200px}
       .cards{grid-template-columns:1fr}
       .step{grid-template-columns:1fr}
@@ -122,13 +123,13 @@
           <h1 class="h1">You’re closer to your next offer than you think.</h1>
           <p class="sub">JobSprint helps you stay consistent, focused, and ready — turning your job hunt into a clear 90-day journey with visible progress.</p>
           <p class="sub">Because finding the right job isn’t about luck — it’s about building your own pipeline and following through until you close the deal.</p>
-          <div class="hero-cta">
-            <a class="btn primary" href="/signup.html?plan=sprint">Start Your 90-Day Sprint</a>
-            <a class="btn secondary" href="#comfort">Learn How It Works</a>
-          </div>
         </div>
         <div class="illus">
           <img src="Media.png" alt="Illustration of a job application pipeline board with stages from applied to offer" loading="lazy">
+        </div>
+        <div class="hero-cta">
+          <a class="btn primary" href="/signup.html?plan=sprint">Start Your 90-Day Sprint</a>
+          <a class="btn secondary" href="#comfort">Learn How It Works</a>
         </div>
       </div>
       <div class="scroll-cue"><a href="#comfort" style="text-decoration:none;color:var(--muted)">See how it works ↓</a></div>
