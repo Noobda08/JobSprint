@@ -14,13 +14,13 @@
     .wrap{max-width:1120px;margin:0 auto;padding:20px}
 
     /* NAV */
-    .nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     .logo{display:flex;align-items:center;gap:10px;font-weight:800}
     .logo img{height:150px;width:auto}
     .btn{display:inline-block;padding:12px 16px;border-radius:12px;font-weight:700;text-decoration:none;white-space:nowrap}
     .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
     .btn.secondary{border:1px solid var(--brand);color:var(--brand)}
-    .nav .cta{display:flex;gap:10px}
+    .nav .cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 
     /* HERO */
     .hero{margin-top:18px;padding:80px 40px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#fff,#f6fbff);min-height:88vh;display:flex;align-items:center;position:relative}
@@ -85,8 +85,21 @@
       .step{grid-template-columns:1fr}
       .price-grid{grid-template-columns:1fr}
       .price-card.highlight{transform:translateY(-6px) scale(1.02)}
+      .nav{gap:16px}
       .nav .cta{gap:8px}
       .btn{padding:10px 14px}
+    }
+
+    @media (max-width:640px){
+      .nav{flex-direction:column;align-items:flex-start}
+      .logo img{height:72px}
+      .nav .cta{width:100%;justify-content:stretch}
+      .nav .cta .btn{flex:1;min-width:0;text-align:center;white-space:normal}
+      .hero{padding:40px 18px}
+      .h1{font-size:28px}
+      .sub{font-size:16px}
+      .hero-cta{flex-direction:column;align-items:stretch}
+      .hero-cta .btn{width:100%;text-align:center}
     }
   </style>
 </head>
@@ -97,7 +110,7 @@
       <div class="logo"><img src="logo.png" alt="JobSprint logo"></div>
       <div class="cta">
         <a class="btn secondary" href="signup.html?mode=login">Log In</a>
-        <a class="btn primary" href="/signup.html?plan=sprint">₹999 / 90 days</a>
+        <a class="btn primary" href="#pricing">Sign Up</a>
       </div>
     </nav>
 
