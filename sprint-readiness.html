@@ -26,6 +26,7 @@
     .story{display:none;opacity:0;transition:opacity .6s ease}
     .story.visible{display:block;opacity:1}
     .stage{display:grid;gap:28px;position:relative;transition:opacity .4s ease,transform .4s ease}
+    #ctcStage{gap:8px}
     .stage.hidden{display:none}
     h2.story-heading{margin:0;font-size:30px;font-weight:700;color:var(--ink)}
     p.story-paragraph{margin:18px 0 26px;color:var(--muted);font-size:16px;line-height:1.65}
@@ -56,7 +57,7 @@
     .hidden-input{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
     .stage-actions{display:flex;justify-content:flex-end}
     .stage-nav{display:flex;justify-content:flex-start;align-items:center}
-    .stage-nav .btn-text{padding-left:0;width:auto}
+    .stage-nav .btn-text{padding:4px 12px 4px 0;width:auto}
     @media(max-width:520px){.actions-row{flex-direction:column;align-items:stretch}.btn-primary,.btn-secondary,.btn-text{text-align:center;width:100%}.stage-actions{justify-content:flex-start}.stage-nav{justify-content:flex-start}.stage-nav .btn-text{text-align:left;width:auto}}
     @media(prefers-reduced-motion:no-preference){.stage{opacity:0;transform:translateY(16px)}.stage:not(.hidden){opacity:1;transform:translateY(0)}}
   </style>
