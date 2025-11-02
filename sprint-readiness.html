@@ -25,6 +25,8 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     .story{display:none;opacity:0;transition:opacity .6s ease}
     .story.visible{display:block;opacity:1}
+    .stage{display:grid;gap:28px;position:relative;transition:opacity .4s ease,transform .4s ease}
+    .stage.hidden{display:none}
     h2.story-heading{margin:0;font-size:30px;font-weight:700;color:var(--ink)}
     p.story-paragraph{margin:18px 0 26px;color:var(--muted);font-size:16px;line-height:1.65}
     .ats-card{background:rgba(255,255,255,0.96);border-radius:22px;padding:28px;border:1px solid rgba(10,102,194,0.16);box-shadow:0 14px 36px rgba(10,102,194,0.16);display:grid;gap:18px}
@@ -37,6 +39,8 @@
     .actions-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
     .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-accent));color:#fff;border:none;border-radius:14px;padding:12px 22px;font-weight:600;font-size:15px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .2s ease,box-shadow .2s ease}
     .btn-primary:hover{transform:translateY(-1px);box-shadow:0 18px 34px rgba(10,102,194,0.22)}
+    .btn-secondary{background:rgba(255,255,255,0.92);color:var(--brand-strong);border:1px solid rgba(13,110,253,0.32);border-radius:14px;padding:12px 22px;font-weight:600;font-size:15px;cursor:pointer;box-shadow:var(--shadow-xs,0 12px 28px rgba(10,102,194,0.08));transition:background .2s ease,border-color .2s ease,transform .2s ease}
+    .btn-secondary:hover{background:rgba(13,110,253,0.06);border-color:rgba(13,110,253,0.48);transform:translateY(-1px)}
     .btn-text{background:none;border:none;color:var(--brand-strong);font-weight:600;font-size:15px;cursor:pointer;padding:10px 12px 10px 4px}
     .btn-text:hover{text-decoration:underline}
     .whisper{margin-top:6px;font-size:13px;color:var(--muted)}
@@ -50,7 +54,9 @@
     .closing-line{margin:32px 0 38px;font-size:18px;font-weight:600;color:var(--ink)}
     .final-cta{display:flex;justify-content:center}
     .hidden-input{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
-    @media(max-width:520px){.actions-row{flex-direction:column;align-items:stretch}.btn-primary,.btn-text{text-align:center;width:100%}}
+    .stage-actions{display:flex;justify-content:flex-end}
+    @media(max-width:520px){.actions-row{flex-direction:column;align-items:stretch}.btn-primary,.btn-secondary,.btn-text{text-align:center;width:100%}.stage-actions{justify-content:flex-start}}
+    @media(prefers-reduced-motion:no-preference){.stage{opacity:0;transform:translateY(16px)}.stage:not(.hidden){opacity:1;transform:translateY(0)}}
   </style>
 </head>
 <body>
@@ -71,48 +77,56 @@
           <p class="story-paragraph">We’ve gone through your resume line by line to see how easily a recruiter or an ATS can understand your story.</p>
         </header>
 
-        <div class="ats-card" id="atsCard">
-          <div class="ats-score">
-            <strong id="atsScore">—</strong>
-            <span id="atsLevel">Loading insights…</span>
-          </div>
-          <div class="ats-note" id="atsNote">Good structure, but could use a little polish.</div>
-          <ul class="ats-fixes" id="atsFixes"></ul>
-          <div class="actions-row">
-            <button class="btn-primary" id="uploadResumeBtn">Upload Updated Resume</button>
-            <button class="btn-text" id="skipToNext">Skip and Continue →</button>
-          </div>
-          <div class="whisper" id="uploadStatus"></div>
-        </div>
-
-        <input type="file" class="hidden-input" id="resumeInput" accept=".pdf,.doc,.docx" />
-
-        <section id="act3">
-          <p class="story-paragraph" style="margin-top:0;">Before we continue, one last thing… let’s talk about your next milestone.</p>
-          <p class="story-paragraph">Based on what you’ve shared — your role, experience, and current package — here’s what people like you typically achieve when they switch.</p>
-          <div class="salary-callout">
-            <div class="salary-grid">
-              <div class="salary-item">
-                <strong>Your current CTC</strong>
-                <span id="currentCTC">₹9 LPA</span>
-              </div>
-              <div class="salary-item">
-                <strong>Next realistic CTC</strong>
-                <span id="nextCTC">₹11 – ₹13 LPA</span>
-              </div>
-              <div class="salary-item">
-                <strong>Typical hike</strong>
-                <span id="hikeRange">30–45%</span>
-              </div>
+        <section id="resumeStage" class="stage" aria-hidden="false">
+          <div class="ats-card" id="atsCard">
+            <div class="ats-score">
+              <strong id="atsScore">—</strong>
+              <span id="atsLevel">Loading insights…</span>
             </div>
-            <p class="whisper" id="salaryNote">Based on your experience and role, this is a realistic target for your next switch.</p>
+            <div class="ats-note" id="atsNote">Good structure, but could use a little polish.</div>
+            <ul class="ats-fixes" id="atsFixes"></ul>
+            <div class="actions-row">
+              <button class="btn-secondary" id="uploadResumeBtn" type="button">Upload Updated Resume</button>
+            </div>
+            <div class="whisper" id="uploadStatus"></div>
           </div>
-          <div class="closing-line">You’re ready to start your sprint. Let’s build momentum from day one.</div>
+
+          <input type="file" class="hidden-input" id="resumeInput" accept=".pdf,.doc,.docx" />
+
+          <div class="stage-actions">
+            <button class="btn-primary" id="resumeNext" type="button">Next</button>
+          </div>
         </section>
 
-        <div class="final-cta">
-          <button class="btn-primary" id="continueBtn">Continue to Workspace</button>
-        </div>
+        <section id="ctcStage" class="stage hidden" aria-hidden="true">
+          <button class="btn-text" id="resumeBack" type="button">← Back</button>
+          <section id="act3">
+            <p class="story-paragraph" style="margin-top:0;">Before we continue, one last thing… let’s talk about your next milestone.</p>
+            <p class="story-paragraph">Based on what you’ve shared — your role, experience, and current package — here’s what people like you typically achieve when they switch.</p>
+            <div class="salary-callout">
+              <div class="salary-grid">
+                <div class="salary-item">
+                  <strong>Your current CTC</strong>
+                  <span id="currentCTC">₹9 LPA</span>
+                </div>
+                <div class="salary-item">
+                  <strong>Next realistic CTC</strong>
+                  <span id="nextCTC">₹11 – ₹13 LPA</span>
+                </div>
+                <div class="salary-item">
+                  <strong>Typical hike</strong>
+                  <span id="hikeRange">30–45%</span>
+                </div>
+              </div>
+              <p class="whisper" id="salaryNote">Based on your experience and role, this is a realistic target for your next switch.</p>
+            </div>
+            <div class="closing-line">You’re ready to start your sprint. Let’s build momentum from day one.</div>
+          </section>
+
+          <div class="final-cta">
+            <button class="btn-primary" id="continueBtn">Continue to Workspace</button>
+          </div>
+        </section>
       </section>
     </article>
   </main>
@@ -333,12 +347,6 @@
       hydrateStory();
       setTimeout(revealStory, LOADING_DELAY_MS);
 
-      const skipBtn = document.getElementById("skipToNext");
-      const act2 = document.getElementById("act2");
-      skipBtn?.addEventListener("click", () => {
-        act2?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-
       const uploadBtn = document.getElementById("uploadResumeBtn");
       const resumeInput = document.getElementById("resumeInput");
       const uploadStatus = document.getElementById("uploadStatus");
@@ -352,6 +360,31 @@
           uploadStatus.textContent = `Got it — we’ll scan ${file.name} next.`;
         }
         notify(`Got it — we'll scan ${file.name} next.`, { variant: 'info' });
+      });
+
+      const resumeStage = document.getElementById("resumeStage");
+      const ctcStage = document.getElementById("ctcStage");
+      const resumeNext = document.getElementById("resumeNext");
+      const resumeBack = document.getElementById("resumeBack");
+
+      const showStage = (stageToShow) => {
+        if (!stageToShow) return;
+        const stages = [resumeStage, ctcStage];
+        stages.forEach((stage) => {
+          if (!stage) return;
+          const isActive = stage === stageToShow;
+          stage.classList.toggle("hidden", !isActive);
+          stage.setAttribute("aria-hidden", isActive ? "false" : "true");
+        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+
+      resumeNext?.addEventListener("click", () => {
+        showStage(ctcStage);
+      });
+
+      resumeBack?.addEventListener("click", () => {
+        showStage(resumeStage);
       });
 
       const continueBtn = document.getElementById("continueBtn");
