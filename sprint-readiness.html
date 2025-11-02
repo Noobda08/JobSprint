@@ -55,7 +55,10 @@
     .final-cta{display:flex;justify-content:center}
     .hidden-input{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
     .stage-actions{display:flex;justify-content:flex-end}
-    @media(max-width:520px){.actions-row{flex-direction:column;align-items:stretch}.btn-primary,.btn-secondary,.btn-text{text-align:center;width:100%}.stage-actions{justify-content:flex-start}}
+    .stage-nav{display:flex;justify-content:flex-start;align-items:center}
+    .stage-nav .btn-text{padding-left:0;width:auto}
+    #ctcStage{gap:16px}
+    @media(max-width:520px){.actions-row{flex-direction:column;align-items:stretch}.btn-primary,.btn-secondary,.btn-text{text-align:center;width:100%}.stage-actions{justify-content:flex-start}.stage-nav{justify-content:flex-start}.stage-nav .btn-text{text-align:left;width:auto}}
     @media(prefers-reduced-motion:no-preference){.stage{opacity:0;transform:translateY(16px)}.stage:not(.hidden){opacity:1;transform:translateY(0)}}
   </style>
 </head>
@@ -72,12 +75,12 @@
       </section>
 
       <section class="story" id="storyState" aria-hidden="true">
-        <header>
-          <h2 class="story-heading">Let’s see how ready your resume is to sprint.</h2>
-          <p class="story-paragraph">We’ve gone through your resume line by line to see how easily a recruiter or an ATS can understand your story.</p>
-        </header>
-
         <section id="resumeStage" class="stage" aria-hidden="false">
+          <header>
+            <h2 class="story-heading">Let’s see how ready your resume is to sprint.</h2>
+            <p class="story-paragraph">We’ve gone through your resume line by line to see how easily a recruiter or an ATS can understand your story.</p>
+          </header>
+
           <div class="ats-card" id="atsCard">
             <div class="ats-score">
               <strong id="atsScore">—</strong>
@@ -99,7 +102,9 @@
         </section>
 
         <section id="ctcStage" class="stage hidden" aria-hidden="true">
-          <button class="btn-text" id="resumeBack" type="button">← Back</button>
+          <div class="stage-nav">
+            <button class="btn-text" id="resumeBack" type="button">← Back</button>
+          </div>
           <section id="act3">
             <p class="story-paragraph" style="margin-top:0;">Before we continue, one last thing… let’s talk about your next milestone.</p>
             <p class="story-paragraph">Based on what you’ve shared — your role, experience, and current package — here’s what people like you typically achieve when they switch.</p>
