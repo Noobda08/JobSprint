@@ -58,7 +58,12 @@ module.exports = async function handler(req, res) {
     if (phone !== undefined) patch.phone = phone;
     if (city !== undefined) patch.city = city;
     if (dob !== undefined && dob) patch.dob = dob;          // expect "YYYY-MM-DD"
-    if (experience !== undefined) patch.experience = Number(experience);
+    if (experience !== undefined) {
+      const expValue = typeof experience === 'number' ? experience : Number.parseFloat(experience);
+      if (Number.isFinite(expValue)) {
+        patch.experience = expValue;
+      }
+    }
 
     const normalizeCareerStory = (input) => {
       if (input === undefined) return undefined;
