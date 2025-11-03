@@ -26,6 +26,21 @@
     .field-hint{font-size:13px;color:var(--muted);margin-top:6px}
     .field-hint a{color:var(--brand);text-decoration:none}
     .field-hint a:hover{text-decoration:underline}
+    .combobox-field{position:relative}
+    .combobox-input-wrapper{position:relative;display:flex;align-items:center}
+    .combobox-input{width:100%;padding:12px 44px 12px 14px;border-radius:14px;border:1px solid rgba(10,102,194,0.16);background:rgba(255,255,255,0.92);font-size:15px;transition:border-color .2s ease,box-shadow .2s ease;box-shadow:var(--shadow-xs,0 6px 20px rgba(10,102,194,0.08))}
+    .combobox-input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(10,102,194,0.18)}
+    .combobox-input-wrapper::after{content:'';position:absolute;right:16px;top:50%;margin-top:-2px;border-width:6px 5px 0 5px;border-style:solid;border-color:var(--muted) transparent transparent transparent;transition:transform .2s ease}
+    .combobox-field[data-open='true'] .combobox-input-wrapper::after{transform:rotate(180deg);margin-top:-4px}
+    .combobox-list{position:absolute;z-index:20;top:calc(100% + 6px);left:0;right:0;max-height:260px;overflow-y:auto;border-radius:14px;background:#fff;border:1px solid rgba(10,102,194,0.16);box-shadow:0 22px 48px rgba(10,102,194,0.14);list-style:none;margin:0;padding:6px 0;display:none}
+    .combobox-field[data-open='true'] .combobox-list{display:block}
+    .combobox-option{padding:10px 16px;font-size:15px;cursor:pointer;line-height:1.4}
+    .combobox-option[aria-selected='true']{font-weight:600}
+    .combobox-option.is-active,.combobox-option:hover{background:rgba(10,102,194,0.08)}
+    .combobox-option.is-selected{color:var(--brand-strong)}
+    .combobox-group{padding:8px 16px 6px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted)}
+    .combobox-no-results{padding:12px 16px;font-size:14px;color:var(--muted)}
+    .combobox-hint{margin-top:10px}
     .actions{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap}
     .primary-btn{background:linear-gradient(135deg,var(--brand),var(--brand-accent));color:#fff;border:none;border-radius:14px;padding:12px 22px;font-weight:600;font-size:15px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .2s ease,box-shadow .2s ease}
     .primary-btn:hover{transform:translateY(-1px);box-shadow:0 18px 32px rgba(10,102,194,0.2)}
@@ -86,109 +101,27 @@
     <label>Date of Birth</label>
     <input type="date" id="dob" />
 
-    <label>Current Role</label>
-    <select id="role">
-      <option value="">Select your current role</option>
-      <optgroup label="Product, Design &amp; Strategy">
-        <option value="Product Manager">Product Manager</option>
-        <option value="Associate Product Manager">Associate Product Manager</option>
-        <option value="Senior Product Manager">Senior Product Manager</option>
-        <option value="Product Owner / Scrum Lead">Product Owner / Scrum Lead</option>
-        <option value="Product Analyst">Product Analyst</option>
-        <option value="Systems Analyst">Systems Analyst</option>
-        <option value="UX / UI Designer">UX / UI Designer</option>
-        <option value="Product Designer">Product Designer</option>
-        <option value="UX Researcher">UX Researcher</option>
-        <option value="Design Lead / Creative Director">Design Lead / Creative Director</option>
-        <option value="Business Analyst">Business Analyst</option>
-        <option value="Strategy / Management Consultant">Strategy / Management Consultant</option>
-      </optgroup>
-      <optgroup label="Engineering &amp; Technology (Software)">
-        <option value="Frontend Developer">Frontend Developer</option>
-        <option value="Backend Developer">Backend Developer</option>
-        <option value="Full-Stack Developer">Full-Stack Developer</option>
-        <option value="Software Engineer">Software Engineer</option>
-        <option value="DevOps / Cloud Engineer">DevOps / Cloud Engineer</option>
-        <option value="Mobile App Developer">Mobile App Developer</option>
-        <option value="QA Engineer / Test Automation Engineer">QA Engineer / Test Automation Engineer</option>
-        <option value="Data Engineer">Data Engineer</option>
-        <option value="Data Scientist / ML Engineer">Data Scientist / ML Engineer</option>
-        <option value="AI / Prompt Engineer">AI / Prompt Engineer</option>
-        <option value="Solution Architect">Solution Architect</option>
-        <option value="Tech Lead / Engineering Manager">Tech Lead / Engineering Manager</option>
-      </optgroup>
-      <optgroup label="Core Engineering &amp; Manufacturing">
-        <option value="Mechanical Engineer">Mechanical Engineer</option>
-        <option value="Electrical Engineer">Electrical Engineer</option>
-        <option value="Electronics / Instrumentation Engineer">Electronics / Instrumentation Engineer</option>
-        <option value="Civil Engineer">Civil Engineer</option>
-        <option value="Structural Engineer">Structural Engineer</option>
-        <option value="Chemical Engineer">Chemical Engineer</option>
-        <option value="Production / Manufacturing Engineer">Production / Manufacturing Engineer</option>
-        <option value="Quality Engineer / QA-QC">Quality Engineer / QA-QC</option>
-        <option value="Maintenance Engineer">Maintenance Engineer</option>
-        <option value="Plant Operations Manager">Plant Operations Manager</option>
-        <option value="R&amp;D Engineer / Design Engineer">R&amp;D Engineer / Design Engineer</option>
-        <option value="Industrial Engineer">Industrial Engineer</option>
-      </optgroup>
-      <optgroup label="Data, Analytics &amp; Finance">
-        <option value="Data Analyst">Data Analyst</option>
-        <option value="Business Intelligence (BI) Developer">Business Intelligence (BI) Developer</option>
-        <option value="Financial Analyst">Financial Analyst</option>
-        <option value="FP&amp;A / Finance Manager">FP&amp;A / Finance Manager</option>
-        <option value="Investment / Equity Analyst">Investment / Equity Analyst</option>
-        <option value="Risk / Credit Analyst">Risk / Credit Analyst</option>
-      </optgroup>
-      <optgroup label="Customer, Operations &amp; Support">
-        <option value="Customer Success Manager">Customer Success Manager</option>
-        <option value="Client Relationship Manager">Client Relationship Manager</option>
-        <option value="Product Support Specialist">Product Support Specialist</option>
-        <option value="Technical Support Engineer">Technical Support Engineer</option>
-        <option value="Operations Executive / Operations Manager">Operations Executive / Operations Manager</option>
-        <option value="Process / Quality Analyst">Process / Quality Analyst</option>
-        <option value="Project Coordinator / Project Manager">Project Coordinator / Project Manager</option>
-        <option value="Supply-Chain / Logistics Executive">Supply-Chain / Logistics Executive</option>
-        <option value="Procurement / Vendor Manager">Procurement / Vendor Manager</option>
-      </optgroup>
-      <optgroup label="Marketing, Sales &amp; Growth">
-        <option value="Digital Marketing Specialist">Digital Marketing Specialist</option>
-        <option value="Performance Marketing Manager">Performance Marketing Manager</option>
-        <option value="SEO / Content Strategist">SEO / Content Strategist</option>
-        <option value="Growth Marketer / Growth PM">Growth Marketer / Growth PM</option>
-        <option value="Brand Manager">Brand Manager</option>
-        <option value="Product Marketing Manager">Product Marketing Manager</option>
-        <option value="Sales Executive / Account Executive">Sales Executive / Account Executive</option>
-        <option value="Business Development Manager">Business Development Manager</option>
-        <option value="Inside Sales / Lead Gen Specialist">Inside Sales / Lead Gen Specialist</option>
-        <option value="Key Account Manager">Key Account Manager</option>
-        <option value="Partnership / Alliances Manager">Partnership / Alliances Manager</option>
-      </optgroup>
-      <optgroup label="HR, Talent &amp; Admin">
-        <option value="HR Executive / HR Manager">HR Executive / HR Manager</option>
-        <option value="Talent Acquisition Specialist">Talent Acquisition Specialist</option>
-        <option value="L&amp;D / Training Specialist">L&amp;D / Training Specialist</option>
-        <option value="People Operations">People Operations</option>
-        <option value="Office Admin / EA / Operations Coordinator">Office Admin / EA / Operations Coordinator</option>
-      </optgroup>
-      <optgroup label="IT, Security &amp; Infra">
-        <option value="System Administrator">System Administrator</option>
-        <option value="Network Engineer">Network Engineer</option>
-        <option value="IT Support Engineer">IT Support Engineer</option>
-        <option value="Cybersecurity Analyst">Cybersecurity Analyst</option>
-        <option value="Infrastructure Engineer">Infrastructure Engineer</option>
-      </optgroup>
-      <optgroup label="Education, Content &amp; Training">
-        <option value="Instructional Designer">Instructional Designer</option>
-        <option value="Content Writer / Editor">Content Writer / Editor</option>
-        <option value="Technical Writer">Technical Writer</option>
-        <option value="Trainer / Coach">Trainer / Coach</option>
-      </optgroup>
-      <optgroup label="Others">
-        <option value="Legal Associate / Compliance Officer">Legal Associate / Compliance Officer</option>
-        <option value="Research Associate">Research Associate</option>
-        <option value="Entrepreneur / Founder / Co-founder">Entrepreneur / Founder / Co-founder</option>
-      </optgroup>
-    </select>
+    <label for="roleInput">Current Role</label>
+    <div class="combobox-field" id="roleCombobox">
+      <input type="hidden" id="role" value="" />
+      <div class="combobox-input-wrapper">
+        <input
+          id="roleInput"
+          class="combobox-input"
+          type="text"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-haspopup="listbox"
+          aria-controls="roleList"
+          placeholder="Select or search your current role"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+      <ul id="roleList" class="combobox-list" role="listbox" tabindex="-1"></ul>
+      <p class="field-hint combobox-hint">Start typing to search, or enter your own title.</p>
+    </div>
 
     <label>Total Experience (years)</label>
     <input type="number" id="experience" min="0" placeholder="e.g., 5" />
@@ -236,8 +169,442 @@
     let googleId = params.get('google_id');
     const paymentId = params.get('payment_id');
     const finishBtn = document.getElementById('finishBtn');
-    const roleSelect = document.getElementById('role');
+    const roleHiddenInput = document.getElementById('role');
+    const roleInputEl = document.getElementById('roleInput');
+    const roleListEl = document.getElementById('roleList');
+    const roleCombobox = document.getElementById('roleCombobox');
     const backToWorkspaceBtn = document.getElementById('backToWorkspace');
+
+    const curatedRoleGroups = [
+      {
+        label: "Product, Design & Strategy",
+        options: [
+          "Product Manager",
+          "Associate Product Manager",
+          "Senior Product Manager",
+          "Product Owner / Scrum Lead",
+          "Product Analyst",
+          "Systems Analyst",
+          "UX / UI Designer",
+          "Product Designer",
+          "UX Researcher",
+          "Design Lead / Creative Director",
+          "Business Analyst",
+          "Strategy / Management Consultant"
+        ]
+      },
+      {
+        label: "Engineering & Technology (Software)",
+        options: [
+          "Frontend Developer",
+          "Backend Developer",
+          "Full-Stack Developer",
+          "Software Engineer",
+          "DevOps / Cloud Engineer",
+          "Mobile App Developer",
+          "QA Engineer / Test Automation Engineer",
+          "Data Engineer",
+          "Data Scientist / ML Engineer",
+          "AI / Prompt Engineer",
+          "Solution Architect",
+          "Tech Lead / Engineering Manager"
+        ]
+      },
+      {
+        label: "Core Engineering & Manufacturing",
+        options: [
+          "Mechanical Engineer",
+          "Electrical Engineer",
+          "Electronics / Instrumentation Engineer",
+          "Civil Engineer",
+          "Structural Engineer",
+          "Chemical Engineer",
+          "Production / Manufacturing Engineer",
+          "Quality Engineer / QA-QC",
+          "Maintenance Engineer",
+          "Plant Operations Manager",
+          "R&D Engineer / Design Engineer",
+          "Industrial Engineer"
+        ]
+      },
+      {
+        label: "Data, Analytics & Finance",
+        options: [
+          "Data Analyst",
+          "Business Intelligence (BI) Developer",
+          "Financial Analyst",
+          "FP&A / Finance Manager",
+          "Investment / Equity Analyst",
+          "Risk / Credit Analyst"
+        ]
+      },
+      {
+        label: "Customer, Operations & Support",
+        options: [
+          "Customer Success Manager",
+          "Client Relationship Manager",
+          "Product Support Specialist",
+          "Technical Support Engineer",
+          "Operations Executive / Operations Manager",
+          "Process / Quality Analyst",
+          "Project Coordinator / Project Manager",
+          "Supply-Chain / Logistics Executive",
+          "Procurement / Vendor Manager"
+        ]
+      },
+      {
+        label: "Marketing, Sales & Growth",
+        options: [
+          "Digital Marketing Specialist",
+          "Performance Marketing Manager",
+          "SEO / Content Strategist",
+          "Growth Marketer / Growth PM",
+          "Brand Manager",
+          "Product Marketing Manager",
+          "Sales Executive / Account Executive",
+          "Business Development Manager",
+          "Inside Sales / Lead Gen Specialist",
+          "Key Account Manager",
+          "Partnership / Alliances Manager"
+        ]
+      },
+      {
+        label: "HR, Talent & Admin",
+        options: [
+          "HR Executive / HR Manager",
+          "Talent Acquisition Specialist",
+          "L&D / Training Specialist",
+          "People Operations",
+          "Office Admin / EA / Operations Coordinator"
+        ]
+      },
+      {
+        label: "IT, Security & Infra",
+        options: [
+          "System Administrator",
+          "Network Engineer",
+          "IT Support Engineer",
+          "Cybersecurity Analyst",
+          "Infrastructure Engineer"
+        ]
+      },
+      {
+        label: "Education, Content & Training",
+        options: [
+          "Instructional Designer",
+          "Content Writer / Editor",
+          "Technical Writer",
+          "Trainer / Coach"
+        ]
+      },
+      {
+        label: "Others",
+        options: [
+          "Legal Associate / Compliance Officer",
+          "Research Associate",
+          "Entrepreneur / Founder / Co-founder"
+        ]
+      }
+    ];
+    const curatedRoles = curatedRoleGroups.flatMap((group) => group.options);
+    const normalizeRoleString = (value = "") => {
+      if (value === null || value === undefined) return "";
+      return value
+        .toString()
+        .toLowerCase()
+        .replace(/&/g, "and")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+    };
+    const curatedRoleMeta = curatedRoles.map((value) => ({
+      value,
+      normalized: normalizeRoleString(value)
+    }));
+    let filteredRoleOptions = [];
+    let activeRoleIndex = -1;
+    let isRoleListOpen = false;
+
+    function highlightActiveOption(index) {
+      if (!roleInputEl) {
+        activeRoleIndex = -1;
+        return;
+      }
+      if (!filteredRoleOptions.length || index < 0 || index >= filteredRoleOptions.length) {
+        filteredRoleOptions.forEach(({ element }) => {
+          element.classList.remove("is-active");
+        });
+        roleInputEl.removeAttribute("aria-activedescendant");
+        activeRoleIndex = -1;
+        return;
+      }
+      filteredRoleOptions.forEach(({ element }, idx) => {
+        if (idx === index) {
+          element.classList.add("is-active");
+          element.scrollIntoView({ block: "nearest" });
+          roleInputEl.setAttribute("aria-activedescendant", element.id);
+        } else {
+          element.classList.remove("is-active");
+        }
+      });
+      activeRoleIndex = index;
+    }
+
+    const renderRoleOptions = (query = "") => {
+      if (!roleListEl) return;
+      const normalizedQuery = normalizeRoleString(query);
+      roleListEl.innerHTML = "";
+      filteredRoleOptions = [];
+      curatedRoleGroups.forEach((group) => {
+        const matches = group.options.filter((option) => {
+          if (!normalizedQuery) return true;
+          const normalizedOption = normalizeRoleString(option);
+          if (normalizedOption.includes(normalizedQuery)) return true;
+          const tokens = normalizedQuery.split(" ").filter(Boolean);
+          return tokens.every((token) => normalizedOption.includes(token));
+        });
+        if (!matches.length) return;
+        const header = document.createElement("li");
+        header.className = "combobox-group";
+        header.setAttribute("role", "presentation");
+        header.textContent = group.label;
+        roleListEl.appendChild(header);
+        matches.forEach((option) => {
+          const li = document.createElement("li");
+          const index = filteredRoleOptions.length;
+          li.className = "combobox-option";
+          li.setAttribute("role", "option");
+          li.dataset.value = option;
+          li.dataset.index = String(index);
+          li.id = `role-option-${index}`;
+          li.textContent = option;
+          const isSelected = roleHiddenInput?.value === option;
+          li.setAttribute("aria-selected", isSelected ? "true" : "false");
+          if (isSelected) li.classList.add("is-selected");
+          filteredRoleOptions.push({ value: option, element: li });
+          roleListEl.appendChild(li);
+        });
+      });
+      if (!filteredRoleOptions.length) {
+        const empty = document.createElement("li");
+        empty.className = "combobox-no-results";
+        empty.setAttribute("role", "presentation");
+        const trimmed = query && query.trim();
+        empty.textContent = trimmed
+          ? `No matches found. Press Enter to use “${trimmed}”.`
+          : "No roles found.";
+        roleListEl.appendChild(empty);
+      }
+      highlightActiveOption(-1);
+    };
+
+    const openRoleList = () => {
+      if (!roleCombobox || !roleInputEl) return;
+      roleCombobox.setAttribute("data-open", "true");
+      roleInputEl.setAttribute("aria-expanded", "true");
+      isRoleListOpen = true;
+    };
+
+    const closeRoleList = ({ commitValue } = {}) => {
+      if (!roleCombobox || !roleInputEl) return;
+      if (!isRoleListOpen && commitValue !== true) return;
+      roleCombobox.removeAttribute("data-open");
+      roleInputEl.setAttribute("aria-expanded", "false");
+      isRoleListOpen = false;
+      highlightActiveOption(-1);
+      if (commitValue) {
+        commitRoleInput();
+      }
+    };
+
+    const setRoleValue = (value) => {
+      if (!roleHiddenInput || !roleInputEl) return;
+      const trimmed = typeof value === "string" ? value.trim() : "";
+      roleHiddenInput.value = trimmed;
+      roleInputEl.value = trimmed;
+      renderRoleOptions(roleInputEl.value);
+    };
+
+    const commitRoleInput = () => {
+      if (!roleInputEl) return;
+      setRoleValue(roleInputEl.value);
+    };
+
+    const moveActive = (direction) => {
+      if (!filteredRoleOptions.length) return;
+      let nextIndex = activeRoleIndex + direction;
+      if (nextIndex < 0) nextIndex = filteredRoleOptions.length - 1;
+      if (nextIndex >= filteredRoleOptions.length) nextIndex = 0;
+      highlightActiveOption(nextIndex);
+    };
+
+    const selectActiveOption = () => {
+      if (activeRoleIndex >= 0 && activeRoleIndex < filteredRoleOptions.length) {
+        const option = filteredRoleOptions[activeRoleIndex];
+        setRoleValue(option.value);
+      } else {
+        commitRoleInput();
+      }
+      closeRoleList();
+      roleInputEl?.focus();
+    };
+
+    const levenshteinDistance = (a, b) => {
+      const lenA = a.length;
+      const lenB = b.length;
+      if (lenA === 0) return lenB;
+      if (lenB === 0) return lenA;
+      const matrix = Array.from({ length: lenA + 1 }, () => new Array(lenB + 1).fill(0));
+      for (let i = 0; i <= lenA; i += 1) matrix[i][0] = i;
+      for (let j = 0; j <= lenB; j += 1) matrix[0][j] = j;
+      for (let i = 1; i <= lenA; i += 1) {
+        const charA = a.charCodeAt(i - 1);
+        for (let j = 1; j <= lenB; j += 1) {
+          const cost = charA === b.charCodeAt(j - 1) ? 0 : 1;
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j - 1] + cost
+          );
+        }
+      }
+      return matrix[lenA][lenB];
+    };
+
+    const tokenSimilarity = (a, b) => {
+      const tokensA = Array.from(new Set(a.split(" ").filter(Boolean)));
+      const tokensB = Array.from(new Set(b.split(" ").filter(Boolean)));
+      if (!tokensA.length || !tokensB.length) return 0;
+      const intersection = tokensB.filter((token) => tokensA.includes(token)).length;
+      return (2 * intersection) / (tokensA.length + tokensB.length);
+    };
+
+    const bestCuratedRoleFor = (raw) => {
+      const normalizedTarget = normalizeRoleString(raw);
+      if (!normalizedTarget) return null;
+      let bestMatch = null;
+      curatedRoleMeta.forEach((entry) => {
+        if (!entry.normalized) return;
+        let score = 0;
+        if (entry.normalized === normalizedTarget) {
+          score = 1;
+        } else {
+          if (
+            entry.normalized.includes(normalizedTarget) ||
+            normalizedTarget.includes(entry.normalized)
+          ) {
+            score = Math.max(score, 0.94);
+          }
+          const maxLength = Math.max(entry.normalized.length, normalizedTarget.length);
+          if (maxLength > 0) {
+            const similarity = 1 - levenshteinDistance(entry.normalized, normalizedTarget) / maxLength;
+            score = Math.max(score, similarity);
+          }
+          const tokenScore = tokenSimilarity(entry.normalized, normalizedTarget);
+          if (tokenScore > 0) {
+            score = Math.max(score, Math.min(0.97, tokenScore));
+          }
+        }
+        if (!bestMatch || score > bestMatch.score) {
+          bestMatch = { value: entry.value, score, target: raw };
+        }
+      });
+      return bestMatch;
+    };
+
+    const findBestRoleMatchFromList = (candidates = []) => {
+      if (!Array.isArray(candidates)) return null;
+      let best = null;
+      candidates.forEach((candidate) => {
+        if (typeof candidate !== "string") return;
+        const trimmed = candidate.trim();
+        if (!trimmed) return;
+        const suggestion = bestCuratedRoleFor(trimmed);
+        if (!suggestion || !suggestion.value) return;
+        if (!best || suggestion.score > best.score) {
+          best = suggestion;
+        }
+      });
+      return best;
+    };
+
+    if (roleInputEl && roleListEl) {
+      renderRoleOptions("");
+      roleInputEl.addEventListener("focus", () => {
+        renderRoleOptions(roleInputEl.value);
+        openRoleList();
+      });
+      roleInputEl.addEventListener("click", () => {
+        renderRoleOptions(roleInputEl.value);
+        openRoleList();
+      });
+      roleInputEl.addEventListener("input", () => {
+        if (roleHiddenInput) {
+          roleHiddenInput.value = roleInputEl.value.trim();
+        }
+        renderRoleOptions(roleInputEl.value);
+        openRoleList();
+      });
+      roleInputEl.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown") {
+          event.preventDefault();
+          if (!isRoleListOpen) {
+            renderRoleOptions(roleInputEl.value);
+            openRoleList();
+          }
+          moveActive(1);
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          if (!isRoleListOpen) {
+            renderRoleOptions(roleInputEl.value);
+            openRoleList();
+          }
+          moveActive(-1);
+        } else if (event.key === "Enter") {
+          event.preventDefault();
+          selectActiveOption();
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          closeRoleList({ commitValue: false });
+        }
+      });
+      roleInputEl.addEventListener("blur", () => {
+        setTimeout(() => {
+          if (!roleCombobox?.contains(document.activeElement)) {
+            closeRoleList({ commitValue: true });
+          }
+        }, 120);
+      });
+    }
+
+    if (roleListEl) {
+      const preventBlur = (event) => {
+        event.preventDefault();
+      };
+      roleListEl.addEventListener("mousedown", preventBlur);
+      roleListEl.addEventListener("pointerdown", preventBlur);
+      roleListEl.addEventListener("click", (event) => {
+        const option = event.target.closest(".combobox-option");
+        if (!option || option.hasAttribute("aria-disabled")) return;
+        const value = option.dataset.value || "";
+        setRoleValue(value);
+        closeRoleList();
+        roleInputEl?.focus();
+      });
+      roleListEl.addEventListener("mousemove", (event) => {
+        const option = event.target.closest(".combobox-option");
+        if (!option) return;
+        const index = Number(option.dataset.index);
+        if (!Number.isNaN(index)) {
+          highlightActiveOption(index);
+        }
+      });
+    }
+
+    document.addEventListener("click", (event) => {
+      if (!roleCombobox?.contains(event.target)) {
+        closeRoleList({ commitValue: true });
+      }
+    });
 
     const notify = (message, options) => {
       if (window.JobSprintUI && typeof window.JobSprintUI.showToast === 'function') {
@@ -317,27 +684,6 @@
     };
 
     backToWorkspaceBtn?.addEventListener('click', redirectToWorkspace);
-
-    const setRoleValue = (value) => {
-      if (!roleSelect) return;
-      if (typeof value !== 'string') {
-        roleSelect.value = '';
-        return;
-      }
-      const trimmed = value.trim();
-      if (!trimmed) {
-        roleSelect.value = '';
-        return;
-      }
-      const hasOption = Array.from(roleSelect.options || []).some(
-        (option) => option.value === trimmed
-      );
-      if (!hasOption) {
-        const customOption = new Option(trimmed, trimmed);
-        roleSelect.add(customOption);
-      }
-      roleSelect.value = trimmed;
-    };
 
     const initialStoredProfile = readStoredProfile();
     let storedProfileGoogleId = initialStoredProfile?.google_id || null;
@@ -453,8 +799,8 @@
       if (dob) document.getElementById('dob').value = dob;
       if (role) {
         setRoleValue(role);
-      } else if (roleSelect) {
-        roleSelect.value = '';
+      } else {
+        setRoleValue('');
       }
       if (experience !== undefined && experience !== null && experience !== '') {
         document.getElementById('experience').value = experience;
@@ -575,7 +921,28 @@
         city: f.city
       }, { force: true });
       if (f.dob) document.getElementById('dob').value = f.dob;
-      if (f.role) setRoleValue(f.role);
+      const candidateTitles = new Set();
+      if (typeof f.role === 'string') candidateTitles.add(f.role);
+      if (Array.isArray(f.roles)) f.roles.forEach((title) => candidateTitles.add(title));
+      if (Array.isArray(f.titles)) f.titles.forEach((title) => candidateTitles.add(title));
+      if (Array.isArray(j?.parsed?.roles)) j.parsed.roles.forEach((title) => candidateTitles.add(title));
+      if (Array.isArray(j?.parsed?.titles)) j.parsed.titles.forEach((title) => candidateTitles.add(title));
+      if (Array.isArray(j?.parsed?.positions)) {
+        j.parsed.positions.forEach((position) => {
+          if (typeof position === 'string') {
+            candidateTitles.add(position);
+          } else if (position && typeof position.title === 'string') {
+            candidateTitles.add(position.title);
+          }
+        });
+      }
+      const bestRoleMatch = findBestRoleMatchFromList(Array.from(candidateTitles));
+      if (bestRoleMatch && bestRoleMatch.score >= 0.72) {
+        console.info('Matched resume role to curated option', bestRoleMatch);
+        setRoleValue(bestRoleMatch.value);
+      } else if (typeof f.role === 'string' && f.role.trim()) {
+        setRoleValue(f.role);
+      }
       if (typeof f.experience === 'number') document.getElementById('experience').value = f.experience;
 
       const confidence = f._confidence || j.parsed?._confidence;
