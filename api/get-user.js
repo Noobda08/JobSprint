@@ -8,14 +8,34 @@ module.exports = async function handler(req, res) {
 
     const { data, error } = await supabaseAdmin
       .from('users')
-      .select('token,email,name,profile_complete,phone,city,dob,role,experience,resume_url,career_story')
+      .select('token,email,name,profile_complete,phone,city,preferred_cities,dob,role,experience,resume_url,career_story')
       .eq('google_id', google_id)
       .maybeSingle();
 
     if (error) return res.status(500).json({ error: 'server_error' });
     if (!data) return res.status(404).json({ found: false });
 
-    const { career_story: rawStory, ...rest } = data;
+    const { career_story: rawStory, preferred_cities: rawPreferredCities, ...rest } = data;
+
+    const normalizePreferredCities = (value) => {
+      if (value === undefined) return undefined;
+      if (value === null) return [];
+      const values = Array.isArray(value) ? value : typeof value === 'string' ? value.split(/[,;\n|\/]+/) : [];
+      const seen = new Set();
+      const result = [];
+      values.forEach((entry) => {
+        if (typeof entry !== 'string') return;
+        const cleaned = entry.replace(/\s+/g, ' ').trim();
+        if (!cleaned) return;
+        const key = cleaned.toLowerCase();
+        if (seen.has(key)) return;
+        seen.add(key);
+        if (result.length < 3) {
+          result.push(cleaned);
+        }
+      });
+      return result;
+    };
 
     const normalizeStory = (value) => {
       if (!value) return null;
@@ -69,7 +89,12 @@ module.exports = async function handler(req, res) {
 
     const currentCtc = extractCurrentCtc(story);
 
+    const normalizedPreferredCities = normalizePreferredCities(rawPreferredCities);
+
     const payload = { found: true, ...rest, career_story: story };
+    if (normalizedPreferredCities !== undefined) {
+      payload.preferred_cities = normalizedPreferredCities;
+    }
     if (currentCtc !== undefined) {
       payload.current_ctc = currentCtc;
     }

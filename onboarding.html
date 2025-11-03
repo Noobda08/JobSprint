@@ -42,6 +42,24 @@
     .combobox-group{padding:8px 16px 6px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted)}
     .combobox-no-results{padding:12px 16px;font-size:14px;color:var(--muted)}
     .combobox-hint{margin-top:10px}
+    .tag-field{position:relative}
+    .tag-input-wrapper{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-radius:14px;border:1px solid rgba(10,102,194,0.16);background:rgba(255,255,255,0.92);min-height:48px;transition:border-color .2s ease,box-shadow .2s ease}
+    .tag-field:focus-within .tag-input-wrapper{border-color:var(--brand);box-shadow:0 0 0 3px rgba(10,102,194,0.18)}
+    .tag-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0}
+    .tag-chips:empty::before{content:'No cities selected yet';color:var(--muted);font-size:14px}
+    .tag-chip{display:inline-flex;align-items:center;background:rgba(10,102,194,0.12);color:var(--brand-strong);border-radius:999px;padding:6px 10px;font-size:13px;font-weight:600}
+    .tag-chip button{border:none;background:transparent;color:inherit;margin-left:6px;cursor:pointer;font-size:14px;line-height:1;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;transition:background .2s ease}
+    .tag-chip button:hover{background:rgba(10,102,194,0.18)}
+    .tag-input-wrapper input{flex:1 0 180px;border:none;outline:none;background:transparent;font-size:15px;min-width:150px;padding:6px 0}
+    .tag-input-wrapper input:disabled{cursor:not-allowed;color:var(--muted)}
+    .tag-options{position:absolute;z-index:20;top:calc(100% + 6px);left:0;right:0;max-height:240px;overflow-y:auto;border-radius:14px;background:#fff;border:1px solid rgba(10,102,194,0.16);box-shadow:0 22px 48px rgba(10,102,194,0.14);list-style:none;margin:0;padding:6px 0;display:none}
+    .tag-field[data-open='true'] .tag-options{display:block}
+    .tag-option{padding:10px 16px;font-size:15px;cursor:pointer;line-height:1.4}
+    .tag-option.is-active,.tag-option:hover{background:rgba(10,102,194,0.08)}
+    .tag-option[data-selected='true']{color:var(--brand-strong);font-weight:600}
+    .tag-option.is-info{color:var(--muted);cursor:default}
+    .tag-field[data-maxed='true'] .tag-input-wrapper{opacity:0.78}
+    .tag-field[data-maxed='true'] .tag-options{display:none !important}
     .actions{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap}
     .primary-btn{background:linear-gradient(135deg,var(--brand),var(--brand-accent));color:#fff;border:none;border-radius:14px;padding:12px 22px;font-weight:600;font-size:15px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .2s ease,box-shadow .2s ease}
     .primary-btn:hover{transform:translateY(-1px);box-shadow:0 18px 32px rgba(10,102,194,0.2)}
@@ -96,9 +114,6 @@
     <label>Phone</label>
     <input type="text" id="phone" placeholder="+91 9876543210" />
 
-    <label>City</label>
-    <input type="text" id="city" placeholder="Your city" />
-
     <label>Date of Birth</label>
     <input type="date" id="dob" />
 
@@ -140,6 +155,27 @@
     />
     <p class="field-hint" id="currentCTCHint">Enter digits only, e.g., 1800000 for ₹18L.</p>
     <p class="field-error hidden" id="currentCTCError" aria-live="polite"></p>
+
+    <label for="preferredCitySearch">Preferred cities</label>
+    <div class="tag-field" id="preferredCityField">
+      <div class="tag-input-wrapper">
+        <div class="tag-chips" id="preferredCitySelected" aria-live="polite"></div>
+        <input
+          type="text"
+          id="preferredCitySearch"
+          placeholder="Start typing to search cities"
+          autocomplete="off"
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-haspopup="listbox"
+          aria-controls="preferredCityOptions"
+          aria-describedby="preferredCityHint preferredCityError"
+        />
+      </div>
+      <ul id="preferredCityOptions" class="tag-options" role="listbox" aria-multiselectable="true"></ul>
+    </div>
+    <p class="field-hint" id="preferredCityHint">Select up to 3 preferred cities. Leave blank if you're flexible or open to remote roles.</p>
+    <p class="field-error hidden" id="preferredCityError" aria-live="polite"></p>
 
     <div class="actions">
       <button id="nextBtn" class="primary-btn" type="button">Next: Tell your story →</button>
@@ -188,6 +224,371 @@
     const backToWorkspaceBtn = document.getElementById('backToWorkspace');
     const currentCTCInput = document.getElementById('currentCTC');
     const currentCTCErrorEl = document.getElementById('currentCTCError');
+    const preferredCityField = document.getElementById('preferredCityField');
+    const preferredCityInput = document.getElementById('preferredCitySearch');
+    const preferredCityOptionsEl = document.getElementById('preferredCityOptions');
+    const preferredCitySelectedEl = document.getElementById('preferredCitySelected');
+    const preferredCityErrorEl = document.getElementById('preferredCityError');
+
+    const maxPreferredCities = 3;
+    const curatedPreferredCities = [
+      'Bengaluru',
+      'Hyderabad',
+      'Mumbai',
+      'Delhi NCR',
+      'Pune',
+      'Chennai',
+      'Gurugram',
+      'Noida',
+      'Kolkata',
+      'Ahmedabad',
+      'Jaipur',
+      'Chandigarh',
+      'Kochi',
+      'Coimbatore',
+      'Indore',
+      'Surat',
+      'Nagpur',
+      'Goa',
+      'Remote (Open to anywhere)'
+    ];
+
+    const normalizeCityString = (value = '') => {
+      if (value === null || value === undefined) return '';
+      return value
+        .toString()
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+    };
+
+    const sanitizeCityValue = (value) => {
+      if (typeof value !== 'string') return null;
+      const cleaned = value.replace(/\s+/g, ' ').trim();
+      return cleaned ? cleaned : null;
+    };
+
+    const curatedPreferredCityMeta = curatedPreferredCities.map((value) => ({
+      value,
+      normalized: normalizeCityString(value)
+    }));
+
+    let selectedPreferredCities = [];
+    let preferredCityFilteredOptions = [];
+    let preferredCityActiveIndex = -1;
+    let preferredCityDropdownOpen = false;
+
+    const setPreferredCityError = (message) => {
+      if (!preferredCityErrorEl) return;
+      const text = typeof message === 'string' ? message.trim() : '';
+      preferredCityErrorEl.textContent = text;
+      if (text) {
+        preferredCityErrorEl.classList.remove('hidden');
+      } else {
+        preferredCityErrorEl.classList.add('hidden');
+      }
+    };
+
+    const highlightPreferredCityOption = (index) => {
+      if (!preferredCityInput) {
+        preferredCityActiveIndex = -1;
+        return;
+      }
+      if (!preferredCityFilteredOptions.length || index < 0 || index >= preferredCityFilteredOptions.length) {
+        preferredCityFilteredOptions.forEach(({ element }) => {
+          element.classList.remove('is-active');
+        });
+        preferredCityInput.removeAttribute('aria-activedescendant');
+        preferredCityActiveIndex = -1;
+        return;
+      }
+      preferredCityFilteredOptions.forEach(({ element }, idx) => {
+        if (idx === index) {
+          element.classList.add('is-active');
+          element.scrollIntoView({ block: 'nearest' });
+          preferredCityInput.setAttribute('aria-activedescendant', element.id);
+        } else {
+          element.classList.remove('is-active');
+        }
+      });
+      preferredCityActiveIndex = index;
+    };
+
+    const openPreferredCityDropdown = () => {
+      if (!preferredCityField || !preferredCityInput) return;
+      if (selectedPreferredCities.length >= maxPreferredCities) return;
+      preferredCityField.setAttribute('data-open', 'true');
+      preferredCityInput.setAttribute('aria-expanded', 'true');
+      preferredCityDropdownOpen = true;
+    };
+
+    const closePreferredCityDropdown = () => {
+      if (!preferredCityField || !preferredCityInput) return;
+      preferredCityField.removeAttribute('data-open');
+      preferredCityInput.setAttribute('aria-expanded', 'false');
+      preferredCityDropdownOpen = false;
+      highlightPreferredCityOption(-1);
+    };
+
+    const updatePreferredCityInputState = () => {
+      if (!preferredCityInput || !preferredCityField) return;
+      const maxed = selectedPreferredCities.length >= maxPreferredCities;
+      preferredCityInput.disabled = maxed;
+      preferredCityInput.placeholder = maxed
+        ? `Maximum of ${maxPreferredCities} cities selected`
+        : 'Start typing to search cities';
+      preferredCityField.setAttribute('data-maxed', maxed ? 'true' : 'false');
+      preferredCityInput.setAttribute('aria-expanded', !maxed && preferredCityDropdownOpen ? 'true' : 'false');
+      if (maxed) {
+        closePreferredCityDropdown();
+      }
+    };
+
+    const renderPreferredCityChips = () => {
+      if (!preferredCitySelectedEl) return;
+      preferredCitySelectedEl.innerHTML = '';
+      selectedPreferredCities.forEach((city) => {
+        const chip = document.createElement('span');
+        chip.className = 'tag-chip';
+        chip.textContent = city;
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.setAttribute('aria-label', `Remove ${city}`);
+        removeBtn.innerHTML = '&times;';
+        removeBtn.addEventListener('click', () => {
+          removePreferredCity(city);
+          preferredCityInput?.focus();
+        });
+        chip.appendChild(removeBtn);
+        preferredCitySelectedEl.appendChild(chip);
+      });
+    };
+
+    const renderPreferredCityOptions = (query = '') => {
+      if (!preferredCityOptionsEl) return;
+      const normalizedQuery = normalizeCityString(query);
+      preferredCityOptionsEl.innerHTML = '';
+      preferredCityFilteredOptions = [];
+
+      if (selectedPreferredCities.length >= maxPreferredCities) {
+        closePreferredCityDropdown();
+        return;
+      }
+
+      const selectedKeys = new Set(
+        selectedPreferredCities.map((city) => normalizeCityString(city)).filter(Boolean)
+      );
+
+      const matches = curatedPreferredCityMeta.filter((option) => {
+        if (selectedKeys.has(option.normalized)) return false;
+        if (!normalizedQuery) return true;
+        if (option.normalized.includes(normalizedQuery)) return true;
+        const tokens = normalizedQuery.split(' ').filter(Boolean);
+        if (!tokens.length) return true;
+        return tokens.every((token) => option.normalized.includes(token));
+      });
+
+      matches.forEach((option, index) => {
+        const li = document.createElement('li');
+        li.className = 'tag-option';
+        li.dataset.value = option.value;
+        li.dataset.index = String(index);
+        li.id = `preferred-city-option-${index}`;
+        li.setAttribute('role', 'option');
+        li.textContent = option.value;
+        preferredCityFilteredOptions.push({ value: option.value, element: li });
+        preferredCityOptionsEl.appendChild(li);
+      });
+
+      if (!preferredCityFilteredOptions.length) {
+        const empty = document.createElement('li');
+        empty.className = 'tag-option is-info';
+        empty.setAttribute('role', 'presentation');
+        const trimmed = query && query.trim();
+        empty.textContent = trimmed
+          ? `Press Enter to add “${trimmed}”.`
+          : 'No cities found.';
+        preferredCityOptionsEl.appendChild(empty);
+      }
+
+      if (preferredCityFilteredOptions.length || (query && query.trim())) {
+        openPreferredCityDropdown();
+      } else {
+        closePreferredCityDropdown();
+      }
+
+      highlightPreferredCityOption(-1);
+    };
+
+    const dedupePreferredCities = (cities) => {
+      const seen = new Set();
+      const result = [];
+      cities.forEach((value) => {
+        const sanitized = sanitizeCityValue(value);
+        if (!sanitized) return;
+        const key = normalizeCityString(sanitized);
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        result.push(sanitized);
+      });
+      return result;
+    };
+
+    const addPreferredCity = (city) => {
+      const sanitized = sanitizeCityValue(city);
+      if (!sanitized) {
+        preferredCityInput && (preferredCityInput.value = '');
+        return;
+      }
+      const key = normalizeCityString(sanitized);
+      if (selectedPreferredCities.some((existing) => normalizeCityString(existing) === key)) {
+        preferredCityInput && (preferredCityInput.value = '');
+        setPreferredCityError('');
+        closePreferredCityDropdown();
+        return;
+      }
+      if (selectedPreferredCities.length >= maxPreferredCities) {
+        setPreferredCityError(`You can pick up to ${maxPreferredCities} cities.`);
+        closePreferredCityDropdown();
+        return;
+      }
+      selectedPreferredCities = [...selectedPreferredCities, sanitized];
+      preferredCityInput && (preferredCityInput.value = '');
+      setPreferredCityError('');
+      renderPreferredCityChips();
+      updatePreferredCityInputState();
+      renderPreferredCityOptions('');
+      closePreferredCityDropdown();
+    };
+
+    const removePreferredCity = (city) => {
+      const key = normalizeCityString(city);
+      selectedPreferredCities = selectedPreferredCities.filter(
+        (existing) => normalizeCityString(existing) !== key
+      );
+      renderPreferredCityChips();
+      updatePreferredCityInputState();
+      if (preferredCityDropdownOpen || (preferredCityInput && document.activeElement === preferredCityInput)) {
+        renderPreferredCityOptions(preferredCityInput?.value || '');
+      } else if (preferredCityOptionsEl && !preferredCityDropdownOpen) {
+        preferredCityOptionsEl.innerHTML = '';
+        preferredCityFilteredOptions = [];
+        preferredCityActiveIndex = -1;
+        preferredCityInput?.removeAttribute('aria-activedescendant');
+      }
+      setPreferredCityError('');
+    };
+
+    const commitPreferredCityInput = () => {
+      if (!preferredCityInput) return;
+      const value = preferredCityInput.value;
+      addPreferredCity(value);
+    };
+
+    const coercePreferredCities = (value) => {
+      if (Array.isArray(value)) {
+        return dedupePreferredCities(value).slice(0, maxPreferredCities);
+      }
+      if (typeof value === 'string' && value.trim()) {
+        const parts = value.split(/[,;\n|\/]+/);
+        return dedupePreferredCities(parts).slice(0, maxPreferredCities);
+      }
+      return [];
+    };
+
+    const setPreferredCities = (cities) => {
+      selectedPreferredCities = dedupePreferredCities(Array.isArray(cities) ? cities : []).slice(
+        0,
+        maxPreferredCities
+      );
+      renderPreferredCityChips();
+      updatePreferredCityInputState();
+      if (preferredCityDropdownOpen || (preferredCityInput && document.activeElement === preferredCityInput)) {
+        renderPreferredCityOptions(preferredCityInput?.value || '');
+      } else if (preferredCityOptionsEl) {
+        preferredCityOptionsEl.innerHTML = '';
+        preferredCityFilteredOptions = [];
+        preferredCityActiveIndex = -1;
+        preferredCityInput?.removeAttribute('aria-activedescendant');
+      }
+    };
+
+    const getPreferredCities = () => selectedPreferredCities.slice();
+
+    preferredCityInput?.addEventListener('focus', () => {
+      if (selectedPreferredCities.length >= maxPreferredCities) return;
+      renderPreferredCityOptions(preferredCityInput.value);
+      openPreferredCityDropdown();
+    });
+
+    preferredCityInput?.addEventListener('input', (event) => {
+      const value = event.target?.value || '';
+      renderPreferredCityOptions(value);
+    });
+
+    preferredCityInput?.addEventListener('keydown', (event) => {
+      if (event.key === 'Backspace' && !preferredCityInput.value && selectedPreferredCities.length) {
+        event.preventDefault();
+        const last = selectedPreferredCities[selectedPreferredCities.length - 1];
+        removePreferredCity(last);
+        return;
+      }
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (!preferredCityFilteredOptions.length) return;
+        const next = preferredCityActiveIndex + 1;
+        const capped = next >= preferredCityFilteredOptions.length ? 0 : next;
+        highlightPreferredCityOption(capped);
+        return;
+      }
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (!preferredCityFilteredOptions.length) return;
+        const next = preferredCityActiveIndex - 1;
+        const capped = next < 0 ? preferredCityFilteredOptions.length - 1 : next;
+        highlightPreferredCityOption(capped);
+        return;
+      }
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (preferredCityActiveIndex >= 0 && preferredCityActiveIndex < preferredCityFilteredOptions.length) {
+          addPreferredCity(preferredCityFilteredOptions[preferredCityActiveIndex].value);
+        } else {
+          commitPreferredCityInput();
+        }
+        return;
+      }
+      if (event.key === 'Escape') {
+        closePreferredCityDropdown();
+      }
+    });
+
+    preferredCityOptionsEl?.addEventListener('mousedown', (event) => {
+      // Prevent the input from losing focus before we handle selection.
+      event.preventDefault();
+    });
+
+    preferredCityOptionsEl?.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!target || !(target instanceof HTMLElement)) return;
+      const value = target.dataset?.value;
+      if (!value) return;
+      addPreferredCity(value);
+      preferredCityInput?.focus();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!preferredCityField) return;
+      if (preferredCityField.contains(event.target)) return;
+      closePreferredCityDropdown();
+    });
+
+    renderPreferredCityChips();
+    updatePreferredCityInputState();
+    setPreferredCityError('');
 
     const setCurrentCTCError = (message) => {
       if (!currentCTCErrorEl) return;
@@ -760,8 +1161,7 @@
       const fieldMap = {
         name: 'name',
         email: 'email',
-        phone: 'phone',
-        city: 'city'
+        phone: 'phone'
       };
       Object.entries(fieldMap).forEach(([key, id]) => {
         const value = fields[key];
@@ -771,6 +1171,10 @@
           el.value = value;
         }
       });
+      if (fields && (fields.preferred_cities !== undefined || fields.city !== undefined || force === true)) {
+        const preferred = coercePreferredCities(fields.preferred_cities ?? fields.city);
+        setPreferredCities(preferred);
+      }
     };
     updateWorkspaceShortcutVisibility({ storedProfile: initialStoredProfile });
 
@@ -823,6 +1227,7 @@
         email,
         phone,
         city,
+        preferred_cities,
         dob,
         role,
         experience,
@@ -861,7 +1266,7 @@
         }
         return undefined;
       };
-      applyPersonalFields({ name, email, phone, city });
+      applyPersonalFields({ name, email, phone, city, preferred_cities });
       if (dob) document.getElementById('dob').value = dob;
       if (role) {
         setRoleValue(role);
@@ -987,7 +1392,8 @@
         name: f.name,
         email: f.email,
         phone: f.phone,
-        city: f.city
+        city: f.city,
+        preferred_cities: f.preferred_cities
       }, { force: true });
       if (f.dob) document.getElementById('dob').value = f.dob;
       const candidateTitles = new Set();
@@ -1036,7 +1442,7 @@
     //     document.getElementById('name').value = "Alex Jobseeker";
     //     document.getElementById('email').value = "alex@example.com";
     //     document.getElementById('phone').value = "+91 9876543210";
-    //     document.getElementById('city').value = "Bangalore";
+    //     setPreferredCities(['Bengaluru']);
     //     document.getElementById('dob').value = "1996-05-12";
     //     document.getElementById('role').value = "Product Manager";
     //     document.getElementById('experience').value = 5;
@@ -1085,7 +1491,7 @@
       };
 
       const phone = normalize(document.getElementById('phone').value);
-      const city = normalize(document.getElementById('city').value);
+      const preferredCities = getPreferredCities();
       const role = normalize(document.getElementById('role').value);
       const experienceRaw = document.getElementById('experience').value;
       const experience = experienceRaw === '' ? undefined : Number(experienceRaw);
@@ -1138,7 +1544,7 @@
       };
 
       if (phone !== undefined) payload.phone = phone;
-      if (city !== undefined) payload.city = city;
+      payload.preferred_cities = preferredCities;
       if (role !== undefined) payload.role = role;
       if (experience !== undefined) payload.experience = experience;
       if (currentCTC !== undefined) payload.current_ctc = currentCTC;
@@ -1185,6 +1591,9 @@
             storageUpdate.token = data.token;
           }
           const mergedProfile = { ...existing, ...storageUpdate };
+          if (Array.isArray(storageUpdate.preferred_cities)) {
+            delete mergedProfile.city;
+          }
           writeStoredProfile(mergedProfile);
           hasCompletedOnboarding = true;
           if (payload.resume_url) {
