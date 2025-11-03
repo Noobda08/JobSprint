@@ -341,6 +341,32 @@
 
     const initialStoredProfile = readStoredProfile();
     let storedProfileGoogleId = initialStoredProfile?.google_id || null;
+    let sessionHasParsedResume = false;
+    let hasCompletedOnboarding =
+      initialStoredProfile?.profile_complete === true ||
+      initialStoredProfile?.onboarding_step === 'done';
+    let resumeOnFile = Boolean(initialStoredProfile?.resume_url);
+    const shouldHydratePersonalFields = () =>
+      sessionHasParsedResume || hasCompletedOnboarding || resumeOnFile;
+    const applyPersonalFields = (fields, { force } = {}) => {
+      if (!fields || typeof fields !== 'object') return;
+      const allow = force === true || shouldHydratePersonalFields();
+      if (!allow) return;
+      const fieldMap = {
+        name: 'name',
+        email: 'email',
+        phone: 'phone',
+        city: 'city'
+      };
+      Object.entries(fieldMap).forEach(([key, id]) => {
+        const value = fields[key];
+        if (value === undefined || value === null || value === '') return;
+        const el = document.getElementById(id);
+        if (el) {
+          el.value = value;
+        }
+      });
+    };
     updateWorkspaceShortcutVisibility({ storedProfile: initialStoredProfile });
 
     if (!googleId && storedProfileGoogleId) {
@@ -397,8 +423,17 @@
         experience,
         current_ctc,
         resume_url,
-        career_story
+        career_story,
+        onboarding_step,
+        profile_complete
       } = profile;
+
+      if (profile_complete === true || onboarding_step === 'done') {
+        hasCompletedOnboarding = true;
+      }
+      if (resume_url) {
+        resumeOnFile = true;
+      }
 
       const deriveCurrentCtc = (direct, story) => {
         if (direct !== undefined && direct !== null && direct !== '') return direct;
@@ -414,10 +449,7 @@
         }
         return undefined;
       };
-      if (name) document.getElementById('name').value = name;
-      if (email) document.getElementById('email').value = email;
-      if (phone) document.getElementById('phone').value = phone;
-      if (city) document.getElementById('city').value = city;
+      applyPersonalFields({ name, email, phone, city });
       if (dob) document.getElementById('dob').value = dob;
       if (role) {
         setRoleValue(role);
@@ -532,10 +564,16 @@
       };
       const uploadedUrl = uploadedResume.publicUrl || uploadedResume.path || null;
       updateResumeStatus(uploadedUrl);
-      if (f.name) document.getElementById('name').value = f.name;
-      if (f.email) document.getElementById('email').value = f.email;
-      if (f.phone) document.getElementById('phone').value = f.phone;
-      if (f.city) document.getElementById('city').value = f.city;
+      if (uploadedUrl) {
+        resumeOnFile = true;
+      }
+      sessionHasParsedResume = true;
+      applyPersonalFields({
+        name: f.name,
+        email: f.email,
+        phone: f.phone,
+        city: f.city
+      }, { force: true });
       if (f.dob) document.getElementById('dob').value = f.dob;
       if (f.role) setRoleValue(f.role);
       if (typeof f.experience === 'number') document.getElementById('experience').value = f.experience;
@@ -693,6 +731,10 @@
           }
           const mergedProfile = { ...existing, ...storageUpdate };
           writeStoredProfile(mergedProfile);
+          hasCompletedOnboarding = true;
+          if (payload.resume_url) {
+            resumeOnFile = true;
+          }
           updateWorkspaceShortcutVisibility({ storedProfile: mergedProfile });
         } catch (storageErr) {
           console.warn('Could not update stored profile after onboarding', storageErr);
