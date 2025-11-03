@@ -22,7 +22,7 @@ module.exports = async function handler(req, res) {
 
       // onboarding basics
       role, applications_goal_per_day, resume_url,
-      phone, city, dob, experience, current_ctc,
+      phone, city, preferred_cities, dob, experience, current_ctc,
 
       // story & plan
       career_story, plan_start, plan_end,
@@ -56,7 +56,6 @@ module.exports = async function handler(req, res) {
     if (resume_url !== undefined) patch.resume_url = resume_url;
 
     if (phone !== undefined) patch.phone = phone;
-    if (city !== undefined) patch.city = city;
     if (dob !== undefined && dob) patch.dob = dob;          // expect "YYYY-MM-DD"
     if (experience !== undefined) {
       const expValue = typeof experience === 'number' ? experience : Number.parseFloat(experience);
@@ -64,6 +63,25 @@ module.exports = async function handler(req, res) {
         patch.experience = expValue;
       }
     }
+
+    const normalizePreferredCities = (input) => {
+      if (input === undefined) return undefined;
+      const values = Array.isArray(input) ? input : typeof input === 'string' ? input.split(/[,;\n|\/]+/) : [];
+      const seen = new Set();
+      const result = [];
+      values.forEach((value) => {
+        if (typeof value !== 'string') return;
+        const cleaned = value.replace(/\s+/g, ' ').trim();
+        if (!cleaned) return;
+        const key = cleaned.toLowerCase();
+        if (seen.has(key)) return;
+        seen.add(key);
+        if (result.length < 3) {
+          result.push(cleaned);
+        }
+      });
+      return result;
+    };
 
     const normalizeCareerStory = (input) => {
       if (input === undefined) return undefined;
@@ -82,6 +100,18 @@ module.exports = async function handler(req, res) {
       const numeric = Number.parseInt(digits, 10);
       return Number.isFinite(numeric) ? numeric : undefined;
     };
+
+    const normalizedPreferredCities = normalizePreferredCities(preferred_cities);
+    if (normalizedPreferredCities !== undefined) {
+      patch.preferred_cities = normalizedPreferredCities;
+      if (normalizedPreferredCities.length > 0) {
+        patch.city = normalizedPreferredCities[0];
+      } else {
+        patch.city = null;
+      }
+    } else if (city !== undefined) {
+      patch.city = city;
+    }
 
     let normalizedStory = normalizeCareerStory(career_story);
     const normalizedCTC = normalizeCurrentCTC(current_ctc);

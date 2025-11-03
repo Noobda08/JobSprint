@@ -358,12 +358,20 @@
         atsNoteEl.textContent = coachNotes[diagnostic.level] || "Good structure, but could use a little polish.";
       }
 
+      const preferredCitiesRaw = Array.isArray(profile?.preferred_cities)
+        ? profile.preferred_cities.filter((city) => typeof city === 'string' && city.trim())
+        : typeof profile?.city === 'string' && profile.city.trim()
+        ? [profile.city.trim()]
+        : [];
+      const preferredCities = preferredCitiesRaw.map((city) => city.trim());
+      const primaryLocationPreference = preferredCities[0] || null;
+
       const currentCTC = resolveCurrentCTC(profile);
       const salaryData = getSalaryInsight({
         currentCTC,
         yearsExp: profile.experience,
         roleId: profile.role,
-        location: profile.city
+        location: primaryLocationPreference
       });
 
       const currentCTCEl = document.getElementById("currentCTC");
