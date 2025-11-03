@@ -231,13 +231,18 @@
     }
 
     function formatCTC(ctc) {
-      if (!ctc) return "₹9 LPA";
-      if (typeof ctc === "number") {
+      if (ctc === null || ctc === undefined || ctc === "") return "₹9 LPA";
+      if (typeof ctc === "number" && Number.isFinite(ctc)) {
         return `₹${ctc.toLocaleString("en-IN")} LPA`;
       }
       const trimmed = String(ctc).trim();
-      if (/^\d+(\.\d+)?$/.test(trimmed)) {
-        return `₹${parseFloat(trimmed).toLocaleString("en-IN")} LPA`;
+      if (!trimmed) return "₹9 LPA";
+      const digitsOnly = trimmed.replace(/\D+/g, "");
+      if (digitsOnly) {
+        const numeric = Number.parseInt(digitsOnly, 10);
+        if (Number.isFinite(numeric)) {
+          return `₹${numeric.toLocaleString("en-IN")} LPA`;
+        }
       }
       if (!trimmed.includes("₹")) {
         return `₹${trimmed}`;
@@ -245,11 +250,20 @@
       return trimmed;
     }
 
+    function normalizeCurrentCTCValue(value) {
+      if (value === null || value === undefined || value === '') return undefined;
+      if (typeof value === 'number' && Number.isFinite(value)) return Math.trunc(value);
+      const digits = String(value).trim().replace(/\D+/g, '');
+      if (!digits) return undefined;
+      const numeric = Number.parseInt(digits, 10);
+      return Number.isFinite(numeric) ? numeric : undefined;
+    }
+
     function resolveCurrentCTC(profile) {
       if (!profile || typeof profile !== "object") return undefined;
 
-      const direct = profile.current_ctc ?? profile.currentCTC;
-      if (direct !== undefined && direct !== null && direct !== "") {
+      const direct = normalizeCurrentCTCValue(profile.current_ctc ?? profile.currentCTC);
+      if (direct !== undefined) {
         return direct;
       }
 
@@ -274,15 +288,20 @@
       const storyObject = normalizeStory(story);
       if (!storyObject || typeof storyObject !== "object") return undefined;
 
-      const storyDirect = storyObject.current_ctc ?? storyObject.currentCTC;
-      if (storyDirect !== undefined && storyDirect !== null && storyDirect !== "") {
+      const storyDirect = normalizeCurrentCTCValue(storyObject.current_ctc ?? storyObject.currentCTC);
+      if (storyDirect !== undefined) {
         return storyDirect;
       }
 
       const comp = storyObject.compensation;
       if (comp && typeof comp === "object") {
         const options = [comp.current, comp.current_ctc, comp.currentCTC, comp.current_salary, comp.currentSalary];
-        return options.find((value) => value !== undefined && value !== null && value !== "");
+        for (const value of options) {
+          const normalized = normalizeCurrentCTCValue(value);
+          if (normalized !== undefined) {
+            return normalized;
+          }
+        }
       }
 
       return undefined;

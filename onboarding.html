@@ -26,6 +26,7 @@
     .field-hint{font-size:13px;color:var(--muted);margin-top:6px}
     .field-hint a{color:var(--brand);text-decoration:none}
     .field-hint a:hover{text-decoration:underline}
+    .field-error{font-size:13px;color:#d93025;margin-top:6px}
     .combobox-field{position:relative}
     .combobox-input-wrapper{position:relative;display:flex;align-items:center}
     .combobox-input{width:100%;padding:12px 44px 12px 14px;border-radius:14px;border:1px solid rgba(10,102,194,0.16);background:rgba(255,255,255,0.92);font-size:15px;transition:border-color .2s ease,box-shadow .2s ease;box-shadow:var(--shadow-xs,0 6px 20px rgba(10,102,194,0.08))}
@@ -126,8 +127,19 @@
     <label>Total Experience (years)</label>
     <input type="number" id="experience" min="0" step="0.1" placeholder="e.g., 5.5" />
 
-    <label>Current CTC</label>
-    <input type="text" id="currentCTC" placeholder="e.g., ₹ 18 LPA" />
+    <label for="currentCTC">Current CTC</label>
+    <input
+      type="number"
+      id="currentCTC"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      min="0"
+      step="1"
+      placeholder="e.g., 1800000"
+      aria-describedby="currentCTCHint currentCTCError"
+    />
+    <p class="field-hint" id="currentCTCHint">Enter digits only, e.g., 1800000 for ₹18L.</p>
+    <p class="field-error hidden" id="currentCTCError" aria-live="polite"></p>
 
     <div class="actions">
       <button id="nextBtn" class="primary-btn" type="button">Next: Tell your story →</button>
@@ -174,6 +186,53 @@
     const roleListEl = document.getElementById('roleList');
     const roleCombobox = document.getElementById('roleCombobox');
     const backToWorkspaceBtn = document.getElementById('backToWorkspace');
+    const currentCTCInput = document.getElementById('currentCTC');
+    const currentCTCErrorEl = document.getElementById('currentCTCError');
+
+    const setCurrentCTCError = (message) => {
+      if (!currentCTCErrorEl) return;
+      const text = typeof message === 'string' ? message.trim() : '';
+      currentCTCErrorEl.textContent = text;
+      if (text) {
+        currentCTCErrorEl.classList.remove('hidden');
+        currentCTCInput?.setAttribute('aria-invalid', 'true');
+      } else {
+        currentCTCErrorEl.classList.add('hidden');
+        currentCTCInput?.removeAttribute('aria-invalid');
+      }
+    };
+
+    const normalizeCurrentCTCValue = (raw) => {
+      if (raw === undefined || raw === null) return undefined;
+      if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+      const trimmed = String(raw).trim();
+      if (!trimmed) return undefined;
+      const digits = trimmed.replace(/\D+/g, '');
+      if (!digits) return undefined;
+      const numeric = Number.parseInt(digits, 10);
+      return Number.isFinite(numeric) ? numeric : undefined;
+    };
+
+    const setCurrentCTCFieldValue = (value) => {
+      if (!currentCTCInput) return;
+      const normalized = normalizeCurrentCTCValue(value);
+      currentCTCInput.value = normalized === undefined ? '' : String(normalized);
+    };
+
+    currentCTCInput?.addEventListener('input', () => {
+      const rawValue = currentCTCInput.value;
+      const digits = rawValue.replace(/\D+/g, '');
+      if (rawValue !== digits) {
+        currentCTCInput.value = digits;
+      }
+      if (!digits && rawValue !== '') {
+        setCurrentCTCError('Current CTC must be digits only, e.g., 1800000.');
+      } else if (digits) {
+        setCurrentCTCError('');
+      }
+    });
+
+    setCurrentCTCError('');
 
     const curatedRoleGroups = [
       {
@@ -782,16 +841,23 @@
       }
 
       const deriveCurrentCtc = (direct, story) => {
-        if (direct !== undefined && direct !== null && direct !== '') return direct;
+        const normalizedDirect = normalizeCurrentCTCValue(direct);
+        if (normalizedDirect !== undefined) return normalizedDirect;
         if (!story || typeof story !== 'object') return undefined;
         const directFromStory = story.current_ctc ?? story.currentCTC;
-        if (directFromStory !== undefined && directFromStory !== null && directFromStory !== '') {
-          return directFromStory;
+        const normalizedStoryDirect = normalizeCurrentCTCValue(directFromStory);
+        if (normalizedStoryDirect !== undefined) {
+          return normalizedStoryDirect;
         }
         const comp = story.compensation;
         if (comp && typeof comp === 'object') {
           const options = [comp.current, comp.current_ctc, comp.currentCTC, comp.current_salary, comp.currentSalary];
-          return options.find((value) => value !== undefined && value !== null && value !== '');
+          for (const option of options) {
+            const normalized = normalizeCurrentCTCValue(option);
+            if (normalized !== undefined) {
+              return normalized;
+            }
+          }
         }
         return undefined;
       };
@@ -807,8 +873,11 @@
       }
       const resolvedCtc = deriveCurrentCtc(current_ctc, career_story);
       if (resolvedCtc !== undefined) {
-        document.getElementById('currentCTC').value = resolvedCtc;
+        setCurrentCTCFieldValue(resolvedCtc);
+      } else {
+        setCurrentCTCFieldValue('');
       }
+      setCurrentCTCError('');
       if (career_story && typeof career_story === 'object') {
         if (career_story.journey) document.getElementById('journey').value = career_story.journey;
         if (career_story.strengths) document.getElementById('strengths').value = career_story.strengths;
@@ -1020,7 +1089,26 @@
       const role = normalize(document.getElementById('role').value);
       const experienceRaw = document.getElementById('experience').value;
       const experience = experienceRaw === '' ? undefined : Number(experienceRaw);
-      const currentCTC = normalize(document.getElementById('currentCTC').value);
+      let currentCTC;
+      if (currentCTCInput) {
+        const rawCurrentCTC = currentCTCInput.value;
+        if (rawCurrentCTC && rawCurrentCTC.trim() !== '') {
+          const digitsOnly = rawCurrentCTC.replace(/\D+/g, '');
+          const numericCTC = normalizeCurrentCTCValue(digitsOnly);
+          if (numericCTC === undefined) {
+            const message = 'Current CTC must be digits only, e.g., 1800000.';
+            setCurrentCTCError(message);
+            notify(message, { variant: 'danger' });
+            currentCTCInput.focus();
+            return;
+          }
+          currentCTC = numericCTC;
+          currentCTCInput.value = String(numericCTC);
+          setCurrentCTCError('');
+        } else {
+          setCurrentCTCError('');
+        }
+      }
       if (experience !== undefined && Number.isNaN(experience)) {
         notify('Total experience must be a number.', { variant: 'danger' });
         return;

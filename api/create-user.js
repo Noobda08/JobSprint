@@ -74,20 +74,27 @@ module.exports = async function handler(req, res) {
       return { narrative: String(input) };
     };
 
+    const normalizeCurrentCTC = (input) => {
+      if (input === undefined || input === null || input === '') return undefined;
+      if (typeof input === 'number' && Number.isFinite(input)) return Math.trunc(input);
+      const digits = String(input).trim().replace(/\D+/g, '');
+      if (!digits) return undefined;
+      const numeric = Number.parseInt(digits, 10);
+      return Number.isFinite(numeric) ? numeric : undefined;
+    };
+
     let normalizedStory = normalizeCareerStory(career_story);
-    if (current_ctc !== undefined) {
-      const ctcValue = typeof current_ctc === 'string' ? current_ctc.trim() : current_ctc;
-      if (ctcValue !== undefined && ctcValue !== null && ctcValue !== '') {
-        patch.current_ctc = ctcValue;
-        if (!normalizedStory) normalizedStory = {};
-        if (typeof normalizedStory === 'object' && normalizedStory !== null) {
-          normalizedStory.current_ctc = ctcValue;
-          const existingComp = normalizedStory.compensation;
-          if (!existingComp || typeof existingComp !== 'object') {
-            normalizedStory.compensation = { current: ctcValue };
-          } else {
-            normalizedStory.compensation = { ...existingComp, current: ctcValue };
-          }
+    const normalizedCTC = normalizeCurrentCTC(current_ctc);
+    if (normalizedCTC !== undefined) {
+      patch.current_ctc = normalizedCTC;
+      if (!normalizedStory) normalizedStory = {};
+      if (typeof normalizedStory === 'object' && normalizedStory !== null) {
+        normalizedStory.current_ctc = normalizedCTC;
+        const existingComp = normalizedStory.compensation;
+        if (!existingComp || typeof existingComp !== 'object') {
+          normalizedStory.compensation = { current: normalizedCTC };
+        } else {
+          normalizedStory.compensation = { ...existingComp, current: normalizedCTC };
         }
       }
     }
