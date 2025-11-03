@@ -279,12 +279,27 @@
       return null;
     };
 
-    const redirectToWorkspace = () => {
+    const hasSeenReadiness = () => {
       try {
-        localStorage.setItem('jobsprint_readiness_seen', new Date().toISOString());
+        return Boolean(localStorage.getItem('jobsprint_readiness_seen'));
       } catch (err) {
-        console.warn('Could not mark readiness seen', err);
+        console.warn('Could not read readiness flag', err);
+        return false;
       }
+    };
+
+    const updateWorkspaceShortcutVisibility = ({ profileComplete, storedProfile } = {}) => {
+      if (!backToWorkspaceBtn) return;
+      const readinessSeen = hasSeenReadiness();
+      const storedComplete = storedProfile?.profile_complete === true;
+      if (readinessSeen || profileComplete === true || storedComplete) {
+        backToWorkspaceBtn.classList.remove('hidden');
+      } else {
+        backToWorkspaceBtn.classList.add('hidden');
+      }
+    };
+
+    const redirectToWorkspace = () => {
       const token = getStoredToken();
       const destination = token ? `/workspace.html?u=${encodeURIComponent(token)}` : '/workspace.html';
       redirectWithToast(destination, 'Opening your workspace…');
@@ -315,9 +330,7 @@
 
     const initialStoredProfile = readStoredProfile();
     let storedProfileGoogleId = initialStoredProfile?.google_id || null;
-    if (initialStoredProfile?.token) {
-      backToWorkspaceBtn?.classList.remove('hidden');
-    }
+    updateWorkspaceShortcutVisibility({ storedProfile: initialStoredProfile });
 
     if (!googleId && storedProfileGoogleId) {
       googleId = storedProfileGoogleId;
@@ -452,7 +465,7 @@
         } catch (storageErr) {
           console.warn('Could not sync profile to localStorage', storageErr);
         }
-        backToWorkspaceBtn?.classList.remove('hidden');
+        updateWorkspaceShortcutVisibility({ profileComplete: payload?.profile_complete === true });
       } catch (err) {
         console.error('Failed to load existing profile', err);
         updateResumeStatus();
@@ -669,9 +682,16 @@
           }
           const mergedProfile = { ...existing, ...storageUpdate };
           writeStoredProfile(mergedProfile);
+          updateWorkspaceShortcutVisibility({ storedProfile: mergedProfile });
         } catch (storageErr) {
           console.warn('Could not update stored profile after onboarding', storageErr);
         }
+        try {
+          localStorage.setItem('jobsprint_readiness_seen', new Date().toISOString());
+        } catch (flagErr) {
+          console.warn('Could not mark readiness after onboarding', flagErr);
+        }
+        updateWorkspaceShortcutVisibility({ profileComplete: true });
         notify('🎉 Onboarding complete! Redirecting...', { variant: 'success' });
         redirectWithToast(data.redirect_url || "/sprint-readiness.html", 'Preparing your sprint readiness…');
       } catch (err) {
