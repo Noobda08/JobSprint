@@ -255,8 +255,7 @@
       <div class="pill" id="goalPill">Goal: <strong id="goalNum">4</strong> / day</div>
       <button class="ham" id="hamBtn">☰</button>
       <div class="dropdown" id="menu">
-        <a href="onboarding.html">Edit onboarding info</a>
-        <a href="#" id="exportBtn">Export board (JSON)</a>
+        <a href="onboarding.html">Edit profile</a>
         <a href="#" id="deleteAccountBtn">Delete account</a>
         <a href="#" id="signoutBtn">Sign out</a>
       </div>
@@ -1770,18 +1769,6 @@
   }
 
   document.getElementById('hamBtn').onclick = () => menu.style.display = (menu.style.display === 'block' ? 'none' : 'block');
-  document.getElementById('exportBtn').onclick = e => {
-    e.preventDefault();
-    const blob = new Blob([JSON.stringify(board, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'jobsprint_board.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    menu.style.display = 'none';
-    notify('Workspace exported — check your downloads.', { variant: 'success', duration: 6000 });
-  };
   document.getElementById('deleteAccountBtn').onclick = e => {
     e.preventDefault();
     deleteAccount();
