@@ -67,10 +67,12 @@ body {
 }
 
 .app-navbar__logo img {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
+  height: 56px;
+  width: auto;
+  max-width: 160px;
+  border-radius: 14px;
   object-fit: contain;
+  display: block;
 }
 
 .app-navbar__nav {
