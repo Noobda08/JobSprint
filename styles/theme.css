@@ -1,4 +1,5 @@
 :root {
+  --shell-max-width: 880px;
   --ink: #0b1a33;
   --muted: #475569;
   --line: #d5e3f7;
@@ -40,7 +41,7 @@ body {
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 1080px;
+  max-width: var(--shell-max-width, 880px);
   margin: 24px auto 12px;
   padding: 18px 24px;
   display: flex;
