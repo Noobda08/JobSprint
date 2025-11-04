@@ -1096,7 +1096,13 @@
 
     const writeStoredProfile = (profile) => {
       try {
-        localStorage.setItem('jobsprint_profile', JSON.stringify(profile || {}));
+        const nextProfile = profile && typeof profile === 'object' ? { ...profile } : {};
+        const existing = readStoredProfile();
+        const hasResumeText = Object.prototype.hasOwnProperty.call(nextProfile, 'resume_text') && nextProfile.resume_text !== undefined;
+        if (!hasResumeText && existing && typeof existing.resume_text === 'string') {
+          nextProfile.resume_text = existing.resume_text;
+        }
+        localStorage.setItem('jobsprint_profile', JSON.stringify(nextProfile));
       } catch (err) {
         console.warn('Could not sync profile to localStorage', err);
       }
@@ -1382,6 +1388,15 @@
         resumeOnFile = true;
       }
       sessionHasParsedResume = true;
+      const rawText = typeof j.raw_text === 'string' ? j.raw_text : '';
+      if (rawText) {
+        try {
+          const existing = readStoredProfile();
+          writeStoredProfile({ ...existing, resume_text: rawText });
+        } catch (storageErr) {
+          console.warn('Could not persist parsed resume text', storageErr);
+        }
+      }
       applyPersonalFields({
         name: f.name,
         email: f.email,

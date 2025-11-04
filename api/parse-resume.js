@@ -236,6 +236,20 @@ function normalizeWhitespace(s = '') {
     .trim();
 }
 
+function sanitizeResumeTextForStorage(text, maxLength = 60000) {
+  if (!text) return '';
+  const cleaned = String(text)
+    .replace(/\r\n?/g, '\n')
+    .replace(/\u00A0/g, ' ')
+    .split('\n')
+    .map(line => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join('\n')
+    .trim();
+  if (cleaned.length <= maxLength) return cleaned;
+  return `${cleaned.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
 function linesOf(text = '') {
   return text
     .split(/\r?\n/)
@@ -592,6 +606,7 @@ module.exports = async function handler(req, res) {
 
     if (!text.trim()) return res.status(422).json({ error: 'empty', detail: 'Could not read text' });
 
+    const rawText = sanitizeResumeTextForStorage(text);
     const parsed = parseResumeText(text);
     if (parsed?.error) {
       return res.status(422).json({ error: 'unreadable', detail: parsed.error });
@@ -648,6 +663,7 @@ module.exports = async function handler(req, res) {
       success: true,
       fields: normalizedFields,
       parsed,
+      raw_text: rawText,
       resume: {
         path: resumePath,
         public_url: publicUrl,
