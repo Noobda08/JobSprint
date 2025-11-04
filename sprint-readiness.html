@@ -143,6 +143,7 @@
   </main>
 
   <script src="scripts/theme.js"></script>
+  <script src="scripts/ats-scorer.js"></script>
   <script>
     const LOADING_DELAY_MS = 1400;
 
@@ -206,17 +207,93 @@
       }
     }
 
-    function getATSDiagnostic(resumeText) {
-      return {
-        score: 78,
-        level: "good",
-        fixes: [
-          "Add clear 'Work Experience' and 'Education' headers.",
-          "Reduce resume length to 1–2 pages.",
-          "Avoid using tables or columns that confuse ATS scanners."
-        ]
+    const FALLBACK_ATS_DIAGNOSTIC = {
+      score: 78,
+      level: "good",
+      fixes: [
+        "Add clear 'Work Experience' and 'Education' headers.",
+        "Reduce resume length to 1–2 pages.",
+        "Avoid using tables or columns that confuse ATS scanners."
+      ],
+      topSuggestion: "Add clear 'Work Experience' and 'Education' headers.",
+      coachNote: "Good structure — a quick tune-up will make it shine.",
+      fingerprint: null,
+      breakdown: null
+    };
+
+    const computeFingerprint = (text) => {
+      if (!text) return null;
+      const clean = String(text).replace(/\s+/g, " ").trim();
+      return clean ? `${clean.length}:${clean.slice(0, 120).toLowerCase()}` : null;
+    };
+
+    const cloneDiagnostic = (diagnostic) => {
+      if (!diagnostic || typeof diagnostic !== "object") return null;
+      try {
+        return JSON.parse(JSON.stringify(diagnostic));
+      } catch (err) {
+        console.warn("Could not clone diagnostic", err);
+        return { ...diagnostic };
+      }
+    };
+
+    const analyzeResumeWithFallback = (profile, fingerprint) => {
+      const resumeText = typeof profile?.resume_text === "string" ? profile.resume_text : "";
+      const role = profile?.role || profile?.target_role;
+      if (window.JobSprintATS && typeof window.JobSprintATS.analyzeResume === "function") {
+        try {
+          return window.JobSprintATS.analyzeResume({
+            text: resumeText,
+            role,
+            experience: profile?.experience,
+            location: profile?.city
+          });
+        } catch (err) {
+          console.warn("ATS analysis failed", err);
+        }
+      }
+      const fallback = cloneDiagnostic(FALLBACK_ATS_DIAGNOSTIC) || { ...FALLBACK_ATS_DIAGNOSTIC };
+      fallback.fingerprint = fingerprint ?? fallback.fingerprint ?? null;
+      return fallback;
+    };
+
+    const persistDiagnostic = (profile, diagnostic) => {
+      const safeProfile = profile && typeof profile === "object" ? { ...profile } : {};
+      if (!diagnostic || typeof diagnostic !== "object") {
+        return safeProfile;
+      }
+      const storedDiagnostic = cloneDiagnostic(diagnostic);
+      const nextProfile = {
+        ...safeProfile,
+        ats_readiness: storedDiagnostic.score,
+        top_suggestion: storedDiagnostic.topSuggestion || storedDiagnostic.fixes?.[0] || safeProfile.top_suggestion,
+        ats_diagnostic: storedDiagnostic
       };
-    }
+      writeStoredProfile(nextProfile);
+      return nextProfile;
+    };
+
+    const ensureDiagnostic = (profile) => {
+      const baseProfile = profile && typeof profile === "object" ? { ...profile } : {};
+      const resumeText = typeof baseProfile.resume_text === "string" ? baseProfile.resume_text : "";
+      const fingerprint = computeFingerprint(resumeText);
+      let diagnostic = baseProfile.ats_diagnostic;
+      const needsRecompute =
+        !diagnostic ||
+        typeof diagnostic.score !== "number" ||
+        (fingerprint && diagnostic.fingerprint !== fingerprint);
+      if (needsRecompute) {
+        diagnostic = analyzeResumeWithFallback(baseProfile, fingerprint);
+      }
+      if (diagnostic && fingerprint && !diagnostic.fingerprint) {
+        diagnostic.fingerprint = fingerprint;
+      }
+      if (!diagnostic) {
+        diagnostic = analyzeResumeWithFallback(baseProfile, fingerprint);
+      }
+      const updatedProfile = persistDiagnostic(baseProfile, diagnostic);
+      return { profile: updatedProfile, diagnostic };
+    };
 
     function getSalaryInsight({ currentCTC, yearsExp, roleId, location }) {
       return {
@@ -316,16 +393,17 @@
     }
 
     function hydrateStory() {
-      const profile = readStoredProfile();
-
-      const resumeText = profile.resume_text || "";
-      const diagnostic = getATSDiagnostic(resumeText);
+      const storedProfile = readStoredProfile();
+      const { profile: enrichedProfile, diagnostic } = ensureDiagnostic(storedProfile);
+      const profile = enrichedProfile || storedProfile || {};
+      const effectiveDiagnostic = diagnostic || analyzeResumeWithFallback(profile, computeFingerprint(profile?.resume_text || ""));
       const atsScoreEl = document.getElementById("atsScore");
       const atsLevelEl = document.getElementById("atsLevel");
       const atsFixesEl = document.getElementById("atsFixes");
       const atsNoteEl = document.getElementById("atsNote");
       if (atsScoreEl) {
-        atsScoreEl.textContent = `${diagnostic.score} / 100`;
+        const scoreValue = typeof effectiveDiagnostic?.score === "number" ? Math.round(effectiveDiagnostic.score) : FALLBACK_ATS_DIAGNOSTIC.score;
+        atsScoreEl.textContent = `${scoreValue} / 100`;
       }
       if (atsLevelEl) {
         const levelMessages = {
@@ -334,24 +412,18 @@
           average: "ATS-friendliness: Promising — we can sharpen it more.",
           poor: "ATS-friendliness: Let’s rebuild it together, one win at a time."
         };
-        atsLevelEl.textContent = levelMessages[diagnostic.level] || "ATS-friendliness: Here’s how it scored.";
+        atsLevelEl.textContent = levelMessages[effectiveDiagnostic?.level] || "ATS-friendliness: Here’s how it scored.";
       }
       if (atsFixesEl) {
         atsFixesEl.innerHTML = "";
-        (diagnostic.fixes || []).forEach((tip) => {
+        (effectiveDiagnostic?.fixes || FALLBACK_ATS_DIAGNOSTIC.fixes).forEach((tip) => {
           const li = document.createElement("li");
           li.textContent = tip;
           atsFixesEl.appendChild(li);
         });
       }
       if (atsNoteEl) {
-        const coachNotes = {
-          great: "Recruiters will love how quickly your story flows.",
-          good: "Good structure — a quick tune-up will make it shine.",
-          average: "Let’s highlight your wins so they stand out instantly.",
-          poor: "We’ll reshape this into a story hiring managers can’t ignore."
-        };
-        atsNoteEl.textContent = coachNotes[diagnostic.level] || "Good structure, but could use a little polish.";
+        atsNoteEl.textContent = effectiveDiagnostic?.coachNote || FALLBACK_ATS_DIAGNOSTIC.coachNote || "Good structure, but could use a little polish.";
       }
 
       const preferredCitiesRaw = Array.isArray(profile?.preferred_cities)
