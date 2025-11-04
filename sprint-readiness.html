@@ -10,7 +10,7 @@
   <style>
     *{box-sizing:border-box}
     body{margin:0;font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);background:transparent;min-height:100vh}
-    .page{max-width:820px;margin:0 auto;padding:64px 24px 120px;position:relative}
+    .page{max-width:var(--shell-max-width,880px);margin:0 auto;padding:64px 24px 120px;position:relative}
     .floating-blob{position:fixed;border-radius:50%;background:rgba(13,110,253,0.14);filter:blur(0);animation:float 16s ease-in-out infinite;z-index:0;pointer-events:none}
     .floating-blob:nth-of-type(1){width:180px;height:180px;top:12vh;left:8vw;animation-delay:0s}
     .floating-blob:nth-of-type(2){width:130px;height:130px;bottom:12vh;right:12vw;animation-delay:-5s}
