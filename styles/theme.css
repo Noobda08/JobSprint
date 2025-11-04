@@ -64,13 +64,17 @@ body {
   color: var(--ink);
   text-decoration: none;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .app-navbar__logo img {
-  width: 34px;
-  height: 34px;
+  width: clamp(160px, 22vw, 240px);
+  height: auto;
+  max-height: 72px;
   border-radius: 12px;
   object-fit: contain;
+  object-position: center;
+  display: block;
 }
 
 .app-navbar__nav {
