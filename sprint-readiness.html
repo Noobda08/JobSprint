@@ -36,6 +36,10 @@
     .ats-score strong{font-size:42px;font-weight:700;color:var(--brand-strong)}
     .ats-score span{font-size:15px;color:var(--muted)}
     .ats-note{font-size:16px;font-weight:600;color:var(--brand-strong)}
+    .ats-insights{border-radius:18px;background:rgba(13,110,253,0.06);padding:20px 22px;display:grid;gap:12px;border:1px solid rgba(13,110,253,0.1)}
+    .ats-insights.hidden{display:none}
+    .ats-insights__label{font-size:14px;font-weight:700;color:var(--brand-strong);text-transform:uppercase;letter-spacing:0.04em}
+    .ats-insights__list{margin:0;padding:0 0 0 20px;color:var(--ink);font-size:14px;line-height:1.6}
     ul.ats-fixes{margin:0;padding:0 0 0 20px;color:var(--muted);font-size:14px;line-height:1.6}
     .actions-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
     .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-accent));color:#fff;border:none;border-radius:14px;padding:12px 22px;font-weight:600;font-size:15px;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .2s ease,box-shadow .2s ease}
@@ -94,6 +98,10 @@
             </div>
             <div class="ats-note" id="atsNote">Good structure, but could use a little polish.</div>
             <ul class="ats-fixes" id="atsFixes"></ul>
+            <div class="ats-insights hidden" id="atsInsightsContainer" aria-live="polite">
+              <div class="ats-insights__label">Resume recommendations</div>
+              <ul class="ats-insights__list" id="atsInsights"></ul>
+            </div>
             <div class="actions-row">
               <button class="btn-secondary" id="uploadResumeBtn" type="button">Upload Updated Resume</button>
             </div>
@@ -146,6 +154,8 @@
   <script src="scripts/ats-scorer.js"></script>
   <script>
     const LOADING_DELAY_MS = 1400;
+    const DEFAULT_LOADING_HEADLINE = "Analyzing your resume…";
+    const DEFAULT_LOADING_SUBTEXT = "Hang tight, we’re preparing your sprint summary.";
 
     const notify = (message, options) => {
       if (window.JobSprintUI && typeof window.JobSprintUI.showToast === 'function') {
@@ -280,12 +290,14 @@
       return nextProfile;
     };
 
-    const ensureDiagnostic = (profile) => {
+    const ensureDiagnostic = (profile, options = {}) => {
+      const { forceRecompute = false } = options || {};
       const baseProfile = profile && typeof profile === "object" ? { ...profile } : {};
       const resumeText = typeof baseProfile.resume_text === "string" ? baseProfile.resume_text : "";
       const fingerprint = computeFingerprint(resumeText);
       let diagnostic = baseProfile.ats_diagnostic;
       const needsRecompute =
+        forceRecompute ||
         !diagnostic ||
         typeof diagnostic.score !== "number" ||
         (fingerprint && diagnostic.fingerprint !== fingerprint);
@@ -300,6 +312,101 @@
       }
       const updatedProfile = persistDiagnostic(baseProfile, diagnostic);
       return { profile: updatedProfile, diagnostic };
+    };
+
+    const formatList = (items) => {
+      if (!Array.isArray(items) || !items.length) return "";
+      const filtered = items.filter(Boolean);
+      if (!filtered.length) return "";
+      if (filtered.length === 1) return filtered[0];
+      if (filtered.length === 2) return `${filtered[0]} and ${filtered[1]}`;
+      return `${filtered.slice(0, -1).join(", ")}, and ${filtered[filtered.length - 1]}`;
+    };
+
+    const humanizeLabel = (label) => {
+      if (!label) return "";
+      return String(label)
+        .replace(/[_-]+/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+    };
+
+    const buildResumeInsights = (diagnostic) => {
+      const insights = [];
+      if (!diagnostic || typeof diagnostic !== "object") {
+        return insights;
+      }
+      const breakdown = diagnostic.breakdown || {};
+
+      const missingSections = breakdown.sections?.missingRequired || [];
+      if (Array.isArray(missingSections) && missingSections.length) {
+        const readable = missingSections.map((section) => humanizeLabel(section));
+        insights.push(`Add a dedicated ${formatList(readable)} section so recruiters can verify your foundation instantly.`);
+      }
+
+      const keywordData = breakdown.keywords || {};
+      const missingRequiredKeywords = keywordData.missingRequired || [];
+      if (Array.isArray(missingRequiredKeywords) && missingRequiredKeywords.length) {
+        const keywords = missingRequiredKeywords.slice(0, 3).map((word) => `“${word}”`);
+        insights.push(`We couldn't spot ${formatList(keywords)} — weave them into impact bullets to mirror the JD.`);
+      } else if (Array.isArray(keywordData.missingNice) && keywordData.missingNice.length) {
+        const niceToHave = keywordData.missingNice.slice(0, 3).map((word) => `“${word}”`);
+        insights.push(`Add flavour keywords like ${formatList(niceToHave)} to edge ahead of similar profiles.`);
+      }
+
+      const bulletsData = breakdown.bullets || {};
+      if (typeof bulletsData.bulletCount === "number" && bulletsData.bulletCount < 10) {
+        insights.push(`Only ${bulletsData.bulletCount} bullet points detected — add crisp bullets under each role to spotlight achievements.`);
+      }
+
+      if (typeof bulletsData.actionVerbCoverage === "number" && bulletsData.actionVerbCoverage < 55) {
+        const coverage = Math.round(bulletsData.actionVerbCoverage);
+        insights.push(`Action verbs kick off about ${coverage}% of bullets — start lines with verbs like “Delivered” or “Built”.`);
+      }
+
+      const contactData = breakdown.contact || {};
+      const missingContactBits = [];
+      if (!contactData.hasEmail) missingContactBits.push("email address");
+      if (!contactData.hasPhone) missingContactBits.push("phone number");
+      if (!contactData.hasLinkedIn) missingContactBits.push("LinkedIn");
+      if (!contactData.hasPortfolio) missingContactBits.push("portfolio link");
+      if (missingContactBits.length) {
+        insights.push(`Add your ${formatList(missingContactBits)} up top so hiring managers can reach you instantly.`);
+      }
+
+      const readabilityData = breakdown.readability || {};
+      if (typeof readabilityData.avgSentenceLength === "number" && readabilityData.avgSentenceLength > 22) {
+        const average = Number(readabilityData.avgSentenceLength.toFixed(1));
+        insights.push(`Sentences average ${average} words — tighten them to keep scans breezy.`);
+      }
+
+      return insights.slice(0, 4);
+    };
+
+    const toggleLoadingState = ({ show, headline, subtext } = {}) => {
+      const loading = document.getElementById("loadingState");
+      const story = document.getElementById("storyState");
+      if (loading) {
+        const headingEl = loading.querySelector("h1");
+        const subtextEl = loading.querySelector("p");
+        if (show) {
+          loading.style.display = "flex";
+          if (headingEl) headingEl.textContent = headline || DEFAULT_LOADING_HEADLINE;
+          if (subtextEl) subtextEl.textContent = subtext ?? DEFAULT_LOADING_SUBTEXT;
+        } else {
+          loading.style.display = "none";
+          if (headingEl) headingEl.textContent = DEFAULT_LOADING_HEADLINE;
+          if (subtextEl) subtextEl.textContent = DEFAULT_LOADING_SUBTEXT;
+        }
+      }
+      if (story) {
+        if (show) {
+          story.classList.remove("visible");
+          story.setAttribute("aria-hidden", "true");
+        } else {
+          story.classList.add("visible");
+          story.setAttribute("aria-hidden", "false");
+        }
+      }
     };
 
     function getSalaryInsight({ currentCTC, yearsExp, roleId, location }) {
@@ -388,26 +495,21 @@
     }
 
     function revealStory() {
-      const loading = document.getElementById("loadingState");
-      const story = document.getElementById("storyState");
-      if (loading) {
-        loading.style.display = "none";
-      }
-      if (story) {
-        story.classList.add("visible");
-        story.setAttribute("aria-hidden", "false");
-      }
+      toggleLoadingState({ show: false });
     }
 
-    function hydrateStory() {
+    function hydrateStory(options = {}) {
+      const { forceRecompute = false } = options || {};
       const storedProfile = readStoredProfile();
-      const { profile: enrichedProfile, diagnostic } = ensureDiagnostic(storedProfile);
+      const { profile: enrichedProfile, diagnostic } = ensureDiagnostic(storedProfile, { forceRecompute });
       const profile = enrichedProfile || storedProfile || {};
       const effectiveDiagnostic = diagnostic || analyzeResumeWithFallback(profile, computeFingerprint(profile?.resume_text || ""));
       const atsScoreEl = document.getElementById("atsScore");
       const atsLevelEl = document.getElementById("atsLevel");
       const atsFixesEl = document.getElementById("atsFixes");
       const atsNoteEl = document.getElementById("atsNote");
+      const insightsContainer = document.getElementById("atsInsightsContainer");
+      const insightsList = document.getElementById("atsInsights");
       if (atsScoreEl) {
         const scoreValue = typeof effectiveDiagnostic?.score === "number" ? Math.round(effectiveDiagnostic.score) : FALLBACK_ATS_DIAGNOSTIC.score;
         atsScoreEl.textContent = `${scoreValue} / 100`;
@@ -431,6 +533,21 @@
       }
       if (atsNoteEl) {
         atsNoteEl.textContent = effectiveDiagnostic?.coachNote || FALLBACK_ATS_DIAGNOSTIC.coachNote || "Good structure, but could use a little polish.";
+      }
+
+      if (insightsContainer && insightsList) {
+        insightsList.innerHTML = "";
+        const insights = buildResumeInsights(effectiveDiagnostic);
+        if (insights.length) {
+          insightsContainer.classList.remove("hidden");
+          insights.forEach((insight) => {
+            const item = document.createElement("li");
+            item.textContent = insight;
+            insightsList.appendChild(item);
+          });
+        } else {
+          insightsContainer.classList.add("hidden");
+        }
       }
 
       const preferredCitiesRaw = Array.isArray(profile?.preferred_cities)
@@ -458,6 +575,8 @@
       if (nextCTCEl) nextCTCEl.textContent = salaryData.suggestedRange || "₹11 – ₹13 LPA";
       if (hikeRangeEl) hikeRangeEl.textContent = salaryData.hikePercent || "30–45%";
       if (salaryNoteEl) salaryNoteEl.textContent = salaryData.note || "Based on your experience and role, this is a realistic target for your next switch.";
+
+      return { profile, diagnostic: effectiveDiagnostic };
     }
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -467,16 +586,79 @@
       const uploadBtn = document.getElementById("uploadResumeBtn");
       const resumeInput = document.getElementById("resumeInput");
       const uploadStatus = document.getElementById("uploadStatus");
+      const readFileAsText = (file) => {
+        if (!file) return Promise.resolve("");
+        if (typeof file.text === "function") {
+          return file.text();
+        }
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve(typeof reader.result === "string" ? reader.result : "");
+          };
+          reader.onerror = () => reject(reader.error || new Error("Could not read file"));
+          reader.readAsText(file);
+        });
+      };
+
+      const handleResumeUpload = async (file) => {
+        if (!file) return;
+        toggleLoadingState({
+          show: true,
+          headline: "Analyzing your updated resume…",
+          subtext: "We’re refreshing your ATS score with the latest file."
+        });
+        try {
+          if (uploadStatus) {
+            uploadStatus.textContent = `Uploading ${file.name}…`;
+          }
+          const text = await readFileAsText(file);
+          if (!text || !text.trim()) {
+            throw new Error("Empty resume content");
+          }
+          const existingProfile = readStoredProfile();
+          const updatedProfile = {
+            ...existingProfile,
+            resume_text: text,
+            resume_file_name: file.name,
+            resume_last_uploaded_at: new Date().toISOString()
+          };
+          writeStoredProfile(updatedProfile);
+          const { diagnostic } = hydrateStory({ forceRecompute: true });
+          const refreshedScore = typeof diagnostic?.score === "number" ? `${Math.round(diagnostic.score)} / 100` : null;
+          if (uploadStatus) {
+            uploadStatus.textContent = refreshedScore
+              ? `ATS score refreshed to ${refreshedScore}.`
+              : `Your ATS insights are up to date.`;
+          }
+          notify(
+            refreshedScore ? `ATS score refreshed (${refreshedScore}).` : 'ATS score refreshed.',
+            { variant: 'success' }
+          );
+        } catch (err) {
+          console.warn("Could not process uploaded resume", err);
+          const errorMessage = `We couldn't read ${file.name}. Try uploading a text-based or PDF resume.`;
+          if (uploadStatus) {
+            uploadStatus.textContent = errorMessage;
+          }
+          notify(errorMessage, { variant: 'error' });
+        } finally {
+          if (resumeInput) {
+            resumeInput.value = "";
+          }
+          setTimeout(() => {
+            toggleLoadingState({ show: false });
+          }, Math.min(LOADING_DELAY_MS, 800));
+        }
+      };
+
       uploadBtn?.addEventListener("click", () => {
         resumeInput?.click();
       });
       resumeInput?.addEventListener("change", (event) => {
         const file = event.target?.files?.[0];
         if (!file) return;
-        if (uploadStatus) {
-          uploadStatus.textContent = `Got it — we’ll scan ${file.name} next.`;
-        }
-        notify(`Got it — we'll scan ${file.name} next.`, { variant: 'info' });
+        handleResumeUpload(file);
       });
 
       const resumeStage = document.getElementById("resumeStage");
