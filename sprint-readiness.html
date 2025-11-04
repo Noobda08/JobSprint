@@ -183,7 +183,14 @@
 
     const writeStoredProfile = (profile) => {
       try {
-        localStorage.setItem("jobsprint_profile", JSON.stringify(profile || {}));
+        const nextProfile = profile && typeof profile === "object" ? { ...profile } : {};
+        const existing = readStoredProfile();
+        const hasResumeText =
+          Object.prototype.hasOwnProperty.call(nextProfile, "resume_text") && nextProfile.resume_text !== undefined;
+        if (!hasResumeText && existing && typeof existing.resume_text === "string") {
+          nextProfile.resume_text = existing.resume_text;
+        }
+        localStorage.setItem("jobsprint_profile", JSON.stringify(nextProfile));
       } catch (err) {
         console.warn("Could not persist profile", err);
       }
