@@ -161,9 +161,24 @@
   .coach-icon-btn:hover{background:#edf4ff}
   .coach-tips{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:#2c4f80;font-size:13px}
   .coach-footer{text-align:center;font-size:11px;color:#4a6ba3;padding-bottom:10px;display:flex;flex-direction:column;gap:4px}
-  .coach-tab{position:fixed;left:0;top:180px;transform:rotate(-90deg);transform-origin:left top;background:var(--brand);color:#fff;border:0;border-radius:12px 12px 0 0;padding:10px 18px;font-weight:600;letter-spacing:.4px;cursor:pointer;box-shadow:0 10px 20px rgba(0,0,0,.12);z-index:34}
-  .coach-tab.hidden{opacity:0;pointer-events:none}
-  .coach-tab:hover{background:var(--brand-d)}
+  .coach-summary{position:fixed;left:0;top:160px;z-index:34;display:flex;align-items:stretch;gap:12px;padding:16px 18px 16px 20px;background:rgba(255,255,255,.95);border:1px solid #c8d9f4;border-left:0;border-radius:0 16px 16px 0;box-shadow:var(--shadow);max-width:280px;transition:box-shadow .2s ease}
+  .coach-summary:focus-within{box-shadow:0 12px 28px rgba(10,102,194,.2)}
+  .coach-summary-body{display:flex;flex-direction:column;gap:10px;color:#1f4f94;font-size:12px;line-height:1.4}
+  .coach-summary-body[role="status"]{max-width:200px}
+  .coach-summary-title{margin:0;font-size:13px;font-weight:700;color:#0f3e7c}
+  .coach-summary-item{display:flex;flex-direction:column;gap:4px}
+  .coach-summary-label{text-transform:uppercase;letter-spacing:.4px;font-weight:600;color:#5271a6;font-size:11px}
+  .coach-summary-value{font-weight:700;font-size:16px;color:#0f3e7c}
+  .coach-summary-subtext{color:#2c4f80;font-size:12px}
+  .coach-summary-metrics{display:flex;gap:12px}
+  .coach-summary-metric{display:flex;flex-direction:column;gap:4px;min-width:70px}
+  .coach-summary-toggle{margin-left:auto;background:var(--brand);color:#fff;border:0;border-radius:999px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 16px rgba(10,102,194,.25);transition:background .2s ease,transform .2s ease}
+  .coach-summary-toggle:hover{background:var(--brand-d)}
+  .coach-summary.coach-open .coach-summary-toggle{background:#1b4f8f}
+  .coach-summary-chevron{font-size:18px;transition:transform .2s ease}
+  .coach-summary.coach-open .coach-summary-chevron{transform:rotate(180deg)}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  @media (max-width: 960px){.coach-summary{top:120px;max-width:240px;padding:14px 16px}.coach-summary-body[role="status"]{max-width:170px}}
   .app.coach-open{margin-left:300px}
   .coach-inner::-webkit-scrollbar{width:6px}
   .coach-inner::-webkit-scrollbar-thumb{background:rgba(10,102,194,.35);border-radius:999px}
@@ -174,7 +189,38 @@
 </head>
 <body>
 <div class="app">
-  <button class="coach-tab" id="coachTab" type="button" aria-controls="sprintCoachPanel">🏁 Sprint Coach</button>
+  <aside class="coach-summary" id="coachSummary" role="complementary" aria-label="Sprint coach summary">
+    <div class="coach-summary-body" id="coachSummaryBody" role="status" aria-live="polite" aria-atomic="true">
+      <p class="coach-summary-title">Sprint Snapshot</p>
+      <div class="coach-summary-item">
+        <span class="coach-summary-label">Today&rsquo;s Progress</span>
+        <span class="coach-summary-value" id="coachSummaryProgressValue">0 / 0</span>
+        <span class="coach-summary-subtext" id="coachSummaryProgressNote">Let&rsquo;s get your first win of the day.</span>
+      </div>
+      <div class="coach-summary-item">
+        <span class="coach-summary-label">Quick Insight</span>
+        <span class="coach-summary-subtext" id="coachSummaryInsight">Insights will appear here soon.</span>
+      </div>
+      <div class="coach-summary-metrics" aria-label="Resume and job description metrics">
+        <div class="coach-summary-metric">
+          <span class="coach-summary-label">Resume</span>
+          <span class="coach-summary-value" id="coachSummaryResume">--</span>
+        </div>
+        <div class="coach-summary-metric">
+          <span class="coach-summary-label">JD Fit</span>
+          <span class="coach-summary-value" id="coachSummaryJDFit">--</span>
+        </div>
+      </div>
+      <div class="coach-summary-item">
+        <span class="coach-summary-label">Coach Tip</span>
+        <span class="coach-summary-subtext" id="coachSummaryTip">Fresh tips are loading.</span>
+      </div>
+    </div>
+    <button class="coach-summary-toggle" id="coachSummaryToggle" type="button" aria-controls="sprintCoachPanel" aria-expanded="false" aria-label="Open Sprint Coach">
+      <span class="sr-only">Open Sprint Coach</span>
+      <span class="coach-summary-chevron" aria-hidden="true">›</span>
+    </button>
+  </aside>
   <aside class="sprint-coach" id="sprintCoachPanel" aria-hidden="true">
     <div class="coach-inner">
       <div class="coach-header">
@@ -238,7 +284,6 @@
         </div>
       </div>
       <div class="navspacer"></div>
-      <button class="coach-nav-btn" id="coachToggleBtn" type="button" aria-expanded="false" aria-controls="sprintCoachPanel">🏁 Sprint Coach</button>
       <div class="pill" id="goalPill">Goal: <strong id="goalNum">4</strong> / day</div>
       <button class="ham" id="hamBtn">☰</button>
       <div class="dropdown" id="menu">
@@ -619,9 +664,15 @@
   const todayCountEl = document.getElementById('todayCount');
   const weekCountEl = document.getElementById('weekCount');
   const sprintCoachPanel = document.getElementById('sprintCoachPanel');
-  const coachToggleBtn = document.getElementById('coachToggleBtn');
   const coachCloseBtn = document.getElementById('coachCloseBtn');
-  const coachTabBtn = document.getElementById('coachTab');
+  const coachSummary = document.getElementById('coachSummary');
+  const coachSummaryToggle = document.getElementById('coachSummaryToggle');
+  const coachSummaryProgressValue = document.getElementById('coachSummaryProgressValue');
+  const coachSummaryProgressNote = document.getElementById('coachSummaryProgressNote');
+  const coachSummaryInsight = document.getElementById('coachSummaryInsight');
+  const coachSummaryResume = document.getElementById('coachSummaryResume');
+  const coachSummaryJDFit = document.getElementById('coachSummaryJDFit');
+  const coachSummaryTip = document.getElementById('coachSummaryTip');
   const coachProfileLine = document.getElementById('coachProfileLine');
   const coachQuoteText = document.getElementById('coachQuoteText');
   const newQuoteBtn = document.getElementById('newQuoteBtn');
@@ -645,19 +696,14 @@
     sprintCoachPanel.classList.toggle('open', open);
     sprintCoachPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (appShell) appShell.classList.toggle('coach-open', open);
-    if (coachToggleBtn) {
-      coachToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      coachToggleBtn.textContent = open ? 'Close Coach' : '🏁 Sprint Coach';
+    if (coachSummaryToggle) {
+      coachSummaryToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      coachSummaryToggle.setAttribute('aria-label', open ? 'Sprint Coach is open' : 'Open Sprint Coach');
+      coachSummaryToggle.disabled = open;
     }
-    if (coachTabBtn) {
-      coachTabBtn.classList.toggle('hidden', open);
-      coachTabBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (coachSummary) {
+      coachSummary.classList.toggle('coach-open', open);
     }
-  }
-
-  function toggleCoach() {
-    const isOpen = sprintCoachPanel?.classList.contains('open');
-    setCoachOpen(!isOpen);
   }
 
   function showNewQuote() {
@@ -671,14 +717,16 @@
     const target = Math.max(goal.dailyTarget || 0, 0);
     const completed = Math.max(goal.completed || 0, 0);
     const percent = target > 0 ? Math.min(100, Math.round((completed / target) * 100)) : 0;
+    const summaryProgress = `${completed} / ${target}`;
+    const streak = Math.max(goal.streakDays || 0, 0);
+    const streakMessage = streak
+      ? `You’re on a ${streak}-day streak 🔥 Keep it going!`
+      : 'Start a new streak today—you got this!';
     if (goalProgressFill) goalProgressFill.style.width = `${percent}%`;
     if (goalProgressText) goalProgressText.textContent = `${completed} of ${target} applications today`;
-    if (goalStreakText) {
-      const streak = Math.max(goal.streakDays || 0, 0);
-      goalStreakText.textContent = streak
-        ? `You’re on a ${streak}-day streak 🔥 Keep it going!`
-        : 'Start a new streak today—you got this!';
-    }
+    if (goalStreakText) goalStreakText.textContent = streakMessage;
+    if (coachSummaryProgressValue) coachSummaryProgressValue.textContent = summaryProgress;
+    if (coachSummaryProgressNote) coachSummaryProgressNote.textContent = streakMessage;
   }
 
   function renderInsights() {
@@ -701,6 +749,12 @@
       card.append(strong, title);
       coachInsightsGrid.appendChild(card);
     });
+    if (coachSummaryInsight) {
+      const primary = items[0];
+      coachSummaryInsight.textContent = primary
+        ? `${primary.label}: ${primary.value}`
+        : 'Insights will appear here soon.';
+    }
   }
 
   function renderCareerHealth() {
@@ -709,6 +763,8 @@
     if (coachResumeScore) coachResumeScore.textContent = resumeScore;
     if (coachJDFit) coachJDFit.textContent = jdFitAvg;
     if (coachSuggestion) coachSuggestion.textContent = `Top suggestion: ${topSuggestion}`;
+    if (coachSummaryResume) coachSummaryResume.textContent = String(resumeScore);
+    if (coachSummaryJDFit) coachSummaryJDFit.textContent = String(jdFitAvg);
   }
 
   function renderCoachTips(forceNew = false) {
@@ -722,6 +778,10 @@
       item.textContent = tip;
       coachTipsList.appendChild(item);
     });
+    if (coachSummaryTip) {
+      const primaryTip = lastCoachTips[0];
+      coachSummaryTip.textContent = primaryTip || 'Fresh tips are loading.';
+    }
   }
 
   function hydrateSprintCoach() {
@@ -740,9 +800,8 @@
     if (!sprintCoachPanel) return;
     setCoachOpen(false);
     hydrateSprintCoach();
-    coachToggleBtn?.addEventListener('click', toggleCoach);
     coachCloseBtn?.addEventListener('click', () => setCoachOpen(false));
-    coachTabBtn?.addEventListener('click', () => setCoachOpen(true));
+    coachSummaryToggle?.addEventListener('click', () => setCoachOpen(true));
     newQuoteBtn?.addEventListener('click', () => {
       showNewQuote();
     });
