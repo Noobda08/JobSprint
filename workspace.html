@@ -464,6 +464,7 @@
 
 
 <script src="scripts/theme.js"></script>
+<script src="scripts/ats-scorer.js"></script>
 <script>
   const qs = new URLSearchParams(location.search);
   const token = qs.get('u') || (JSON.parse(localStorage.getItem('jobsprint_profile')||'{}').token) || 'guest';
@@ -558,6 +559,80 @@
     };
   }
 
+  const WORKSPACE_ATS_FALLBACK = {
+    score: 78,
+    level: 'good',
+    fixes: [
+      "Add clear 'Work Experience' and 'Education' headers.",
+      'Reduce resume length to 1–2 pages.',
+      'Avoid using tables or columns that confuse ATS scanners.'
+    ],
+    topSuggestion: "Add clear 'Work Experience' and 'Education' headers.",
+    coachNote: 'Good structure — a quick tune-up will make it shine.',
+    fingerprint: null
+  };
+
+  const computeResumeFingerprint = (text) => {
+    if (!text) return null;
+    const clean = String(text).replace(/\s+/g, ' ').trim();
+    return clean ? `${clean.length}:${clean.slice(0, 120).toLowerCase()}` : null;
+  };
+
+  const cloneDiagnostic = (diagnostic) => {
+    if (!diagnostic || typeof diagnostic !== 'object') return null;
+    try {
+      return JSON.parse(JSON.stringify(diagnostic));
+    } catch (err) {
+      console.warn('Could not clone ATS diagnostic', err);
+      return { ...diagnostic };
+    }
+  };
+
+  const runATSAnalysis = (profile, fingerprint) => {
+    const resumeText = typeof profile?.resume_text === 'string' ? profile.resume_text : '';
+    const role = profile?.role || profile?.target_role;
+    let diagnostic = null;
+    if (window.JobSprintATS && typeof window.JobSprintATS.analyzeResume === 'function') {
+      try {
+        diagnostic = window.JobSprintATS.analyzeResume({
+          text: resumeText,
+          role,
+          experience: profile?.experience,
+          location: profile?.city
+        });
+      } catch (err) {
+        console.warn('ATS analysis failed', err);
+      }
+    }
+    if (!diagnostic) {
+      diagnostic = { ...WORKSPACE_ATS_FALLBACK };
+    } else {
+      diagnostic = cloneDiagnostic(diagnostic) || diagnostic;
+    }
+    if (fingerprint && !diagnostic.fingerprint) {
+      diagnostic.fingerprint = fingerprint;
+    }
+    return diagnostic;
+  };
+
+  const persistATSDiagnostic = (profile, diagnostic) => {
+    const safeProfile = profile && typeof profile === 'object' ? { ...profile } : {};
+    if (!diagnostic || typeof diagnostic !== 'object') return safeProfile;
+    const storedDiagnostic = cloneDiagnostic(diagnostic) || diagnostic;
+    const nextProfile = {
+      ...safeProfile,
+      ats_readiness: storedDiagnostic.score,
+      top_suggestion: storedDiagnostic.topSuggestion || safeProfile.top_suggestion || WORKSPACE_ATS_FALLBACK.topSuggestion,
+      ats_diagnostic: storedDiagnostic
+    };
+    try {
+      localStorage.setItem('jobsprint_profile', JSON.stringify(nextProfile));
+    } catch (err) {
+      console.warn('Unable to persist ATS diagnostic', err);
+    }
+    return nextProfile;
+  };
+
   function getATSScore() {
     let storedProfile = {};
     try {
@@ -566,10 +641,32 @@
       storedProfile = {};
     }
     const userName = storedProfile?.name || 'Sprinter';
-    const atsScore = typeof storedProfile?.ats_readiness === 'number' ? Math.round(storedProfile.ats_readiness) : 82;
-    const resumeScore = typeof storedProfile?.resume_score === 'number' ? Math.round(storedProfile.resume_score) : 85;
+    const resumeText = typeof storedProfile?.resume_text === 'string' ? storedProfile.resume_text : '';
+    const fingerprint = computeResumeFingerprint(resumeText);
+    let diagnostic = storedProfile?.ats_diagnostic;
+    const needsRecompute =
+      !!resumeText && (
+        !diagnostic ||
+        typeof diagnostic.score !== 'number' ||
+        (fingerprint && diagnostic.fingerprint !== fingerprint)
+      );
+
+    if (needsRecompute) {
+      diagnostic = runATSAnalysis(storedProfile, fingerprint);
+      storedProfile = persistATSDiagnostic(storedProfile, diagnostic);
+    } else if (!diagnostic || typeof diagnostic.score !== 'number') {
+      diagnostic = {
+        ...WORKSPACE_ATS_FALLBACK,
+        score: typeof storedProfile?.ats_readiness === 'number' ? storedProfile.ats_readiness : WORKSPACE_ATS_FALLBACK.score,
+        topSuggestion: storedProfile?.top_suggestion || WORKSPACE_ATS_FALLBACK.topSuggestion,
+        fingerprint: diagnostic?.fingerprint || fingerprint || WORKSPACE_ATS_FALLBACK.fingerprint
+      };
+    }
+
+    const atsScore = typeof diagnostic.score === 'number' ? Math.round(diagnostic.score) : Math.round(WORKSPACE_ATS_FALLBACK.score);
+    const resumeScore = typeof storedProfile?.resume_score === 'number' ? Math.round(storedProfile.resume_score) : atsScore;
     const jdFitAvg = typeof storedProfile?.jd_fit_avg === 'number' ? Math.round(storedProfile.jd_fit_avg) : 72;
-    const topSuggestion = storedProfile?.top_suggestion || 'Add measurable outcomes in your Experience section.';
+    const topSuggestion = diagnostic.topSuggestion || storedProfile?.top_suggestion || WORKSPACE_ATS_FALLBACK.topSuggestion;
     return { userName, atsScore, resumeScore, jdFitAvg, topSuggestion };
   }
 
