@@ -206,6 +206,20 @@
       }
     };
 
+    const sanitizeResumeTextForStorage = (text, maxLength = 60000) => {
+      if (!text) return "";
+      const cleaned = String(text)
+        .replace(/\r\n?/g, "\n")
+        .replace(/\u00A0/g, " ")
+        .split("\n")
+        .map((line) => line.replace(/\s+/g, " ").trim())
+        .filter(Boolean)
+        .join("\n")
+        .trim();
+      if (cleaned.length <= maxLength) return cleaned;
+      return `${cleaned.slice(0, maxLength - 1).trimEnd()}…`;
+    };
+
     const getStoredToken = () => {
       const stored = readStoredProfile();
       const token = stored?.token;
@@ -612,25 +626,136 @@
           if (uploadStatus) {
             uploadStatus.textContent = `Uploading ${file.name}…`;
           }
+
           const text = await readFileAsText(file);
           if (!text || !text.trim()) {
             throw new Error("Empty resume content");
           }
+          const fallbackSanitized = sanitizeResumeTextForStorage(text);
+
           const existingProfile = readStoredProfile();
+          const previousResumeUrl = existingProfile?.resume_url || existingProfile?.resumeUrl || null;
+          const googleId = existingProfile?.google_id || existingProfile?.googleId || null;
+          const storedEmail = existingProfile?.email || existingProfile?.user_email || existingProfile?.primary_email || null;
+          const paramEmail = params.get("email");
+          const identityEmail = storedEmail || (paramEmail ? paramEmail.trim() : "");
+
+          const formData = new FormData();
+          formData.append("file", file);
+          if (googleId) {
+            formData.append("google_id", googleId);
+          }
+          if (identityEmail) {
+            formData.append("email", identityEmail);
+          }
+
+          let parseData = null;
+          let parseErrorMessage = "";
+          try {
+            const response = await fetch("/api/parse-resume", {
+              method: "POST",
+              body: formData
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok || !payload?.success) {
+              parseErrorMessage = payload?.detail || payload?.error || "Unable to parse resume.";
+            } else {
+              parseData = payload;
+            }
+          } catch (parseErr) {
+            parseErrorMessage = parseErr?.message || "Unable to parse resume.";
+          }
+
+          const sanitizedText = parseData?.raw_text && String(parseData.raw_text).trim()
+            ? String(parseData.raw_text)
+            : fallbackSanitized;
+          if (!sanitizedText) {
+            throw new Error(parseErrorMessage || "We couldn't read resume text from this file.");
+          }
+
+          const resumeMeta = parseData?.resume && typeof parseData.resume === "object" ? { ...parseData.resume } : null;
+          const resumeUrlCandidate = resumeMeta?.public_url || resumeMeta?.path || null;
+
           const updatedProfile = {
-            ...existingProfile,
-            resume_text: text,
+            ...(existingProfile && typeof existingProfile === "object" ? existingProfile : {}),
+            resume_text: sanitizedText,
             resume_file_name: file.name,
             resume_last_uploaded_at: new Date().toISOString()
           };
+          if (resumeMeta) {
+            updatedProfile.resume_metadata = resumeMeta;
+          }
+          if (resumeUrlCandidate) {
+            updatedProfile.resume_url = resumeUrlCandidate;
+          }
           writeStoredProfile(updatedProfile);
+
+          if (parseErrorMessage) {
+            notify(`Couldn't sync resume to onboarding. ${parseErrorMessage}`.trim(), { variant: 'warning' });
+          }
+
           const { diagnostic } = hydrateStory({ forceRecompute: true });
           const refreshedScore = typeof diagnostic?.score === "number" ? `${Math.round(diagnostic.score)} / 100` : null;
-          if (uploadStatus) {
-            uploadStatus.textContent = refreshedScore
-              ? `ATS score refreshed to ${refreshedScore}.`
-              : `Your ATS insights are up to date.`;
+          let statusMessage = refreshedScore
+            ? `ATS score refreshed to ${refreshedScore}.`
+            : `Your ATS insights are up to date.`;
+
+          let syncAttempted = false;
+          let syncSucceeded = false;
+          let syncErrorMessage = "";
+
+          if (!parseErrorMessage && resumeUrlCandidate && resumeUrlCandidate !== previousResumeUrl) {
+            if (googleId && identityEmail) {
+              syncAttempted = true;
+              try {
+                const syncResponse = await fetch("/api/create-user", {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({
+                    google_id: googleId,
+                    email: identityEmail,
+                    resume_url: resumeUrlCandidate,
+                    allow_payment_pending: true
+                  })
+                });
+                if (!syncResponse.ok) {
+                  const errorPayload = await syncResponse.json().catch(() => ({}));
+                  const reason = errorPayload?.message || errorPayload?.error || "Please try again.";
+                  throw new Error(reason);
+                }
+                syncSucceeded = true;
+                notify("Resume synced to onboarding workspace.", { variant: 'success' });
+              } catch (syncErr) {
+                syncErrorMessage = syncErr?.message || "Unable to sync resume.";
+                notify(`Couldn't sync resume to onboarding. ${syncErrorMessage}`.trim(), { variant: 'warning' });
+              }
+            } else {
+              syncErrorMessage = "Sign in to sync resume to onboarding.";
+            }
           }
+
+          if (resumeUrlCandidate) {
+            if (syncSucceeded) {
+              statusMessage = `${statusMessage} Resume synced to onboarding workspace.`;
+            } else if (syncAttempted || syncErrorMessage) {
+              statusMessage = `${statusMessage} Couldn't sync resume to onboarding${
+                syncErrorMessage ? ` — ${syncErrorMessage}` : ''
+              }.`;
+            } else if (!parseErrorMessage) {
+              statusMessage = `${statusMessage} Resume already synced to onboarding.`;
+            } else {
+              statusMessage = `${statusMessage} Resume stored locally.`;
+            }
+          } else if (parseData?.success) {
+            statusMessage = `${statusMessage} Resume stored locally.`;
+          } else if (parseErrorMessage) {
+            statusMessage = `${statusMessage} Couldn't sync resume to onboarding.`;
+          }
+
+          if (uploadStatus) {
+            uploadStatus.textContent = statusMessage;
+          }
+
           notify(
             refreshedScore ? `ATS score refreshed (${refreshedScore}).` : 'ATS score refreshed.',
             { variant: 'success' }
