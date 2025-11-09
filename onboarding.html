@@ -178,23 +178,44 @@
 
   <section class="stage-card hidden animate-fade" id="step2">
     <div class="step-indicator">Step 2 of 2</div>
-    <h1>Now, let’s talk about <em>you</em> 🌻</h1>
-    <p class="sub">Don’t overthink — just answer from the heart.</p>
+    <h1>🌻 Now, let’s talk about you</h1>
+    <p class="sub">Don’t overthink. There’s no “right” answer here — just your story, in your words.</p>
+    <p class="sub">(Your answers help JobSprint understand you deeply — so it can write, tailor, and guide you better later.)</p>
 
-    <label>Your career story so far</label>
-    <textarea id="journey" placeholder="How did you get where you are today?"></textarea>
+    <label for="journey">1. Your Journey So Far</label>
+    <p class="field-hint">“How did your career begin, and what moments have shaped who you are today?”</p>
+    <p class="field-hint"><strong>✨ Example:</strong> “I started as a graphic designer because I loved art, but over time I found myself fascinated by how brands tell stories — that led me into marketing.”</p>
+    <textarea id="journey" placeholder="Share how your career began and the moments that shaped you."></textarea>
 
-    <label>Your top 2–3 strengths</label>
-    <textarea id="strengths" placeholder="e.g., curiosity, discipline, creativity"></textarea>
+    <label for="strengths">2. What Makes You, You</label>
+    <p class="field-hint">“What are your biggest strengths or superpowers? When do they shine the most?”</p>
+    <p class="field-hint"><strong>✨ Example:</strong> “I’m incredibly curious — I can’t rest until I understand how something works. That’s how I taught myself Python in college and ended up automating our team reports.”</p>
+    <textarea id="strengths" placeholder="Share the strengths or superpowers you're known for."></textarea>
 
-    <label>Work that energizes you</label>
-    <textarea id="flow" placeholder="What kind of problems do you love solving?"></textarea>
+    <label for="flow">3. When Work Feels Effortless</label>
+    <p class="field-hint">“What kind of work makes you lose track of time? What problems do you love solving — and why?”</p>
+    <p class="field-hint"><strong>✨ Example:</strong> “I love creating systems out of chaos — organizing messy processes into something simple. I once turned a 50-step onboarding checklist into a 3-step Notion flow.”</p>
+    <textarea id="flow" placeholder="Describe the work that makes time fly and the problems you love solving."></textarea>
 
-    <label>Your next role / dream job</label>
-    <textarea id="nextRole" placeholder="What do you want to do next?"></textarea>
+    <label for="nextRole">4. What You’re Ready For Next</label>
+    <p class="field-hint">“If you could design your next chapter, what would it look like?”</p>
+    <p class="field-hint"><strong>✨ Example:</strong> “I want to move into product strategy — to build tools people actually enjoy using, not just tolerate.”</p>
+    <textarea id="nextRole" placeholder="Imagine the work, impact, or feeling you want next."></textarea>
 
-    <label>Your long-term career vision</label>
-    <textarea id="vision" placeholder="How do you see yourself growing in 5 years?"></textarea>
+    <label for="environment">5. The Kind of Place You Thrive In</label>
+    <p class="field-hint">“Describe the kind of team or environment where you do your best work.”</p>
+    <p class="field-hint"><strong>✨ Example:</strong> “I love small teams where people care more about ownership than hierarchy — where it’s okay to experiment and fail fast.”</p>
+    <textarea id="environment" placeholder="Describe the team, culture, or environment where you thrive."></textarea>
+
+    <label for="vision">6. Looking Ahead</label>
+    <p class="field-hint">“Where do you hope this path leads in the next few years? What growth excites you most?”</p>
+    <p class="field-hint"><strong>✨ Example:</strong> “In five years, I want to lead a small product team, mentor younger folks, and have built something meaningful enough to be proud of.”</p>
+    <textarea id="vision" placeholder="Share the growth or milestones you hope to reach in the coming years."></textarea>
+
+    <label for="beyondResume">7. Beyond the Resume (optional but powerful)</label>
+    <p class="field-hint">“What’s something people don’t know about you — a side project, habit, or passion that influences how you work?”</p>
+    <p class="field-hint"><strong>✨ Example:</strong> “I run a small travel blog — it keeps my storytelling sharp and reminds me to see details most people overlook.”</p>
+    <textarea id="beyondResume" placeholder="Share the passions or projects that influence how you work."></textarea>
 
     <div class="actions">
       <button id="backBtn" class="ghost-btn" type="button">← Back</button>
@@ -1288,7 +1309,9 @@
         if (career_story.strengths) document.getElementById('strengths').value = career_story.strengths;
         if (career_story.flow_state_work) document.getElementById('flow').value = career_story.flow_state_work;
         if (career_story.current_vs_next) document.getElementById('nextRole').value = career_story.current_vs_next;
+        if (career_story.ideal_environment) document.getElementById('environment').value = career_story.ideal_environment;
         if (career_story.long_term_vision) document.getElementById('vision').value = career_story.long_term_vision;
+        if (career_story.beyond_resume) document.getElementById('beyondResume').value = career_story.beyond_resume;
       }
       if (resume_url) {
         uploadedResume = { path: resume_url, publicUrl: resume_url };
@@ -1534,7 +1557,9 @@
         strengths: normalize(document.getElementById('strengths').value),
         flow_state_work: normalize(document.getElementById('flow').value),
         current_vs_next: normalize(document.getElementById('nextRole').value),
-        long_term_vision: normalize(document.getElementById('vision').value)
+        ideal_environment: normalize(document.getElementById('environment').value),
+        long_term_vision: normalize(document.getElementById('vision').value),
+        beyond_resume: normalize(document.getElementById('beyondResume').value)
       };
       const career_story = Object.fromEntries(
         Object.entries(careerStoryEntries).filter(([, value]) => value !== undefined)
