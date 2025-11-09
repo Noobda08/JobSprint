@@ -182,8 +182,25 @@
   .coach-mini-btn:hover{background:var(--brand-d)}
   .coach-goal-edit{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid #d3e2ff;border-radius:12px;background:#f3f7ff}
   .coach-goal-label{font-size:12px;font-weight:600;color:#1f4f94;text-transform:uppercase;letter-spacing:.4px}
-  .coach-goal-display{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:#1f3f7a}
+  .coach-goal-display{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-size:13px;
+    color:#1f3f7a;
+    background:transparent;
+    border:0;
+    padding:0;
+    width:100%;
+    text-align:left;
+    cursor:pointer;
+  }
+  .coach-goal-display:focus-visible{outline:2px solid #0d7ae0;outline-offset:2px}
   .coach-goal-display strong{font-size:16px;color:#0f3e7c}
+  .coach-goal-text{display:flex;align-items:baseline;gap:4px}
+  .coach-goal-edit-icon{display:inline-flex;align-items:center;justify-content:center;font-size:16px;color:#0f3e7c;opacity:.7}
+  .coach-goal-display:hover .coach-goal-edit-icon{opacity:1}
   .coach-goal-actions{display:flex;gap:8px;flex-wrap:wrap}
   .coach-goal-form{display:flex;flex-direction:column;gap:8px}
   .coach-goal-input{width:100%;padding:8px 10px;border:1px solid #c9dfff;border-radius:10px;font:inherit}
@@ -251,10 +268,11 @@
         <p class="coach-quote" id="coachQuoteText">Consistency beats intensity. One application today can change everything.</p>
         <div class="coach-goal-edit" id="coachGoalEditor">
           <div class="coach-goal-label">Daily goal</div>
-          <div class="coach-goal-display" id="coachGoalDisplay">
-            <div><strong id="coachGoalValue">4</strong> applications / day</div>
-            <button class="coach-mini-btn outline" id="editGoalBtn" type="button">Edit</button>
-          </div>
+          <button class="coach-goal-display" id="coachGoalDisplay" type="button" aria-controls="coachGoalForm" aria-expanded="false">
+            <span class="coach-goal-text"><strong id="coachGoalValue">4</strong> applications / day</span>
+            <span class="coach-goal-edit-icon" aria-hidden="true">✎</span>
+            <span class="sr-only">Edit daily goal</span>
+          </button>
           <form class="coach-goal-form" id="coachGoalForm" hidden>
             <label class="sr-only" for="coachGoalInput">Applications per day goal</label>
             <input class="coach-goal-input" id="coachGoalInput" name="goal" type="number" min="1" inputmode="numeric" />
@@ -854,7 +872,6 @@
   const coachMotivationSection = document.getElementById('coachMotivationSection');
   const coachGoalValue = document.getElementById('coachGoalValue');
   const coachGoalDisplay = document.getElementById('coachGoalDisplay');
-  const editGoalBtn = document.getElementById('editGoalBtn');
   const coachGoalForm = document.getElementById('coachGoalForm');
   const coachGoalInput = document.getElementById('coachGoalInput');
   const cancelGoalBtn = document.getElementById('cancelGoalBtn');
@@ -900,6 +917,7 @@
     if (!coachGoalForm || !coachGoalDisplay) return;
     coachGoalForm.hidden = !show;
     coachGoalDisplay.hidden = show;
+    coachGoalDisplay.setAttribute('aria-expanded', show ? 'true' : 'false');
     if (show && coachGoalInput) {
       coachGoalInput.value = getDailyGoalTarget();
       requestAnimationFrame(() => {
@@ -920,8 +938,8 @@
     if (cancelGoalBtn) {
       cancelGoalBtn.disabled = saving;
     }
-    if (editGoalBtn) {
-      editGoalBtn.disabled = saving;
+    if (coachGoalDisplay) {
+      coachGoalDisplay.disabled = saving;
     }
   }
 
@@ -1077,7 +1095,7 @@
   setGoalStatus(GOAL_STATUS_DEFAULT);
   initSprintCoach();
 
-  editGoalBtn?.addEventListener('click', () => {
+  coachGoalDisplay?.addEventListener('click', () => {
     setGoalStatus('Update your daily target to stay on track.');
     toggleGoalEditor(true);
   });
@@ -1104,8 +1122,8 @@
       await persistDailyGoal(desiredGoal);
       toggleGoalEditor(false);
       setGoalStatus('Daily goal updated 🎯');
-      if (editGoalBtn) {
-        requestAnimationFrame(() => editGoalBtn.focus({ preventScroll: true }));
+      if (coachGoalDisplay) {
+        requestAnimationFrame(() => coachGoalDisplay.focus({ preventScroll: true }));
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unable to update goal right now.';
@@ -1122,8 +1140,8 @@
       coachMotivationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     setTimeout(() => {
-      if (editGoalBtn && coachGoalForm?.hidden) {
-        editGoalBtn.focus({ preventScroll: true });
+      if (coachGoalDisplay && coachGoalForm?.hidden) {
+        coachGoalDisplay.focus({ preventScroll: true });
       } else if (coachGoalInput && !coachGoalForm?.hidden) {
         coachGoalInput.focus({ preventScroll: true });
       }
