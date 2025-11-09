@@ -8,6 +8,7 @@
   <!-- Font & Style -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles/theme.css" />
+  <link rel="stylesheet" href="styles/styles.css" />
   <style>
     *{box-sizing:border-box}
     body{margin:0;font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);background:transparent;overflow-x:hidden}
@@ -180,65 +181,285 @@
     <div class="step-indicator">Step 2 of 2</div>
     <h1>🌻 Now, let’s talk about you</h1>
     <p class="sub">Don’t overthink. There’s no “right” answer here — just your story, in your words.</p>
-    <p class="sub">(Your answers help JobSprint understand you deeply — so it can write, tailor, and guide you better later.)</p>
+    <p class="text-sm text-slate-500 mt-2">
+      (Your answers help JobSprint understand you deeply — so it can write, tailor, and guide you better later.)
+    </p>
 
-    <label for="journey">1. Your Journey So Far</label>
-    <p class="field-hint">How did your career begin, and what moments have shaped who you are today?</p>
-    <textarea
-      id="journey"
-      placeholder="Share how your career began and the moments that shaped you.&#10;&#10;Example: “I started as a graphic designer because I loved art, but over time I found myself fascinated by how brands tell stories — that led me into marketing.”"
-    ></textarea>
+    <div class="step2-layout md:flex md:items-start md:gap-8">
+      <div class="main-column max-w-3xl">
+        <section class="js-section group-card rounded-2xl bg-slate-50 p-6 mb-8" id="sec-story" data-label="🌱 Story">
+          <h2 class="text-xl font-semibold mb-4">🌱 Your Story</h2>
 
-    <label for="strengths">2. What Makes You, You</label>
-    <p class="field-hint">What are your biggest strengths or superpowers? When do they shine the most?</p>
-    <textarea
-      id="strengths"
-      placeholder="Share the strengths or superpowers you're known for.&#10;&#10;Example: “I’m incredibly curious — I can’t rest until I understand how something works. That’s how I taught myself Python in college and ended up automating our team reports.”"
-    ></textarea>
+          <div class="q-card mb-8 rounded-xl border border-slate-200 bg-white p-4 transition-shadow" data-question="journey">
+            <div class="q-header mb-2">
+              <h3 class="q-title text-lg font-medium text-slate-900">1. Your Journey So Far</h3>
+              <p class="q-prompt text-sm text-slate-600 mt-1">
+                How did your career begin, and what moments have shaped who you are today?
+              </p>
+            </div>
 
-    <label for="flow">3. When Work Feels Effortless</label>
-    <p class="field-hint">What kind of work makes you lose track of time? What problems do you love solving — and why?</p>
-    <textarea
-      id="flow"
-      placeholder="Describe the work that makes time fly and the problems you love solving.&#10;&#10;Example: “I love creating systems out of chaos — organizing messy processes into something simple. I once turned a 50-step onboarding checklist into a 3-step Notion flow.”"
-    ></textarea>
+            <label class="sr-only" for="journey">Your Journey So Far</label>
+            <textarea
+              id="journey"
+              name="journey"
+              rows="4"
+              class="q-input w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-sky-300"
+              placeholder="Share how your career began and the moments that shaped you."
+            ></textarea>
 
-    <label for="nextRole">4. What You’re Ready For Next</label>
-    <p class="field-hint">If you could design your next chapter, what would it look like?</p>
-    <textarea
-      id="nextRole"
-      placeholder="Imagine the work, impact, or feeling you want next.&#10;&#10;Example: “I want to move into product strategy — to build tools people actually enjoy using, not just tolerate.”"
-    ></textarea>
+            <div class="q-example mt-3 pl-3 border-l-2 border-slate-200">
+              <p class="text-xs italic text-slate-500">
+                💡 Example: “I started as a graphic designer but fell in love with storytelling, which pulled me toward marketing.”
+              </p>
+            </div>
 
-    <label for="environment">5. The Kind of Place You Thrive In</label>
-    <p class="field-hint">Describe the kind of team or environment where you do your best work.</p>
-    <textarea
-      id="environment"
-      placeholder="Describe the team, culture, or environment where you thrive.&#10;&#10;Example: “I love small teams where people care more about ownership than hierarchy — where it’s okay to experiment and fail fast.”"
-    ></textarea>
+            <div class="q-status mt-2 hidden text-xs text-emerald-600">Saved ✓</div>
+          </div>
 
-    <label for="vision">6. Looking Ahead</label>
-    <p class="field-hint">Where do you hope this path leads in the next few years? What growth excites you most?</p>
-    <textarea
-      id="vision"
-      placeholder="Share the growth or milestones you hope to reach in the coming years.&#10;&#10;Example: “In five years, I want to lead a small product team, mentor younger folks, and have built something meaningful enough to be proud of.”"
-    ></textarea>
+          <div class="q-card mb-8 rounded-xl border border-slate-200 bg-white p-4 transition-shadow" data-question="strengths">
+            <div class="q-header mb-2">
+              <h3 class="q-title text-lg font-medium text-slate-900">2. What Makes You, You</h3>
+              <p class="q-prompt text-sm text-slate-600 mt-1">
+                What are your biggest strengths or superpowers? When do they shine the most?
+              </p>
+            </div>
 
-    <label for="beyondResume">7. Beyond the Resume (optional but powerful)</label>
-    <p class="field-hint">What’s something people don’t know about you — a side project, habit, or passion that influences how you work?</p>
-    <textarea
-      id="beyondResume"
-      placeholder="Share the passions or projects that influence how you work.&#10;&#10;Example: “I run a small travel blog — it keeps my storytelling sharp and reminds me to see details most people overlook.”"
-    ></textarea>
+            <label class="sr-only" for="strengths">What Makes You, You</label>
+            <textarea
+              id="strengths"
+              name="strengths"
+              rows="4"
+              class="q-input w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-sky-300"
+              placeholder="Share the strengths or superpowers you're known for."
+            ></textarea>
 
-    <div class="actions">
-      <button id="backBtn" class="ghost-btn" type="button">← Back</button>
-      <button id="finishBtn" class="primary-btn" type="button">Finish Setup</button>
+            <div class="q-example mt-3 pl-3 border-l-2 border-slate-200">
+              <p class="text-xs italic text-slate-500">
+                💡 Example: “My curiosity pushes me to learn fast — it’s how I taught myself Python and automated my team’s reports.”
+              </p>
+            </div>
+
+            <div class="q-status mt-2 hidden text-xs text-emerald-600">Saved ✓</div>
+          </div>
+        </section>
+
+        <section class="js-section group-card rounded-2xl bg-slate-50 p-6 mb-8" id="sec-drive" data-label="🔥 Drive">
+          <h2 class="text-xl font-semibold mb-4">🔥 What Drives You</h2>
+
+          <div class="q-card mb-8 rounded-xl border border-slate-200 bg-white p-4 transition-shadow" data-question="flow">
+            <div class="q-header mb-2">
+              <h3 class="q-title text-lg font-medium text-slate-900">3. When Work Feels Effortless</h3>
+              <p class="q-prompt text-sm text-slate-600 mt-1">
+                What kind of work makes you lose track of time? What problems do you love solving — and why?
+              </p>
+            </div>
+
+            <label class="sr-only" for="flow">When Work Feels Effortless</label>
+            <textarea
+              id="flow"
+              name="flow"
+              rows="4"
+              class="q-input w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-sky-300"
+              placeholder="Describe the work that makes time fly and the problems you love solving."
+            ></textarea>
+
+            <div class="q-example mt-3 pl-3 border-l-2 border-slate-200">
+              <p class="text-xs italic text-slate-500">
+                💡 Example: “I love turning messy processes into simple systems — like trimming a 50-step onboarding into three steps.”
+              </p>
+            </div>
+
+            <div class="q-status mt-2 hidden text-xs text-emerald-600">Saved ✓</div>
+          </div>
+
+          <div class="q-card mb-8 rounded-xl border border-slate-200 bg-white p-4 transition-shadow" data-question="nextRole">
+            <div class="q-header mb-2">
+              <h3 class="q-title text-lg font-medium text-slate-900">4. What You’re Ready For Next</h3>
+              <p class="q-prompt text-sm text-slate-600 mt-1">
+                If you could design your next chapter, what would it look like?
+              </p>
+            </div>
+
+            <label class="sr-only" for="nextRole">What You’re Ready For Next</label>
+            <textarea
+              id="nextRole"
+              name="nextRole"
+              rows="4"
+              class="q-input w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-sky-300"
+              placeholder="Imagine the work, impact, or feeling you want next."
+            ></textarea>
+
+            <div class="q-example mt-3 pl-3 border-l-2 border-slate-200">
+              <p class="text-xs italic text-slate-500">
+                💡 Example: “I’m ready for product strategy work — building tools people enjoy instead of tolerate.”
+              </p>
+            </div>
+
+            <div class="q-status mt-2 hidden text-xs text-emerald-600">Saved ✓</div>
+          </div>
+
+          <div class="q-card mb-8 rounded-xl border border-slate-200 bg-white p-4 transition-shadow" data-question="environment">
+            <div class="q-header mb-2">
+              <h3 class="q-title text-lg font-medium text-slate-900">5. The Kind of Place You Thrive In</h3>
+              <p class="q-prompt text-sm text-slate-600 mt-1">
+                Describe the kind of team or environment where you do your best work.
+              </p>
+            </div>
+
+            <label class="sr-only" for="environment">The Kind of Place You Thrive In</label>
+            <textarea
+              id="environment"
+              name="environment"
+              rows="4"
+              class="q-input w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-sky-300"
+              placeholder="Describe the team, culture, or environment where you thrive."
+            ></textarea>
+
+            <div class="q-example mt-3 pl-3 border-l-2 border-slate-200">
+              <p class="text-xs italic text-slate-500">
+                💡 Example: “I thrive in small, ownership-driven teams where experimenting — and learning fast — is celebrated.”
+              </p>
+            </div>
+
+            <div class="q-status mt-2 hidden text-xs text-emerald-600">Saved ✓</div>
+          </div>
+        </section>
+
+        <section class="js-section group-card rounded-2xl bg-slate-50 p-6 mb-8" id="sec-future" data-label="🚀 Future">
+          <h2 class="text-xl font-semibold mb-4">🚀 Where You’re Headed</h2>
+
+          <div class="q-card mb-8 rounded-xl border border-slate-200 bg-white p-4 transition-shadow" data-question="vision">
+            <div class="q-header mb-2">
+              <h3 class="q-title text-lg font-medium text-slate-900">6. Looking Ahead</h3>
+              <p class="q-prompt text-sm text-slate-600 mt-1">
+                Where do you hope this path leads in the next few years? What growth excites you most?
+              </p>
+            </div>
+
+            <label class="sr-only" for="vision">Looking Ahead</label>
+            <textarea
+              id="vision"
+              name="vision"
+              rows="4"
+              class="q-input w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-sky-300"
+              placeholder="Share the growth or milestones you hope to reach in the coming years."
+            ></textarea>
+
+            <div class="q-example mt-3 pl-3 border-l-2 border-slate-200">
+              <p class="text-xs italic text-slate-500">
+                💡 Example: “In five years I want to lead a small product team, mentor others, and build something meaningful.”
+              </p>
+            </div>
+
+            <div class="q-status mt-2 hidden text-xs text-emerald-600">Saved ✓</div>
+          </div>
+
+          <div class="q-card mb-8 rounded-xl border border-slate-200 bg-white p-4 transition-shadow" data-question="beyondResume">
+            <div class="q-header mb-2">
+              <h3 class="q-title text-lg font-medium text-slate-900">7. Beyond the Resume</h3>
+              <p class="q-prompt text-sm text-slate-600 mt-1">
+                What’s something people don’t know about you that influences how you work?
+              </p>
+            </div>
+
+            <label class="sr-only" for="beyondResume">Beyond the Resume</label>
+            <textarea
+              id="beyondResume"
+              name="beyondResume"
+              rows="4"
+              class="q-input w-full rounded-lg border border-slate-300 p-3 focus:outline-none focus:ring-2 focus:ring-sky-300"
+              placeholder="Share the passions or projects that influence how you work."
+            ></textarea>
+
+            <div class="q-example mt-3 pl-3 border-l-2 border-slate-200">
+              <p class="text-xs italic text-slate-500">
+                💡 Example: “I run a tiny travel blog that keeps my storytelling sharp and helps me notice details others miss.”
+              </p>
+            </div>
+
+            <div class="q-status mt-2 hidden text-xs text-emerald-600">Saved ✓</div>
+          </div>
+        </section>
+
+        <div class="actions">
+          <button id="backBtn" class="ghost-btn" type="button">← Back</button>
+          <button id="finishBtn" class="primary-btn" type="button">Finish Setup</button>
+        </div>
+      </div>
+
+      <nav class="hidden md:block sticky top-6 float-right ml-6 w-44">
+        <ul class="space-y-2 text-sm">
+          <li><a href="#sec-story" class="spy-link block rounded-md px-3 py-2 text-slate-600 hover:bg-slate-100">🌱 Story</a></li>
+          <li><a href="#sec-drive" class="spy-link block rounded-md px-3 py-2 text-slate-600 hover:bg-slate-100">🔥 Drive</a></li>
+          <li><a href="#sec-future" class="spy-link block rounded-md px-3 py-2 text-slate-600 hover:bg-slate-100">🚀 Future</a></li>
+        </ul>
+      </nav>
     </div>
   </section>
 
   <p class="footer-note">We believe every job seeker deserves structure, clarity, and calm. 🌤️</p>
   </div>
+
+  <script>
+    // Debounced "Saved" tick + focus elevation
+    const debounce = (fn, ms = 1500) => {
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), ms);
+      };
+    };
+
+    document.querySelectorAll('.q-card').forEach((card) => {
+      const textarea = card.querySelector('textarea');
+      const statusEl = card.querySelector('.q-status');
+
+      if (!textarea) return;
+
+      textarea.addEventListener('focus', () => card.classList.add('is-focus'));
+      textarea.addEventListener('blur', () => card.classList.remove('is-focus'));
+
+      const showSaved = debounce(() => {
+        if (!statusEl) return;
+        statusEl.classList.remove('hidden');
+        statusEl.style.opacity = 1;
+        setTimeout(() => {
+          statusEl.style.transition = 'opacity 300ms ease';
+          statusEl.style.opacity = 0;
+          setTimeout(() => {
+            statusEl.classList.add('hidden');
+            statusEl.style.opacity = 1;
+          }, 320);
+        }, 1200);
+      }, 1500);
+
+      textarea.addEventListener('input', showSaved);
+    });
+
+    // Simple scroll spy for mini-nav
+    const sections = document.querySelectorAll('.js-section');
+    const links = document.querySelectorAll('.spy-link');
+
+    const spy = () => {
+      let activeId = null;
+      sections.forEach((sec) => {
+        const rect = sec.getBoundingClientRect();
+        if (rect.top <= 120 && rect.bottom >= 200) {
+          activeId = `#${sec.id}`;
+        }
+      });
+      links.forEach((a) => {
+        if (a.getAttribute('href') === activeId) {
+          a.classList.add('bg-slate-100', 'text-slate-900');
+        } else {
+          a.classList.remove('bg-slate-100', 'text-slate-900');
+        }
+      });
+    };
+
+    document.addEventListener('scroll', spy, { passive: true });
+    window.addEventListener('load', spy);
+  </script>
 
   <script src="scripts/theme.js"></script>
   <script>
