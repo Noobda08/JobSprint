@@ -1,0 +1,81 @@
+{
+  "persona": {
+    "id": "persona-001",
+    "name": "Jordan Blake",
+    "current_role": "Product Manager, Growth Platforms",
+    "seniority": "Senior",
+    "tagline": "Transforms ambiguous problems into measurable customer wins.",
+    "experience": "8 years",
+    "location": "Austin, TX (Remote-first)",
+    "focus_area": "Activation & Monetization Experiments",
+    "summary": "Jordan blends deep experimentation rigor with a collaborative leadership style, using data to shape strategy while ensuring cross-functional teams stay energized and aligned.",
+    "badges": [
+      "Data storyteller",
+      "Plays well with engineering",
+      "Bias for outcomes",
+      "Coach-level mentoring"
+    ],
+    "career_journey": [
+      "Scaled growth experiments at two high-velocity SaaS companies, moving activation up 18% year over year.",
+      "Former full-stack engineer who still prototypes flows to unblock discovery sprints.",
+      "Built and mentored a pod of six PMs focused on lifecycle retention initiatives."
+    ],
+    "strengths": [
+      "Connects experiments to the broader revenue narrative without over-indexing on vanity metrics.",
+      "Builds trust quickly with partners through transparent comms and crisp prioritization.",
+      "Breaks down fuzzy problems into bite-sized, validated bets."
+    ],
+    "effortless": [
+      "Facilitating async alignment rituals that keep distributed squads moving.",
+      "Story-framing customer problems in a way that rallies stakeholders.",
+      "Translating complex analyses into actionable choices for leadership."
+    ],
+    "next_steps": [
+      "Pair Jordan with a senior design partner to accelerate experimentation on the pricing page refresh.",
+      "Align on a 90-day roadmap that balances retention investments with the upcoming enterprise launch.",
+      "Schedule a founder intro to unlock insights on long-term product vision."
+    ],
+    "sources": {
+      "from_onboarding_answers": true
+    },
+    "download_url": "https://example.com/persona/jordan-blake.pdf"
+  },
+  "resume-only": {
+    "id": "persona-001-resume",
+    "name": "Jordan Blake",
+    "current_role": "Product Manager, Growth Platforms",
+    "seniority": "Senior",
+    "tagline": "Experiment-driven PM with a track record of shipping high-impact lifecycle initiatives.",
+    "experience": "8 years",
+    "location": "Austin, TX",
+    "focus_area": "Product-led Growth",
+    "summary": "Jordan has led monetization and activation programs across SaaS organizations, pairing engineering fluency with pragmatic stakeholder management.",
+    "badges": [
+      "Rapid experiments",
+      "Lifecycle strategy",
+      "Cross-functional glue"
+    ],
+    "career_journey": [
+      "Most recently scaled a growth squad at Kiteboard to hit ARR targets in record time.",
+      "Earlier experience in full-stack engineering across marketplace products.",
+      "Led GTM coordination for launches spanning three time zones."
+    ],
+    "strengths": [
+      "Evidence-based prioritization.",
+      "Comfort operating in resource-constrained environments.",
+      "Signals when a bet needs to pivot quickly."
+    ],
+    "effortless": [
+      "Digesting quantitative signals to inform roadmap trade-offs.",
+      "Providing structure to ambiguous launch plans."
+    ],
+    "next_steps": [
+      "Gather onboarding insights to confirm motivations beyond resume highlights.",
+      "Validate leadership appetite for near-term experimentation.",
+      "Identify coaching support for delegating day-to-day delivery."
+    ],
+    "sources": {
+      "from_onboarding_answers": false
+    }
+  }
+}
