@@ -28,7 +28,9 @@
   .badge{width:36px;height:36px;border-radius:12px;overflow:hidden;display:grid;place-items:center;background:#fff;padding:4px}
   .badge img{width:100%;height:100%;object-fit:contain;display:block}
   .navspacer{flex:1}
-  .pill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #c8d9f4;border-radius:999px;padding:6px 10px;color:#0f3e7c}
+  .pill-button{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #c8d9f4;border-radius:999px;padding:6px 10px;color:#0f3e7c;cursor:pointer;font:inherit}
+  .pill-button strong{font-weight:600}
+  .pill-button:focus-visible{outline:2px solid #0d7ae0;outline-offset:2px}
   .ham{width:36px;height:36px;border-radius:10px;border:1px solid #c8d9f4;background:#fff;cursor:pointer}
 
   .coach-nav-btn{background:#fff;border:1px solid #c8d9f4;border-radius:999px;padding:8px 14px;font-weight:600;color:#0f3e7c;cursor:pointer;transition:background .2s ease,box-shadow .2s ease}
@@ -178,6 +180,43 @@
   .coach-quote{font-size:14px;color:#2c4f80;line-height:1.5}
   .coach-mini-btn{align-self:flex-start;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:12px}
   .coach-mini-btn:hover{background:var(--brand-d)}
+  .coach-goal-edit{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid #d3e2ff;border-radius:12px;background:#f3f7ff}
+  .coach-goal-label{font-size:12px;font-weight:600;color:#1f4f94;text-transform:uppercase;letter-spacing:.4px}
+  .coach-goal-display{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    font-size:13px;
+    color:#1f3f7a;
+    background:none;
+    border:0;
+    padding:4px 0;
+    width:100%;
+    text-align:left;
+    cursor:pointer;
+    border-radius:8px;
+  }
+  .coach-goal-display:hover,
+  .coach-goal-display:focus-visible{background:rgba(15,62,124,.08);outline:0}
+  .coach-goal-text{display:flex;align-items:baseline;gap:4px}
+  .coach-goal-edit-icon{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    background:#e0ecff;
+    color:#0f3e7c;
+    font-size:14px;
+    flex-shrink:0;
+  }
+  .coach-goal-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .coach-goal-form{display:flex;flex-direction:column;gap:8px}
+  .coach-goal-input{width:100%;padding:8px 10px;border:1px solid #c9dfff;border-radius:10px;font:inherit}
+  .coach-goal-status{font-size:12px;color:#2f568f}
+  .coach-goal-status.error{color:#b32500}
   .coach-mini-btn.outline{background:#fff;color:#0f3e7c;border:1px solid #c8d9f4}
   .coach-mini-btn.outline:hover{background:#edf4ff}
   .coach-progress{display:flex;flex-direction:column;gap:8px}
@@ -235,9 +274,25 @@
         <button class="coach-close" id="coachCloseBtn" type="button" aria-label="Close Sprint Coach">✕</button>
       </div>
 
-      <section class="coach-section" aria-labelledby="coachMotivationTitle">
+      <section class="coach-section" aria-labelledby="coachMotivationTitle" id="coachMotivationSection">
         <div class="coach-section-title" id="coachMotivationTitle">Daily Motivation</div>
         <p class="coach-quote" id="coachQuoteText">Consistency beats intensity. One application today can change everything.</p>
+        <div class="coach-goal-edit" id="coachGoalEditor">
+          <div class="coach-goal-label">Daily goal</div>
+          <button class="coach-goal-display" id="coachGoalDisplay" type="button">
+            <span class="coach-goal-text"><strong id="coachGoalValue">4</strong> applications / day</span>
+            <span aria-hidden="true" class="coach-goal-edit-icon">✎</span>
+          </button>
+          <form class="coach-goal-form" id="coachGoalForm" hidden>
+            <label class="sr-only" for="coachGoalInput">Applications per day goal</label>
+            <input class="coach-goal-input" id="coachGoalInput" name="goal" type="number" min="1" inputmode="numeric" />
+            <div class="coach-goal-actions">
+              <button class="coach-mini-btn outline" id="cancelGoalBtn" type="button">Cancel</button>
+              <button class="coach-mini-btn" id="saveGoalBtn" type="submit">Save goal</button>
+            </div>
+          </form>
+          <div class="coach-goal-status" id="coachGoalStatus">Set a target that feels achievable today.</div>
+        </div>
         <button class="coach-mini-btn" id="newQuoteBtn" type="button">New quote</button>
       </section>
 
@@ -287,7 +342,7 @@
         </div>
       </div>
       <div class="navspacer"></div>
-      <div class="pill" id="goalPill">Goal: <strong id="goalNum">4</strong> / day</div>
+      <button class="pill-button" id="goalPill" type="button">Goal: <strong id="goalNum">4</strong> / day</button>
       <button class="ham" id="hamBtn">☰</button>
       <div class="dropdown" id="menu">
         <a href="onboarding.html">Edit profile</a>
@@ -450,7 +505,7 @@
 
   const KEY_BOARD = `jobsprint_board_${token}`;
   const KEY_TODAY = `jobsprint_today_${token}`;
-  const profile = JSON.parse(localStorage.getItem('jobsprint_profile') || '{}');
+  let profile = JSON.parse(localStorage.getItem('jobsprint_profile') || '{}');
 
   const motivationalQuotes = [
     'Consistency beats intensity. One application today can change everything.',
@@ -468,6 +523,30 @@
     'Share a quick win with an accountability buddy.',
     'Block 20 minutes tonight to prep for tomorrow’s sprint.'
   ];
+
+  const GOAL_STATUS_DEFAULT = 'Set a target that feels achievable today.';
+
+  function getDailyGoalTarget() {
+    const raw = profile?.applications_goal_per_day ?? profile?.goal_per_day;
+    const parsed = Number.parseInt(raw, 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+    return 4;
+  }
+
+  function syncGoalUI() {
+    const goalValue = getDailyGoalTarget();
+    if (goalNum) goalNum.textContent = goalValue;
+    if (coachGoalValue) coachGoalValue.textContent = goalValue;
+    if (coachGoalDisplay) {
+      coachGoalDisplay.setAttribute('aria-label', `Daily goal: ${goalValue} applications per day. Activate to edit.`);
+      coachGoalDisplay.setAttribute('aria-expanded', coachGoalForm?.hidden !== false ? 'false' : 'true');
+    }
+    if (coachGoalInput && document.activeElement !== coachGoalInput) {
+      coachGoalInput.value = goalValue;
+    }
+  }
 
   function shortenSummaryText(text, max = 24) {
     if (!text) return '';
@@ -518,10 +597,14 @@
   }
 
   function getGoalProgress() {
+    const today = loadToday();
+    const completed = Math.max(Number.parseInt(today?.count, 10) || 0, 0);
+    const streakRaw = today?.streakDays ?? today?.streak ?? 0;
+    const streakDays = Math.max(Number.parseInt(streakRaw, 10) || 0, 0);
     return {
-      dailyTarget: 3,
-      completed: 1,
-      streakDays: 5
+      dailyTarget: Math.max(getDailyGoalTarget(), 0),
+      completed,
+      streakDays
     };
   }
 
@@ -784,6 +867,7 @@
 
   const userLine = document.getElementById('userLine');
   const goalNum = document.getElementById('goalNum');
+  const goalPill = document.getElementById('goalPill');
   const todayCountEl = document.getElementById('todayCount');
   const weekCountEl = document.getElementById('weekCount');
   const sprintCoachPanel = document.getElementById('sprintCoachPanel');
@@ -799,6 +883,14 @@
   const coachProfileLine = document.getElementById('coachProfileLine');
   const coachQuoteText = document.getElementById('coachQuoteText');
   const newQuoteBtn = document.getElementById('newQuoteBtn');
+  const coachMotivationSection = document.getElementById('coachMotivationSection');
+  const coachGoalValue = document.getElementById('coachGoalValue');
+  const coachGoalDisplay = document.getElementById('coachGoalDisplay');
+  const coachGoalForm = document.getElementById('coachGoalForm');
+  const coachGoalInput = document.getElementById('coachGoalInput');
+  const cancelGoalBtn = document.getElementById('cancelGoalBtn');
+  const saveGoalBtn = document.getElementById('saveGoalBtn');
+  const coachGoalStatus = document.getElementById('coachGoalStatus');
   const goalProgressFill = document.getElementById('goalProgressFill');
   const goalProgressText = document.getElementById('goalProgressText');
   const goalStreakText = document.getElementById('goalStreakText');
@@ -829,6 +921,87 @@
     }
   }
 
+  function setGoalStatus(message, isError = false) {
+    if (!coachGoalStatus) return;
+    coachGoalStatus.textContent = message;
+    coachGoalStatus.classList.toggle('error', !!isError);
+  }
+
+  function toggleGoalEditor(show) {
+    if (!coachGoalForm || !coachGoalDisplay) return;
+    coachGoalForm.hidden = !show;
+    coachGoalDisplay.hidden = show;
+    coachGoalDisplay.disabled = show;
+    coachGoalDisplay.setAttribute('aria-expanded', show ? 'true' : 'false');
+    if (show && coachGoalInput) {
+      coachGoalInput.value = getDailyGoalTarget();
+      requestAnimationFrame(() => {
+        coachGoalInput.focus();
+        coachGoalInput.select?.();
+      });
+    }
+  }
+
+  let goalSaveInFlight = false;
+
+  function setGoalSaving(saving) {
+    goalSaveInFlight = saving;
+    if (saveGoalBtn) {
+      saveGoalBtn.disabled = saving;
+      saveGoalBtn.textContent = saving ? 'Saving…' : 'Save goal';
+    }
+    if (cancelGoalBtn) {
+      cancelGoalBtn.disabled = saving;
+    }
+    if (coachGoalDisplay) {
+      coachGoalDisplay.disabled = saving;
+    }
+  }
+
+  async function persistDailyGoal(newGoal) {
+    const numericGoal = Math.max(Number.parseInt(newGoal, 10) || 0, 0);
+    if (!numericGoal) {
+      throw new Error('Enter a number greater than 0.');
+    }
+
+    const payload = {
+      google_id: profile?.google_id,
+      email: profile?.email,
+      applications_goal_per_day: numericGoal,
+      allow_payment_pending: true
+    };
+
+    if (!payload.google_id || !payload.email) {
+      profile = { ...(profile || {}), applications_goal_per_day: numericGoal, goal_per_day: numericGoal };
+      try { localStorage.setItem('jobsprint_profile', JSON.stringify(profile)); } catch (_) {}
+      syncGoalUI();
+      renderGoalProgress();
+      return;
+    }
+
+    const res = await fetch('/api/create-user', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      let detail = 'Unable to update goal right now.';
+      try {
+        const data = await res.json();
+        detail = data?.message || data?.error || detail;
+      } catch (_) {
+        detail = 'Unable to update goal right now.';
+      }
+      throw new Error(detail);
+    }
+
+    profile = { ...(profile || {}), applications_goal_per_day: numericGoal, goal_per_day: numericGoal };
+    try { localStorage.setItem('jobsprint_profile', JSON.stringify(profile)); } catch (_) {}
+    syncGoalUI();
+    renderGoalProgress();
+  }
+
   function showNewQuote() {
     const { text, index } = getMotivationalQuote(currentQuoteIndex);
     currentQuoteIndex = index;
@@ -836,6 +1009,7 @@
   }
 
   function renderGoalProgress() {
+    syncGoalUI();
     const goal = getGoalProgress();
     const target = Math.max(goal.dailyTarget || 0, 0);
     const completed = Math.max(goal.completed || 0, 0);
@@ -932,7 +1106,64 @@
     });
   }
 
+  syncGoalUI();
+  setGoalStatus(GOAL_STATUS_DEFAULT);
   initSprintCoach();
+
+  coachGoalDisplay?.addEventListener('click', () => {
+    setGoalStatus('Update your daily target to stay on track.');
+    toggleGoalEditor(true);
+  });
+
+  cancelGoalBtn?.addEventListener('click', () => {
+    toggleGoalEditor(false);
+    syncGoalUI();
+    setGoalStatus(GOAL_STATUS_DEFAULT);
+    coachGoalDisplay?.focus({ preventScroll: true });
+  });
+
+  coachGoalForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (goalSaveInFlight) return;
+    const desiredGoal = coachGoalInput?.value ?? getDailyGoalTarget();
+    const numericDesired = Number.parseInt(desiredGoal, 10);
+    if (Number.isFinite(numericDesired) && numericDesired === getDailyGoalTarget()) {
+      toggleGoalEditor(false);
+      setGoalStatus('Goal unchanged—stay consistent!');
+      coachGoalDisplay?.focus({ preventScroll: true });
+      return;
+    }
+    setGoalSaving(true);
+    setGoalStatus('Saving your goal…');
+    try {
+      await persistDailyGoal(desiredGoal);
+      toggleGoalEditor(false);
+      setGoalStatus('Daily goal updated 🎯');
+      if (coachGoalDisplay) {
+        requestAnimationFrame(() => coachGoalDisplay.focus({ preventScroll: true }));
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unable to update goal right now.';
+      setGoalStatus(msg, true);
+      coachGoalInput?.focus();
+    } finally {
+      setGoalSaving(false);
+    }
+  });
+
+  goalPill?.addEventListener('click', () => {
+    setCoachOpen(true);
+    if (coachMotivationSection) {
+      coachMotivationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    setTimeout(() => {
+      if (coachGoalDisplay && coachGoalForm?.hidden) {
+        coachGoalDisplay.focus({ preventScroll: true });
+      } else if (coachGoalInput && !coachGoalForm?.hidden) {
+        coachGoalInput.focus({ preventScroll: true });
+      }
+    }, 250);
+  });
 
   (async () => {
     try {
@@ -941,19 +1172,20 @@
         const data = await r.json();
         if (data.found) {
           const merged = { ...(profile || {}), name: data.name, email: data.email, applications_goal_per_day: data.goal_per_day, google_id: data.google_id, token };
+          profile = merged;
           localStorage.setItem('jobsprint_profile', JSON.stringify(merged));
           userLine.textContent = data.name ? `Hello, ${data.name}` : 'Welcome back';
-          goalNum.textContent = data.goal_per_day || 4;
+          syncGoalUI();
           hydrateSprintCoach();
           return;
         }
       }
       userLine.textContent = profile?.name ? `Hello, ${profile.name}` : 'Welcome back';
-      goalNum.textContent = profile?.applications_goal_per_day || 4;
+      syncGoalUI();
       hydrateSprintCoach();
     } catch {
       userLine.textContent = profile?.name ? `Hello, ${profile.name}` : 'Welcome back';
-      goalNum.textContent = profile?.applications_goal_per_day || 4;
+      syncGoalUI();
       hydrateSprintCoach();
     }
   })();
