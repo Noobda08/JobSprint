@@ -264,9 +264,10 @@
         <button class="coach-close" id="coachCloseBtn" type="button" aria-label="Close Sprint Coach">✕</button>
       </div>
 
-      <section class="coach-section" aria-labelledby="coachMotivationTitle" id="coachMotivationSection">
-        <div class="coach-section-title" id="coachMotivationTitle">Daily Motivation</div>
+      <section class="coach-section" aria-labelledby="coachGoalsTitle" id="coachGoalsSection">
+        <div class="coach-section-title" id="coachGoalsTitle">Your Sprint Goals</div>
         <p class="coach-quote" id="coachQuoteText">Consistency beats intensity. One application today can change everything.</p>
+        <button class="coach-mini-btn" id="newQuoteBtn" type="button">New quote</button>
         <div class="coach-goal-edit" id="coachGoalEditor">
           <div class="coach-goal-label">Daily goal</div>
           <button class="coach-goal-display" id="coachGoalDisplay" type="button" aria-controls="coachGoalForm" aria-expanded="false">
@@ -284,11 +285,6 @@
           </form>
           <div class="coach-goal-status" id="coachGoalStatus">Set a target that feels achievable today.</div>
         </div>
-        <button class="coach-mini-btn" id="newQuoteBtn" type="button">New quote</button>
-      </section>
-
-      <section class="coach-section" aria-labelledby="coachGoalsTitle">
-        <div class="coach-section-title" id="coachGoalsTitle">Your Sprint Goals</div>
         <div class="coach-progress">
           <div class="coach-progress-bar"><div class="coach-progress-fill" id="goalProgressFill"></div></div>
           <div class="coach-progress-text" id="goalProgressText">0 of 0 applications today</div>
@@ -870,7 +866,7 @@
   const coachProfileLine = document.getElementById('coachProfileLine');
   const coachQuoteText = document.getElementById('coachQuoteText');
   const newQuoteBtn = document.getElementById('newQuoteBtn');
-  const coachMotivationSection = document.getElementById('coachMotivationSection');
+  const coachGoalsSection = document.getElementById('coachGoalsSection');
   const coachGoalValue = document.getElementById('coachGoalValue');
   const coachGoalDisplay = document.getElementById('coachGoalDisplay');
   const coachGoalForm = document.getElementById('coachGoalForm');
@@ -1143,8 +1139,8 @@
 
   goalPill?.addEventListener('click', () => {
     setCoachOpen(true);
-    if (coachMotivationSection) {
-      coachMotivationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (coachGoalsSection) {
+      coachGoalsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     setTimeout(() => {
       if (coachGoalDisplay && coachGoalForm?.hidden) {
