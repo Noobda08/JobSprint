@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Persona Profile</title>
+  <link rel="stylesheet" href="persona.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="page-header" id="page-header">
+      <div class="header-copy">
+        <p class="eyebrow">AI Persona</p>
+        <h1 class="page-title">Your Sprint Persona</h1>
+        <p class="page-subtitle">A tailored snapshot of strengths, motivations, and next-step focus areas for this candidate.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn primary" id="btn-regenerate" type="button">Regenerate</button>
+        <button class="btn ghost" id="btn-download" type="button">Download</button>
+        <button class="btn ghost" id="btn-share" type="button">Share</button>
+      </div>
+    </header>
+
+    <main class="page-main" id="page-main">
+      <section id="hero-card" class="card is-loading" data-skeleton>
+        <div class="hero-headline">
+          <div class="identity">
+            <h2 id="persona-name" class="skeleton-text"></h2>
+            <p id="persona-role" class="identity-role skeleton-text"></p>
+          </div>
+          <div class="hero-actions">
+            <button class="chip" id="persona-seniority" type="button" disabled></button>
+          </div>
+        </div>
+        <p id="persona-tagline" class="hero-tagline skeleton-text"></p>
+        <dl class="hero-meta">
+          <div>
+            <dt>Experience</dt>
+            <dd id="persona-experience" class="skeleton-text"></dd>
+          </div>
+          <div>
+            <dt>Location</dt>
+            <dd id="persona-location" class="skeleton-text"></dd>
+          </div>
+          <div>
+            <dt>Focus</dt>
+            <dd id="persona-focus" class="skeleton-text"></dd>
+          </div>
+        </dl>
+      </section>
+
+      <section id="ai-summary" class="card is-loading" data-skeleton>
+        <header class="section-header">
+          <div>
+            <h2>AI Summary</h2>
+            <p class="section-subtitle">Key takeaways synthesised across signals.</p>
+          </div>
+          <p class="source-hint" id="summary-hint" role="status"></p>
+        </header>
+        <p id="persona-summary" class="body-text skeleton-text"></p>
+      </section>
+
+      <section id="badge-row" class="badge-row card is-loading" data-skeleton aria-label="Persona highlights">
+        <h2 class="visually-hidden">Persona Highlights</h2>
+        <div class="badges" id="badge-list"></div>
+      </section>
+
+      <section class="accordion" id="sec-journey" data-accordion>
+        <h2 class="accordion-heading">Career Journey</h2>
+        <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="panel-journey" id="trigger-journey">
+          <span class="trigger-label">Career Journey</span>
+          <span class="trigger-preview" data-preview="journey"></span>
+          <span class="trigger-icon" aria-hidden="true"></span>
+        </button>
+        <div id="panel-journey" class="accordion-panel" role="region" aria-labelledby="trigger-journey" hidden>
+          <div class="accordion-body" id="journey-body"></div>
+        </div>
+      </section>
+
+      <section class="accordion" id="sec-strengths" data-accordion>
+        <h2 class="accordion-heading">Strengths</h2>
+        <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="panel-strengths" id="trigger-strengths">
+          <span class="trigger-label">Strengths</span>
+          <span class="trigger-preview" data-preview="strengths"></span>
+          <span class="trigger-icon" aria-hidden="true"></span>
+        </button>
+        <div id="panel-strengths" class="accordion-panel" role="region" aria-labelledby="trigger-strengths" hidden>
+          <div class="accordion-body" id="strengths-body"></div>
+        </div>
+      </section>
+
+      <section class="accordion" id="sec-effortless" data-accordion>
+        <h2 class="accordion-heading">What Comes Effortlessly</h2>
+        <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="panel-effortless" id="trigger-effortless">
+          <span class="trigger-label">What Comes Effortlessly</span>
+          <span class="trigger-preview" data-preview="effortless"></span>
+          <span class="trigger-icon" aria-hidden="true"></span>
+        </button>
+        <div id="panel-effortless" class="accordion-panel" role="region" aria-labelledby="trigger-effortless" hidden>
+          <div class="accordion-body" id="effortless-body"></div>
+        </div>
+      </section>
+
+      <section class="accordion" id="sec-next" data-accordion>
+        <h2 class="accordion-heading">Recommended Next Steps</h2>
+        <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="panel-next" id="trigger-next">
+          <span class="trigger-label">Recommended Next Steps</span>
+          <span class="trigger-preview" data-preview="next"></span>
+          <span class="trigger-icon" aria-hidden="true"></span>
+        </button>
+        <div id="panel-next" class="accordion-panel" role="region" aria-labelledby="trigger-next" hidden>
+          <div class="accordion-body" id="next-body"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer-nav" aria-label="Persona navigation">
+    <div class="footer-actions">
+      <button class="btn ghost" id="nav-back" type="button">Back</button>
+      <button class="btn primary" id="nav-workspace" type="button">Open Workspace</button>
+    </div>
+  </footer>
+
+  <dialog id="regenerate-modal" class="regenerate-modal" aria-labelledby="regenerate-title">
+    <form method="dialog" class="modal-surface">
+      <h2 id="regenerate-title">Regenerate persona?</h2>
+      <p>Refreshing will replace the current insights with a newly generated persona.</p>
+      <menu class="modal-actions">
+        <button class="btn ghost" value="cancel">Cancel</button>
+        <button class="btn primary" value="confirm">Regenerate</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <template id="accordion-list-template">
+    <ul class="text-list"></ul>
+  </template>
+
+  <template id="badge-template">
+    <span class="badge"></span>
+  </template>
+
+  <script src="persona.js" type="module"></script>
+</body>
+</html>
