@@ -185,7 +185,19 @@
       (Your answers help JobSprint understand you deeply — so it can write, tailor, and guide you better later.)
     </p>
 
-    <div class="step2-layout md:flex md:items-start md:gap-8">
+    <div class="step2-tab-bar" role="tablist" aria-label="Story navigation">
+      <button type="button" class="step2-tab is-active" data-section="sec-story" role="tab" aria-selected="true">
+        🌱 Story
+      </button>
+      <button type="button" class="step2-tab" data-section="sec-drive" role="tab" aria-selected="false">
+        🔥 Drive
+      </button>
+      <button type="button" class="step2-tab" data-section="sec-future" role="tab" aria-selected="false">
+        🚀 Future
+      </button>
+    </div>
+
+    <div class="step2-layout">
       <div class="main-column max-w-3xl">
         <section class="js-section group-card rounded-2xl bg-slate-50 p-6 mb-8" id="sec-story" data-label="🌱 Story">
           <h2 class="text-xl font-semibold mb-4">🌱 Your Story</h2>
@@ -387,13 +399,6 @@
         </div>
       </div>
 
-      <nav class="hidden md:block sticky top-6 float-right ml-6 w-44">
-        <ul class="space-y-2 text-sm">
-          <li><a href="#sec-story" class="spy-link block rounded-md px-3 py-2 text-slate-600 hover:bg-slate-100">🌱 Story</a></li>
-          <li><a href="#sec-drive" class="spy-link block rounded-md px-3 py-2 text-slate-600 hover:bg-slate-100">🔥 Drive</a></li>
-          <li><a href="#sec-future" class="spy-link block rounded-md px-3 py-2 text-slate-600 hover:bg-slate-100">🚀 Future</a></li>
-        </ul>
-      </nav>
     </div>
   </section>
 
@@ -436,29 +441,45 @@
       textarea.addEventListener('input', showSaved);
     });
 
-    // Simple scroll spy for mini-nav
+    // Scroll spy for tabs
     const sections = document.querySelectorAll('.js-section');
-    const links = document.querySelectorAll('.spy-link');
+    const tabButtons = document.querySelectorAll('.step2-tab');
 
-    const spy = () => {
-      let activeId = null;
-      sections.forEach((sec) => {
-        const rect = sec.getBoundingClientRect();
-        if (rect.top <= 120 && rect.bottom >= 200) {
-          activeId = `#${sec.id}`;
-        }
-      });
-      links.forEach((a) => {
-        if (a.getAttribute('href') === activeId) {
-          a.classList.add('bg-slate-100', 'text-slate-900');
-        } else {
-          a.classList.remove('bg-slate-100', 'text-slate-900');
-        }
+    const setActiveTab = (sectionId) => {
+      tabButtons.forEach((btn) => {
+        const isActive = btn.dataset.section === sectionId;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
     };
 
-    document.addEventListener('scroll', spy, { passive: true });
-    window.addEventListener('load', spy);
+    tabButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const sectionId = btn.dataset.section;
+        const target = document.getElementById(sectionId);
+        if (!target) return;
+        setActiveTab(sectionId);
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    const spy = () => {
+      let activeId = sections.length ? sections[0].id : null;
+      sections.forEach((sec) => {
+        const rect = sec.getBoundingClientRect();
+        if (rect.top <= 160 && rect.bottom >= 220) {
+          activeId = sec.id;
+        }
+      });
+      if (activeId) {
+        setActiveTab(activeId);
+      }
+    };
+
+    if (sections.length && tabButtons.length) {
+      document.addEventListener('scroll', spy, { passive: true });
+      window.addEventListener('load', spy);
+    }
   </script>
 
   <script src="scripts/theme.js"></script>
