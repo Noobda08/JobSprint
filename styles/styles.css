@@ -46,11 +46,6 @@
   box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
 }
 
-.q-example {
-  border-left: 2px solid #e2e8f0;
-  padding-left: 12px;
-}
-
 .q-status {
   color: #047857;
   opacity: 0;
