@@ -25,10 +25,60 @@ const buttons = {
   download: document.getElementById('btn-download'),
   share: document.getElementById('btn-share'),
   navBack: document.getElementById('nav-back'),
+  navReadiness: document.getElementById('nav-readiness'),
   navWorkspace: document.getElementById('nav-workspace')
 };
 
 const modal = document.getElementById('regenerate-modal');
+
+function readStoredProfile() {
+  try {
+    const stored = localStorage.getItem('jobsprint_profile');
+    if (!stored) return null;
+    return JSON.parse(stored);
+  } catch (err) {
+    console.warn('Could not parse stored profile', err);
+    return null;
+  }
+}
+
+function hasSeenReadiness() {
+  try {
+    return Boolean(localStorage.getItem('jobsprint_readiness_seen'));
+  } catch (err) {
+    console.warn('Could not read readiness flag', err);
+    return false;
+  }
+}
+
+function getStoredToken() {
+  const params = new URLSearchParams(window.location.search);
+  const fromQuery = params.get('u');
+  if (fromQuery && fromQuery.trim()) return fromQuery.trim();
+
+  const profile = readStoredProfile();
+  const token = profile?.token;
+  if (typeof token === 'string' && token.trim()) {
+    return token.trim();
+  }
+  return null;
+}
+
+function shouldShowReadinessCTA() {
+  const params = new URLSearchParams(window.location.search);
+  const explicitTrigger =
+    params.get('from') === 'onboarding' ||
+    params.get('continue') === 'readiness' ||
+    params.get('next') === 'readiness' ||
+    params.get('cta') === 'readiness';
+  if (explicitTrigger) return true;
+
+  const profile = readStoredProfile();
+  const onboardingComplete = profile?.profile_complete === true || profile?.onboarding_step === 'done';
+  if (!onboardingComplete) return false;
+
+  return !hasSeenReadiness();
+}
 
 function setLoading(isLoading) {
   loadingContainers.forEach((container) => {
@@ -255,6 +305,25 @@ function wireNavigation(persona) {
   buttons.navWorkspace?.addEventListener('click', () => {
     window.location.href = 'workspace.html';
   });
+
+  if (buttons.navReadiness) {
+    const showReadiness = shouldShowReadinessCTA();
+    buttons.navReadiness.toggleAttribute('hidden', !showReadiness);
+    if (showReadiness) {
+      buttons.navReadiness.addEventListener('click', () => {
+        try {
+          localStorage.setItem('jobsprint_readiness_seen', new Date().toISOString());
+        } catch (err) {
+          console.warn('Could not mark readiness via persona CTA', err);
+        }
+        const token = getStoredToken();
+        const destination = token
+          ? `/sprint-readiness.html?u=${encodeURIComponent(token)}`
+          : '/sprint-readiness.html';
+        window.location.href = destination;
+      });
+    }
+  }
 
   buttons.download?.addEventListener('click', () => {
     const target = persona?.download_url || persona?.document_url;
