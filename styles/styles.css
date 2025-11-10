@@ -66,10 +66,10 @@
   z-index: 20;
   display: flex;
   align-items: flex-end;
-  justify-content: center;
-  gap: 18px;
+  justify-content: flex-start;
+  gap: 0;
   margin: 32px 0 24px;
-  padding: 16px 20px 8px;
+  padding: 16px 24px 8px;
   background: #d5e3f7;
   border: 1px solid #b7c9e4;
   border-radius: 20px 20px 0 0;
@@ -126,8 +126,8 @@
 @media (max-width: 720px) {
   .step2-tab-bar {
     margin: 28px 0 20px;
-    padding: 14px 16px 8px;
-    gap: 14px;
+    padding: 14px 20px 8px;
+    gap: 8px;
     overflow-x: auto;
     border-radius: 16px 16px 0 0;
   }
