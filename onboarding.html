@@ -1950,6 +1950,7 @@
           return;
         }
         savingToast?.dismiss?.();
+        const wasReturningUser = hasCompletedOnboarding === true || hasSeenReadiness();
         try {
           const existing = readStoredProfile();
           const storageUpdate = { google_id };
@@ -1981,7 +1982,13 @@
         }
         updateWorkspaceShortcutVisibility({ profileComplete: true });
         notify('🎉 Onboarding complete! Redirecting...', { variant: 'success' });
-        redirectWithToast(data.redirect_url || "/sprint-readiness.html", 'Preparing your sprint readiness…');
+        const fallbackRedirect = wasReturningUser ? '/sprint-readiness.html' : '/persona.html';
+        const redirectTarget = data.redirect_url || fallbackRedirect;
+        const redirectMessage =
+          redirectTarget === '/persona.html'
+            ? 'Taking you to your persona setup…'
+            : 'Preparing your sprint readiness…';
+        redirectWithToast(redirectTarget, redirectMessage);
       } catch (err) {
         console.error(err);
         savingToast?.dismiss?.();
