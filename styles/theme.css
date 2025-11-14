@@ -64,6 +64,7 @@ body {
   color: var(--ink);
   text-decoration: none;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .app-navbar__logo img {
