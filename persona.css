@@ -186,12 +186,7 @@ body {
   gap: var(--space-4);
 }
 
-.persona-snapshot > *:not(.snapshot-edit) {
-  position: relative;
-  z-index: 1;
-}
-
-.snapshot-top {
+.snapshot-header {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -201,6 +196,14 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
+}
+
+.snapshot-eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
 }
 
 .snapshot-name {
@@ -224,12 +227,22 @@ body {
 .snapshot-summary {
   margin: 0;
   font-size: 1rem;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .snapshot-hint {
   margin: 0;
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.snapshot-hint[data-variant='resume-only'] {
+  color: var(--brand-strong);
+  font-weight: 600;
 }
 
 .snapshot-meta {
@@ -249,6 +262,11 @@ body {
 .snapshot-meta dd {
   margin: 0.15rem 0 0;
   font-weight: 600;
+}
+
+.snapshot-points-wrap {
+  padding-top: var(--space-3);
+  border-top: 1px solid rgba(10, 102, 194, 0.12);
 }
 
 .snapshot-points-label {
@@ -275,33 +293,26 @@ body {
 }
 
 .snapshot-edit {
-  position: absolute;
-  inset: 0;
-  border: none;
-  background: transparent;
+  align-self: flex-start;
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--border-soft);
+  padding: 0.35rem 1.2rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--brand-strong);
+  box-shadow: 0 8px 18px rgba(10, 102, 194, 0.12);
   cursor: pointer;
-  z-index: 2;
-  padding: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.snapshot-edit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 26px rgba(10, 102, 194, 0.18);
 }
 
 .snapshot-edit:focus-visible {
   outline: 3px solid rgba(10, 102, 194, 0.24);
-  outline-offset: 0;
-}
-
-.snapshot-edit-label {
-  position: absolute;
-  top: var(--space-4);
-  right: var(--space-4);
-  border-radius: var(--radius-chip);
-  padding: 0.3rem 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid var(--border-soft);
-  color: var(--brand-strong);
-  font-weight: 600;
-  font-size: 0.85rem;
-  box-shadow: var(--shadow-sm);
-  pointer-events: none;
+  outline-offset: 2px;
 }
 
 .section-header {
@@ -580,14 +591,14 @@ body {
     max-width: 60ch;
   }
 
-  .snapshot-top {
+  .snapshot-header {
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-start;
   }
 
   .snapshot-summary-block {
-    max-width: 36ch;
+    max-width: 38ch;
   }
 
   .accordion-trigger {
