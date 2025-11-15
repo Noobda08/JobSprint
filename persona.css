@@ -180,64 +180,128 @@ body {
   backdrop-filter: blur(10px);
 }
 
-.hero-headline {
+.persona-snapshot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.persona-snapshot > *:not(.snapshot-edit) {
+  position: relative;
+  z-index: 1;
+}
+
+.snapshot-top {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  margin-bottom: var(--space-4);
 }
 
-.hero-headline .identity h2 {
+.snapshot-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.snapshot-name {
   margin: 0;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
 }
 
-.identity-role {
+.snapshot-role {
   margin: 0;
   color: var(--muted);
+  font-weight: 600;
 }
 
-.hero-actions {
+.snapshot-summary-block {
   display: flex;
-  justify-content: flex-start;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
-.chip {
-  border-radius: var(--radius-chip);
-  border: none;
-  padding: 0.35rem 0.9rem;
+.snapshot-summary {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.snapshot-hint {
+  margin: 0;
+  color: var(--muted);
   font-size: 0.85rem;
-  background: var(--brand-soft);
-  color: var(--brand-strong);
 }
 
-.chip[disabled] {
-  opacity: 1;
-  cursor: default;
-}
-
-.hero-tagline {
-  margin: 0 0 var(--space-4);
-  font-size: 1.05rem;
-}
-
-.hero-meta {
+.snapshot-meta {
   display: grid;
   gap: var(--space-3);
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   margin: 0;
 }
 
-.hero-meta dt {
+.snapshot-meta dt {
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
 }
 
-.hero-meta dd {
+.snapshot-meta dd {
   margin: 0.15rem 0 0;
   font-weight: 600;
+}
+
+.snapshot-points-label {
+  margin: 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.snapshot-points {
+  margin: var(--space-2) 0 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.snapshot-points[data-empty='true'] {
+  color: var(--muted);
+}
+
+.snapshot-points li {
+  line-height: 1.4;
+}
+
+.snapshot-edit {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: 2;
+  padding: 0;
+}
+
+.snapshot-edit:focus-visible {
+  outline: 3px solid rgba(10, 102, 194, 0.24);
+  outline-offset: 0;
+}
+
+.snapshot-edit-label {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  border-radius: var(--radius-chip);
+  padding: 0.3rem 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-soft);
+  color: var(--brand-strong);
+  font-weight: 600;
+  font-size: 0.85rem;
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
 }
 
 .section-header {
@@ -516,10 +580,14 @@ body {
     max-width: 60ch;
   }
 
-  .hero-headline {
+  .snapshot-top {
     flex-direction: row;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+  }
+
+  .snapshot-summary-block {
+    max-width: 36ch;
   }
 
   .accordion-trigger {

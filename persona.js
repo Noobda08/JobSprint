@@ -1,13 +1,16 @@
 const ACCORDION_STATE_KEY = 'persona-accordion-state-v1';
 
 const selectors = {
-  name: document.getElementById('persona-name'),
-  role: document.getElementById('persona-role'),
-  seniority: document.getElementById('persona-seniority'),
-  tagline: document.getElementById('persona-tagline'),
-  experience: document.getElementById('persona-experience'),
-  location: document.getElementById('persona-location'),
-  focus: document.getElementById('persona-focus'),
+  snapshot: {
+    name: document.getElementById('snapshot-name'),
+    role: document.getElementById('snapshot-role'),
+    summary: document.getElementById('snapshot-summary'),
+    experience: document.getElementById('snapshot-experience'),
+    location: document.getElementById('snapshot-location'),
+    focus: document.getElementById('snapshot-focus'),
+    points: document.getElementById('snapshot-points'),
+    hint: document.getElementById('snapshot-hint')
+  },
   summary: document.getElementById('persona-summary'),
   summaryHint: document.getElementById('summary-hint'),
   badgeList: document.getElementById('badge-list'),
@@ -25,7 +28,8 @@ const buttons = {
   download: document.getElementById('btn-download'),
   share: document.getElementById('btn-share'),
   navBack: document.getElementById('nav-back'),
-  navWorkspace: document.getElementById('nav-workspace')
+  navWorkspace: document.getElementById('nav-workspace'),
+  editPersona: document.getElementById('btn-edit-persona')
 };
 
 const modal = document.getElementById('regenerate-modal');
@@ -108,18 +112,76 @@ function createList(items) {
   return template;
 }
 
-function populateHero(persona) {
-  selectors.name.textContent = persona.name ?? '—';
-  selectors.role.textContent = persona.current_role ?? persona.target_role ?? '';
-  selectors.seniority.textContent = persona.seniority ?? persona.level ?? '';
-  selectors.seniority.toggleAttribute('hidden', !selectors.seniority.textContent);
-  selectors.tagline.textContent = persona.tagline ?? persona.value_proposition ?? '';
-  selectors.tagline.toggleAttribute('data-empty', !selectors.tagline.textContent);
-  selectors.experience.textContent = persona.experience ?? persona.years_of_experience ?? 'Unknown';
-  selectors.location.textContent = persona.location ?? persona.region ?? '—';
-  selectors.focus.textContent = persona.focus_area ?? ensureArray(persona.focus_areas).join(', ');
-  if (!selectors.focus.textContent) {
-    selectors.focus.textContent = '—';
+function populateSnapshot(persona) {
+  const snapshot = selectors.snapshot;
+  if (!snapshot) return;
+
+  snapshot.name.textContent = persona.name ?? '—';
+  snapshot.name.toggleAttribute('data-empty', !persona.name);
+
+  const roleText = persona.current_role ?? persona.target_role ?? persona.desired_role ?? '';
+  snapshot.role.textContent = roleText;
+  snapshot.role.toggleAttribute('data-empty', !roleText);
+
+  const summaryText = persona.summary ?? persona.tagline ?? persona.value_proposition ?? '';
+  snapshot.summary.textContent = summaryText;
+  snapshot.summary.toggleAttribute('data-empty', !summaryText);
+
+  const experienceText = persona.experience ?? persona.years_of_experience ?? '—';
+  snapshot.experience.textContent = experienceText;
+  snapshot.experience.toggleAttribute('data-empty', !experienceText || experienceText === '—');
+
+  const locationText = persona.location ?? persona.city ?? persona.region ?? '—';
+  snapshot.location.textContent = locationText;
+  snapshot.location.toggleAttribute('data-empty', !locationText || locationText === '—');
+
+  const focusValues = ensureArray(persona.focus_areas ?? persona.focus_area);
+  const focusText = focusValues.length
+    ? focusValues.join(', ')
+    : persona.focus_area ?? persona.focus ?? persona.target_industry ?? '—';
+  snapshot.focus.textContent = focusText;
+  snapshot.focus.toggleAttribute('data-empty', !focusText || focusText === '—');
+
+  const highlightSources = [
+    ensureArray(persona.snapshot_points),
+    ensureArray(persona.badges),
+    ensureArray(persona.highlights),
+    ensureArray(persona.strengths)
+  ].flat();
+
+  const seen = new Set();
+  const highlights = highlightSources
+    .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+    .filter((entry) => {
+      if (!entry) return false;
+      if (seen.has(entry)) return false;
+      seen.add(entry);
+      return true;
+    })
+    .slice(0, 3);
+
+  snapshot.points.textContent = '';
+  if (!highlights.length) {
+    snapshot.points.setAttribute('data-empty', 'true');
+    const li = document.createElement('li');
+    li.textContent = 'No highlights captured yet.';
+    snapshot.points.appendChild(li);
+  } else {
+    snapshot.points.removeAttribute('data-empty');
+    highlights.forEach((entry) => {
+      const li = document.createElement('li');
+      li.textContent = entry;
+      snapshot.points.appendChild(li);
+    });
+  }
+
+  const resumeOnly = persona?.sources?.from_onboarding_answers === false;
+  if (resumeOnly) {
+    snapshot.hint.hidden = false;
+    snapshot.hint.textContent = 'Based on resume data only — add onboarding answers for richer insight.';
+  } else {
+    snapshot.hint.textContent = '';
+    snapshot.hint.hidden = true;
   }
 }
 
@@ -317,6 +379,14 @@ function wireRegenerate(persona) {
   buttons.regenerate.addEventListener('click', showModal);
 }
 
+function wireEditPersona(persona) {
+  if (!buttons.editPersona) return;
+  buttons.editPersona.addEventListener('click', () => {
+    const target = persona?.edit_url ?? 'onboarding.html';
+    window.location.href = target;
+  });
+}
+
 function triggerRegeneration(persona) {
   console.info('Persona regeneration triggered for', persona?.id ?? persona?.name ?? 'unknown persona');
   sessionStorage.removeItem(ACCORDION_STATE_KEY);
@@ -337,12 +407,13 @@ function hydratePage(persona) {
   if (!persona) {
     throw new Error('Persona payload is empty.');
   }
-  populateHero(persona);
+  populateSnapshot(persona);
   populateSummary(persona);
   populateBadges(persona);
   populateAccordions(persona);
   wireNavigation(persona);
   wireRegenerate(persona);
+  wireEditPersona(persona);
   removeLoadingState();
 }
 
