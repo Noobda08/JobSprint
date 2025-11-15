@@ -30,31 +30,42 @@
     </header>
 
     <main class="page-main" id="page-main">
-      <section id="hero-card" class="card is-loading" data-skeleton>
-        <div class="hero-headline">
-          <div class="identity">
-            <h2 id="persona-name" class="skeleton-text"></h2>
-            <p id="persona-role" class="identity-role skeleton-text"></p>
+      <section id="persona-snapshot" class="card persona-snapshot is-loading" data-skeleton>
+        <div class="snapshot-top">
+          <div class="snapshot-identity">
+            <h2 id="snapshot-name" class="snapshot-name skeleton-text"></h2>
+            <p id="snapshot-role" class="snapshot-role skeleton-text"></p>
           </div>
-          <div class="hero-actions">
-            <button class="chip" id="persona-seniority" type="button" disabled></button>
+          <div class="snapshot-summary-block">
+            <p id="snapshot-summary" class="snapshot-summary skeleton-text"></p>
+            <p id="snapshot-hint" class="snapshot-hint skeleton-text" aria-live="polite"></p>
           </div>
         </div>
-        <p id="persona-tagline" class="hero-tagline skeleton-text"></p>
-        <dl class="hero-meta">
+        <dl class="snapshot-meta">
           <div>
             <dt>Experience</dt>
-            <dd id="persona-experience" class="skeleton-text"></dd>
+            <dd id="snapshot-experience" class="skeleton-text"></dd>
           </div>
           <div>
             <dt>Location</dt>
-            <dd id="persona-location" class="skeleton-text"></dd>
+            <dd id="snapshot-location" class="skeleton-text"></dd>
           </div>
           <div>
             <dt>Focus</dt>
-            <dd id="persona-focus" class="skeleton-text"></dd>
+            <dd id="snapshot-focus" class="skeleton-text"></dd>
           </div>
         </dl>
+        <div>
+          <p class="snapshot-points-label">Highlights</p>
+          <ul id="snapshot-points" class="snapshot-points">
+            <li class="skeleton-text"></li>
+            <li class="skeleton-text"></li>
+            <li class="skeleton-text"></li>
+          </ul>
+        </div>
+        <button id="btn-edit-persona" class="snapshot-edit" type="button">
+          <span class="snapshot-edit-label">Edit</span>
+        </button>
       </section>
 
       <section id="ai-summary" class="card is-loading" data-skeleton>
