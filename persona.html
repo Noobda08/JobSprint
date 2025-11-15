@@ -31,15 +31,17 @@
 
     <main class="page-main" id="page-main">
       <section id="persona-snapshot" class="card persona-snapshot is-loading" data-skeleton>
-        <div class="snapshot-top">
+        <header class="snapshot-header">
           <div class="snapshot-identity">
+            <p class="snapshot-eyebrow">Sprint Persona</p>
             <h2 id="snapshot-name" class="snapshot-name skeleton-text"></h2>
             <p id="snapshot-role" class="snapshot-role skeleton-text"></p>
           </div>
-          <div class="snapshot-summary-block">
-            <p id="snapshot-summary" class="snapshot-summary skeleton-text"></p>
-            <p id="snapshot-hint" class="snapshot-hint skeleton-text" aria-live="polite"></p>
-          </div>
+          <button id="btn-edit-persona" class="snapshot-edit" type="button">Edit</button>
+        </header>
+        <div class="snapshot-summary-block">
+          <p id="snapshot-summary" class="snapshot-summary skeleton-text"></p>
+          <p id="snapshot-hint" class="snapshot-hint skeleton-text" aria-live="polite"></p>
         </div>
         <dl class="snapshot-meta">
           <div>
@@ -55,7 +57,7 @@
             <dd id="snapshot-focus" class="skeleton-text"></dd>
           </div>
         </dl>
-        <div>
+        <div class="snapshot-points-wrap">
           <p class="snapshot-points-label">Highlights</p>
           <ul id="snapshot-points" class="snapshot-points">
             <li class="skeleton-text"></li>
@@ -63,9 +65,6 @@
             <li class="skeleton-text"></li>
           </ul>
         </div>
-        <button id="btn-edit-persona" class="snapshot-edit" type="button">
-          <span class="snapshot-edit-label">Edit</span>
-        </button>
       </section>
 
       <section id="ai-summary" class="card is-loading" data-skeleton>

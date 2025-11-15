@@ -102,6 +102,14 @@ function ensureArray(value) {
   return Array.isArray(value) ? value : [value];
 }
 
+function getSourceHint(persona) {
+  const resumeOnly = persona?.sources?.from_onboarding_answers === false;
+  const text = resumeOnly
+    ? 'Based on resume data only — add onboarding answers for richer insight.'
+    : 'Includes onboarding reflections and resume signals.';
+  return { resumeOnly, text };
+}
+
 function createList(items) {
   const template = selectors.templates.list.content.firstElementChild.cloneNode(false);
   items.forEach((item) => {
@@ -115,6 +123,8 @@ function createList(items) {
 function populateSnapshot(persona) {
   const snapshot = selectors.snapshot;
   if (!snapshot) return;
+
+  const { resumeOnly, text: hintText } = getSourceHint(persona);
 
   snapshot.name.textContent = persona.name ?? '—';
   snapshot.name.toggleAttribute('data-empty', !persona.name);
@@ -175,21 +185,13 @@ function populateSnapshot(persona) {
     });
   }
 
-  const resumeOnly = persona?.sources?.from_onboarding_answers === false;
-  if (resumeOnly) {
-    snapshot.hint.hidden = false;
-    snapshot.hint.textContent = 'Based on resume data only — add onboarding answers for richer insight.';
-  } else {
-    snapshot.hint.textContent = '';
-    snapshot.hint.hidden = true;
-  }
+  snapshot.hint.hidden = false;
+  snapshot.hint.textContent = hintText;
+  snapshot.hint.dataset.variant = resumeOnly ? 'resume-only' : 'blended';
 }
 
 function populateSummary(persona) {
-  const resumeOnly = persona?.sources?.from_onboarding_answers === false;
-  const hint = resumeOnly
-    ? 'Based on resume data only — add onboarding answers for richer insight.'
-    : 'Includes onboarding reflections and resume signals.';
+  const { text: hint } = getSourceHint(persona);
   selectors.summaryHint.textContent = hint;
   selectors.summary.textContent = persona.summary ?? persona.narrative ?? '';
   selectors.summary.toggleAttribute('data-empty', !selectors.summary.textContent);
