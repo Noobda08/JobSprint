@@ -364,6 +364,16 @@
     <div class="head">
       <div class="stat">Today’s applications: <strong id="todayCount">0</strong></div>
       <div class="stat">This week: <strong id="weekCount">0</strong></div>
+      <div class="stat" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap" id="gmailStat">
+        <div>
+          <div style="font-size:12px;color:#2c4f80">Gmail connection</div>
+          <div id="gmailStatusText" style="font-weight:600">Not connected</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn ghost" id="connectGmailBtn" type="button">Connect Gmail</button>
+          <button class="btn ghost" id="rearmWatchBtn" type="button">Re-arm Watch</button>
+        </div>
+      </div>
       <button class="btn ghost" id="resetBtn">Reset board</button>
     </div>
 
@@ -779,6 +789,7 @@
 
   function createBlankCard() {
     return {
+      status: 'research',
       company: '',
       role: '',
       link: '',
@@ -802,6 +813,8 @@
     if (!card) return { ...createBlankCard(), id: generateId('c') };
     const upgraded = { ...createBlankCard() };
     upgraded.id = card.id || generateId('c');
+    upgraded.status = card.status || upgraded.status;
+    upgraded.gmail_message_id = card.gmail_message_id || card.gmailMessageId || '';
     upgraded.company = card.company || '';
     upgraded.role = card.role || '';
     upgraded.link = card.link || '';
@@ -870,6 +883,156 @@
   }
 
   let board = normalizeBoard(JSON.parse(localStorage.getItem(KEY_BOARD) || 'null'));
+  let boardLoading = false;
+
+  function cardToApiPayload(card, statusOverride) {
+    return {
+      id: card.id,
+      company: card.company,
+      role: card.role,
+      link: card.link,
+      status: statusOverride || card.status || 'research',
+      notes: card.notes,
+      job_description: card.jobDescription,
+      resume_version: card.resumeVersion,
+      savedAt: card.savedAt,
+      applied_date: card.appliedInfo?.date,
+      source: card.appliedInfo?.source,
+      screening_replied: card.screeningInfo?.replied,
+      assessment_due: card.screeningInfo?.assessmentDue,
+      info_shared: card.screeningInfo?.infoShared,
+      interviewing_rounds: card.interviewingRounds,
+      ctc: card.offerInfo?.ctc,
+      joining_date: card.offerInfo?.joiningDate,
+      offer_status: card.offerInfo?.status,
+      rejection_reason: card.rejectedInfo?.reason,
+      rejection_date: card.rejectedInfo?.date,
+      questions: card.questions,
+      fit_score: card.fit?.score,
+      fit_matches: card.fit?.matches,
+      fit_missing: card.fit?.missing,
+      gmail_message_id: card.gmail_message_id,
+    };
+  }
+
+  function rowToCard(row) {
+    return upgradeCard({
+      ...row,
+      id: row.id,
+      job_description: row.job_description,
+      resume_version: row.resume_version,
+      saved_at: row.saved_at,
+      applied_date: row.applied_date,
+      source: row.source,
+      screening_replied: row.screening_replied,
+      assessment_due: row.assessment_due,
+      info_shared: row.info_shared,
+      interviewing_rounds: row.interviewing_rounds,
+      ctc: row.ctc,
+      joiningDate: row.joining_date,
+      offer_status: row.offer_status,
+      rejectionReason: row.rejection_reason,
+      rejectionDate: row.rejection_date,
+      fit_score: row.fit_score,
+      fit_matches: row.fit_matches,
+      fit_missing: row.fit_missing,
+      questions: row.questions,
+      status: row.status,
+    });
+  }
+
+  async function persistApplicationToServer(card, statusOverride) {
+    const payload = cardToApiPayload(card, statusOverride);
+    const res = await fetch('/api/applications', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token, application: payload })
+    });
+    if (!res.ok) {
+      let msg = 'Could not save application.';
+      try { const data = await res.json(); msg = data?.detail || data?.error || msg; } catch (_) { /* noop */ }
+      throw new Error(msg);
+    }
+    return res.json();
+  }
+
+  async function deleteApplicationOnServer(id) {
+    const res = await fetch('/api/applications', {
+      method: 'DELETE',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token, id })
+    });
+    if (!res.ok) {
+      throw new Error('Could not delete application');
+    }
+  }
+
+  async function loadBoardFromServer() {
+    boardLoading = true;
+    try {
+      const res = await fetch('/api/applications?token=' + encodeURIComponent(token), { headers: { 'cache-control': 'no-cache' } });
+      if (!res.ok) throw new Error('load_failed');
+      const data = await res.json();
+      const shaped = emptyBoard();
+      (data.applications || []).forEach(row => {
+        const col = COLUMNS.includes(row.status) ? row.status : 'research';
+        shaped[col].push(rowToCard(row));
+      });
+      board = shaped;
+      renderBoard();
+      saveBoard();
+    } catch (err) {
+      console.warn('Falling back to cached board', err);
+      renderBoard();
+    } finally {
+      boardLoading = false;
+    }
+  }
+
+  async function loadGmailStatus() {
+    if (!gmailStatusText) return;
+    gmailStatusText.textContent = 'Checking…';
+    try {
+      const res = await fetch('/api/gmail-integration?token=' + encodeURIComponent(token), { headers: { 'cache-control': 'no-cache' } });
+      if (!res.ok) throw new Error('status_error');
+      const data = await res.json();
+      if (data.integration) {
+        const expiry = data.integration.watch_expiration ? new Date(data.integration.watch_expiration) : null;
+        const expiryText = expiry && !Number.isNaN(expiry) ? `Watch expires ${expiry.toLocaleString()}` : 'Watch pending';
+        gmailStatusText.textContent = `${data.integration.gmail_address} · ${expiryText}`;
+        return;
+      }
+      gmailStatusText.textContent = 'Not connected';
+    } catch (err) {
+      gmailStatusText.textContent = 'Status unavailable';
+    }
+  }
+
+  function startGmailConnect() {
+    if (!connectGmailBtn) return;
+    window.location.href = `/api/gmail-oauth-start?token=${encodeURIComponent(token)}`;
+  }
+
+  async function rearmGmailWatch() {
+    if (!rearmWatchBtn) return;
+    rearmWatchBtn.disabled = true;
+    rearmWatchBtn.textContent = 'Re-arming…';
+    try {
+      const res = await fetch('/api/gmail-integration', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      if (!res.ok) throw new Error('failed');
+      await loadGmailStatus();
+      notify('Gmail watch refreshed.', { variant: 'success' });
+    } catch (err) {
+      notify('Could not refresh Gmail watch.', { variant: 'danger' });
+    } finally {
+      rearmWatchBtn.disabled = false;
+      rearmWatchBtn.textContent = 'Re-arm Watch';
+    }
+  }
 
   const userLine = document.getElementById('userLine');
   const goalNum = document.getElementById('goalNum');
@@ -1186,16 +1349,19 @@
           userLine.textContent = data.name ? `Hello, ${data.name}` : 'Welcome back';
           syncGoalUI();
           hydrateSprintCoach();
+          await loadBoardFromServer();
           return;
         }
       }
       userLine.textContent = profile?.name ? `Hello, ${profile.name}` : 'Welcome back';
       syncGoalUI();
       hydrateSprintCoach();
+      await loadBoardFromServer();
     } catch {
       userLine.textContent = profile?.name ? `Hello, ${profile.name}` : 'Welcome back';
       syncGoalUI();
       hydrateSprintCoach();
+      await loadBoardFromServer();
     }
   })();
 
@@ -1363,9 +1529,14 @@
     if (!card) return;
     card = upgradeCard(card);
     handleStageChange(card, fromCol, dest);
+    card.status = dest;
     board[dest].unshift(card);
     saveBoard();
     renderBoard();
+    persistApplicationToServer(card, dest).catch(err => {
+      console.error('failed to persist move', err);
+      notify('Could not sync move to server.', { variant: 'danger' });
+    });
   }
 
   function locateCard(id) {
@@ -1446,6 +1617,9 @@
   const chatSendBtn = document.getElementById('chatSendBtn');
   const closeChatBtn = document.getElementById('closeChatBtn');
   const menu = document.getElementById('menu');
+  const gmailStatusText = document.getElementById('gmailStatusText');
+  const connectGmailBtn = document.getElementById('connectGmailBtn');
+  const rearmWatchBtn = document.getElementById('rearmWatchBtn');
 
   let editingCardId = null;
   let workingCol = 'research';
@@ -1890,32 +2064,44 @@
     const base = upgradeCard({ ...existing, ...raw });
     base.id = raw.id || existing.id || generateId('c');
     base.created_at = existing.created_at || raw.created_at || Date.now();
+    base.status = raw.status || existing.status || base.status;
+    base.gmail_message_id = raw.gmail_message_id || existing.gmail_message_id || '';
     base.questions = (raw.questions || []).map(q => ({ id: q.id || generateId('q'), prompt: q.prompt || '', answer: q.answer || '' }));
     return base;
   }
 
-  function upsertCard() {
+  async function upsertCard() {
     const updated = syncModalToState();
     if (!updated) return;
+    updated.status = modalStage || updated.status || 'research';
     if (!updated.company || !updated.role) {
       notify('Please enter Company and Role', { variant: 'danger' });
       return;
     }
+    let workingCopy;
     if (editingCardId) {
       const located = locateCard(editingCardId);
       if (!located) {
         closeModal();
         return;
       }
-      const merged = sanitizeCard({ ...updated, id: editingCardId }, located.card);
-      board[located.col][located.idx] = merged;
+      workingCopy = sanitizeCard({ ...updated, id: editingCardId }, located.card);
+      board[located.col][located.idx] = workingCopy;
     } else {
-      const newCard = sanitizeCard({ ...updated, id: workingCard.id || generateId('c'), savedAt: updated.savedAt || Date.now() }, {});
-      newCard.created_at = Date.now();
-      board.research.unshift(newCard);
+      workingCopy = sanitizeCard({ ...updated, id: workingCard.id || generateId('c'), savedAt: updated.savedAt || Date.now() }, {});
+      workingCopy.created_at = Date.now();
+      board.research.unshift(workingCopy);
     }
     saveBoard();
     renderBoard();
+    try {
+      await persistApplicationToServer(workingCopy, workingCopy.status);
+      await loadBoardFromServer();
+      notify(editingCardId ? 'Application updated' : 'Application added', { variant: 'success' });
+    } catch (err) {
+      console.error(err);
+      notify('Could not sync application to server.', { variant: 'danger' });
+    }
     closeModal();
   }
 
@@ -1931,7 +2117,7 @@
     notify('Application marked as Applied.', { variant: 'success' });
   }
 
-  function deleteCard() {
+  async function deleteCard() {
     if (!editingCardId) {
       closeModal();
       return;
@@ -1945,8 +2131,14 @@
     board[located.col].splice(located.idx, 1);
     saveBoard();
     renderBoard();
+    try {
+      await deleteApplicationOnServer(editingCardId);
+      await loadBoardFromServer();
+      notify('Application deleted.', { variant: 'success' });
+    } catch (err) {
+      notify('Could not delete on server.', { variant: 'danger' });
+    }
     closeModal();
-    notify('Application deleted.', { variant: 'success' });
   }
 
   function openChat() {
@@ -2065,6 +2257,8 @@
   saveBtn.onclick = upsertCard;
   deleteBtn.onclick = deleteCard;
   markAppliedBtn.onclick = markAsApplied;
+  connectGmailBtn?.addEventListener('click', startGmailConnect);
+  rearmWatchBtn?.addEventListener('click', rearmGmailWatch);
   analyzeFitBtn.onclick = analyzeFit;
   addQuestionBtn.onclick = addQuestionFromInput;
   questionInput.addEventListener('keydown', e => {
@@ -2093,6 +2287,7 @@
     renderBoard();
   };
 
+  loadGmailStatus();
   renderBoard();
   reflectToday();
 </script>
