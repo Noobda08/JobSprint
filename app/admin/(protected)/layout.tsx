@@ -1,12 +1,14 @@
 import type { ReactNode } from "react";
 
-import { requireSuperadmin } from "../_lib/auth";
+import { requireSuperadmin } from "../../../lib/tenant";
+
+interface AdminProtectedLayoutProps {
+  children: ReactNode;
+}
 
 export default async function AdminProtectedLayout({
   children,
-}: {
-  children: ReactNode;
-}) {
+}: AdminProtectedLayoutProps) {
   await requireSuperadmin();
 
   return <>{children}</>;
