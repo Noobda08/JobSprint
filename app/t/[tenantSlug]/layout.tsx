@@ -2,7 +2,7 @@ import type { ReactNode, CSSProperties } from "react";
 import { notFound } from "next/navigation";
 
 import TenantNav from "./_components/tenant-nav";
-import { getTenantBySlug } from "./_lib/tenant";
+import { getTenantBySlug } from "../../../lib/tenant";
 import "./tenant.css";
 
 interface TenantLayoutProps {
