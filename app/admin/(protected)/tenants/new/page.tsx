@@ -46,6 +46,9 @@ export default function NewTenantPage({
             Primary color (optional)
             <input name="primary_color" type="text" placeholder="#0ea5e9" />
           </label>
+          <label>
+            <input name="is_active" type="checkbox" defaultChecked /> Active
+          </label>
           <button type="submit">Create tenant</button>
         </div>
       </form>

@@ -9,6 +9,7 @@ interface TenantRow {
   tenant_slug: string;
   logo_url: string | null;
   primary_color: string | null;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -21,7 +22,7 @@ export default async function TenantsPage({
   const { data: tenants, error } = await supabaseAdmin
     .from("tenants")
     .select(
-      "id, name, tenant_slug, logo_url, primary_color, created_at"
+      "id, name, tenant_slug, logo_url, primary_color, is_active, created_at"
     )
     .order("created_at", { ascending: false });
 
@@ -48,6 +49,7 @@ export default async function TenantsPage({
               <th align="left">Name</th>
               <th align="left">Slug</th>
               <th align="left">Branding</th>
+              <th align="left">Status</th>
               <th align="left">Actions</th>
             </tr>
           </thead>
@@ -68,6 +70,7 @@ export default async function TenantsPage({
                     <div>No primary color</div>
                   )}
                 </td>
+                <td>{tenant.is_active ? "Active" : "Inactive"}</td>
                 <td>
                   <div style={{ display: "flex", gap: "0.75rem" }}>
                     <Link href={`/admin/tenants/${tenant.id}`}>Edit</Link>
@@ -81,7 +84,7 @@ export default async function TenantsPage({
             ))}
             {!tenants?.length ? (
               <tr>
-                <td colSpan={4}>No tenants created yet.</td>
+                <td colSpan={5}>No tenants created yet.</td>
               </tr>
             ) : null}
           </tbody>

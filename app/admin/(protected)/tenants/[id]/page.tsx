@@ -21,7 +21,7 @@ export default async function TenantDetailPage({
   const supabaseAdmin = getSupabaseAdmin();
   const { data: tenant, error } = await supabaseAdmin
     .from("tenants")
-    .select("id, name, tenant_slug, logo_url, primary_color")
+    .select("id, name, tenant_slug, logo_url, primary_color, is_active")
     .eq("id", params.id)
     .maybeSingle();
 
@@ -80,6 +80,14 @@ export default async function TenantDetailPage({
               type="text"
               defaultValue={tenant.primary_color ?? ""}
             />
+          </label>
+          <label>
+            <input
+              name="is_active"
+              type="checkbox"
+              defaultChecked={tenant.is_active}
+            />{" "}
+            Active
           </label>
           <button type="submit">Save changes</button>
         </div>
