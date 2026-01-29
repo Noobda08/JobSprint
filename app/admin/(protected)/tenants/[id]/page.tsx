@@ -87,7 +87,7 @@ export default async function TenantDetailPage({
             <input
               name="is_active"
               type="checkbox"
-              defaultChecked={tenant.is_active}
+              defaultChecked={tenant.is_active ?? undefined}
             />{" "}
             Active
           </label>
