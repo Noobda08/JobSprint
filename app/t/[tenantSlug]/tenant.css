@@ -1,0 +1,74 @@
+.tenant-shell {
+  --tenant-primary: #0ea5e9;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tenant-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tenant-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tenant-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.tenant-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.tenant-nav a {
+  text-decoration: none;
+  font-weight: 600;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid transparent;
+  color: #0f172a;
+}
+
+.tenant-nav a.active {
+  color: var(--tenant-primary);
+  border-bottom-color: var(--tenant-primary);
+}
+
+.tenant-primary-button {
+  appearance: none;
+  border: none;
+  background: var(--tenant-primary);
+  color: #ffffff;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+}
+
+.tenant-primary-button:hover {
+  filter: brightness(0.95);
+}
+
+.tenant-primary-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tenant-message {
+  margin-top: 0.5rem;
+}

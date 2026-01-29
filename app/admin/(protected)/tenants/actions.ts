@@ -26,11 +26,16 @@ function normalizeOptionalValue(value: FormDataEntryValue | null) {
   return trimmed.length ? trimmed : null;
 }
 
+function normalizeCheckbox(value: FormDataEntryValue | null) {
+  return value === "on";
+}
+
 export async function createTenant(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const slugInput = String(formData.get("tenant_slug") ?? "");
   const logoUrl = normalizeOptionalValue(formData.get("logo_url"));
   const primaryColor = normalizeOptionalValue(formData.get("primary_color"));
+  const isActive = normalizeCheckbox(formData.get("is_active"));
 
   if (!name) {
     redirect("/admin/tenants/new?error=missing_name");
@@ -47,6 +52,7 @@ export async function createTenant(formData: FormData) {
     tenant_slug: slugResult.value,
     logo_url: logoUrl,
     primary_color: primaryColor,
+    is_active: isActive,
   });
 
   if (error) {
@@ -67,6 +73,7 @@ export async function updateTenant(formData: FormData) {
   const slugInput = String(formData.get("tenant_slug") ?? "");
   const logoUrl = normalizeOptionalValue(formData.get("logo_url"));
   const primaryColor = normalizeOptionalValue(formData.get("primary_color"));
+  const isActive = normalizeCheckbox(formData.get("is_active"));
 
   if (!id) {
     redirect("/admin/tenants?error=missing_id");
@@ -89,6 +96,7 @@ export async function updateTenant(formData: FormData) {
       tenant_slug: slugResult.value,
       logo_url: logoUrl,
       primary_color: primaryColor,
+      is_active: isActive,
     })
     .eq("id", id);
 
