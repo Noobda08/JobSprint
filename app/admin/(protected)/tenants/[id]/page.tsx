@@ -25,7 +25,7 @@ export default async function TenantDetailPage({
     .select("id, name, tenant_slug, logo_url, primary_color, is_active")
     .eq("id", params.id)
     .maybeSingle();
-  const tenant: TenantProfile | null = data;
+  const tenant = data as TenantProfile | null;
 
   if (error) {
     return (
