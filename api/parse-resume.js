@@ -203,7 +203,7 @@ try {
 }
 
 const mammoth = require('mammoth');
-const { supabaseAdmin } = require('./_supabase');
+const { supabaseAdmin } = require('../lib/_supabase');
 
 /** ===================== Utility & constants ===================== */
 const SECTION_HINTS = [

@@ -6,7 +6,7 @@
  */
 
 const bcrypt = require('bcryptjs');
-const { supabaseAdmin } = require('../api/_supabase');
+const { supabaseAdmin } = require('../lib/_supabase');
 
 function exitWithError(message) {
   console.error(message);

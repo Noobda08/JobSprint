@@ -1,5 +1,5 @@
-const { supabaseAdmin } = require('./_supabase.js');
-const { findUserFromRequest } = require('./_users.js');
+const { supabaseAdmin } = require('../lib/_supabase.js');
+const { findUserFromRequest } = require('../lib/_users.js');
 
 function normalizeBody(body) {
   if (typeof body === 'string') {

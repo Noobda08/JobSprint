@@ -1,6 +1,6 @@
-const { supabaseAdmin } = require('./_supabase.js');
-const { findUserFromRequest } = require('./_users.js');
-const { refreshAccessToken, registerWatch } = require('./_gmail.js');
+const { supabaseAdmin } = require('../lib/_supabase.js');
+const { findUserFromRequest } = require('../lib/_users.js');
+const { refreshAccessToken, registerWatch } = require('../lib/_gmail.js');
 
 module.exports = async function handler(req, res) {
   const { user, status, error, detail } = await findUserFromRequest(req);

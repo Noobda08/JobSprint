@@ -1,5 +1,5 @@
 // api/delete-user.js
-const { supabaseAdmin } = require('./_supabase.js');
+const { supabaseAdmin } = require('../lib/_supabase.js');
 
 function extractResumePath(url) {
   if (!url || typeof url !== 'string') return null;
