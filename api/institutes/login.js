@@ -149,7 +149,7 @@ module.exports = async function handler(req, res) {
     // Schema note: expects `institution_users` join table keyed by institution_id + user_id.
     const { data: institutionUser, error: userError } = await supabaseAdmin
       .from('institution_users')
-      .select('id, institution_id, role, user_id')
+      .select('id, institution_id, role, user_id, is_active')
       .eq('institution_id', institution.id)
       .eq('user_id', authUser.id)
       .maybeSingle();
@@ -161,7 +161,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    if (!institutionUser) {
+    if (!institutionUser || institutionUser.is_active === false) {
       return res.status(401).json({
         error: 'invalid_credentials',
         message: 'Invalid email or password.'

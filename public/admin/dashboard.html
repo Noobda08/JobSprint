@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Creator Portal Dashboard</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; }
+      header { display: flex; justify-content: space-between; align-items: center; }
+      section { margin-top: 32px; border-top: 1px solid #ddd; padding-top: 24px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+      th { background: #f7f7f7; }
+      form { display: grid; gap: 10px; margin-top: 12px; max-width: 540px; }
+      label { font-weight: 600; }
+      input, select { padding: 8px; }
+      button { padding: 8px 12px; cursor: pointer; }
+      .row-actions button { margin-right: 6px; }
+      .badge { padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+      .badge.active { background: #e0f7e9; color: #106a2f; }
+      .badge.inactive { background: #fdecea; color: #9f1c1c; }
+      .note { color: #555; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Creator Portal</h1>
+        <div id="admin-info" class="note"></div>
+      </div>
+      <button id="logout-btn">Log out</button>
+    </header>
+
+    <section>
+      <h2>Institutions</h2>
+      <div class="note">Selected institution: <span id="selected-institution-name">None</span></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Slug</th>
+            <th>Created</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="institutions-table"></tbody>
+      </table>
+
+      <h3>Create Institution</h3>
+      <form id="institution-form">
+        <label>
+          Name
+          <input name="name" required />
+        </label>
+        <label>
+          Slug
+          <input name="slug" required />
+        </label>
+        <label>
+          Logo URL
+          <input name="logo_url" />
+        </label>
+        <label>
+          Primary Color
+          <input name="primary_color" />
+        </label>
+        <label>
+          Secondary Color
+          <input name="secondary_color" />
+        </label>
+        <button type="submit">Create Institution</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Institution Users</h2>
+      <div class="note" id="institution-users-note">Select an institution to manage users.</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="institution-users-table"></tbody>
+      </table>
+
+      <h3>Create Institution User</h3>
+      <form id="institution-user-form">
+        <label>
+          Name
+          <input name="name" />
+        </label>
+        <label>
+          Email
+          <input name="email" type="email" required />
+        </label>
+        <label>
+          Role
+          <select name="role">
+            <option value="admin">Admin</option>
+            <option value="counselor">Counselor</option>
+            <option value="viewer">Viewer</option>
+          </select>
+        </label>
+        <label>
+          Temp Password
+          <input name="password" type="text" required />
+        </label>
+        <button type="submit">Create User</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Licenses</h2>
+      <div class="note" id="license-note">Select an institution to manage licenses.</div>
+      <form id="license-form">
+        <label>
+          Plan
+          <select name="plan">
+            <option value="pilot">Pilot</option>
+            <option value="standard">Standard</option>
+            <option value="enterprise">Enterprise</option>
+          </select>
+        </label>
+        <label>
+          Seats
+          <input name="seats" type="number" min="1" value="1" />
+        </label>
+        <label>
+          Valid Until
+          <input name="valid_until" type="date" />
+        </label>
+        <label>
+          Status
+          <select name="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </label>
+        <button type="submit">Save License</button>
+      </form>
+    </section>
+
+    <section id="creator-users-section" style="display:none;">
+      <h2>Creator Users</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="creator-users-table"></tbody>
+      </table>
+
+      <h3>Create Creator User</h3>
+      <form id="creator-user-form">
+        <label>
+          Name
+          <input name="name" />
+        </label>
+        <label>
+          Email
+          <input name="email" type="email" required />
+        </label>
+        <label>
+          Role
+          <select name="role">
+            <option value="admin">Admin</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+        </label>
+        <label>
+          Temp Password
+          <input name="password" type="text" required />
+        </label>
+        <button type="submit">Create Creator User</button>
+      </form>
+    </section>
+
+    <script>
+      const token = localStorage.getItem('admin_token');
+      if (!token) {
+        window.location.href = '/admin/login.html';
+      }
+
+      const selectedInstitutionIdKey = 'selected_institution_id';
+
+      const adminInfo = document.getElementById('admin-info');
+      const logoutBtn = document.getElementById('logout-btn');
+      const institutionsTable = document.getElementById('institutions-table');
+      const selectedInstitutionName = document.getElementById('selected-institution-name');
+      const institutionUsersTable = document.getElementById('institution-users-table');
+      const institutionUsersNote = document.getElementById('institution-users-note');
+      const licenseNote = document.getElementById('license-note');
+      const licenseForm = document.getElementById('license-form');
+      const creatorSection = document.getElementById('creator-users-section');
+      const creatorUsersTable = document.getElementById('creator-users-table');
+
+      function authFetch(url, options = {}) {
+        return fetch(url, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            ...(options.headers || {})
+          }
+        });
+      }
+
+      function formatDate(value) {
+        if (!value) return '-';
+        return new Date(value).toLocaleDateString();
+      }
+
+      function setSelectedInstitution(institution) {
+        if (institution) {
+          localStorage.setItem(selectedInstitutionIdKey, institution.id);
+          localStorage.setItem('selected_institution_name', institution.name);
+          selectedInstitutionName.textContent = institution.name;
+        } else {
+          localStorage.removeItem(selectedInstitutionIdKey);
+          localStorage.removeItem('selected_institution_name');
+          selectedInstitutionName.textContent = 'None';
+        }
+        loadInstitutionUsers();
+        loadLicense();
+      }
+
+      function currentInstitutionId() {
+        return localStorage.getItem(selectedInstitutionIdKey);
+      }
+
+      async function loadAdmin() {
+        const response = await authFetch('/api/admin/me');
+        if (!response.ok) {
+          localStorage.removeItem('admin_token');
+          window.location.href = '/admin/login.html';
+          return;
+        }
+        const data = await response.json();
+        adminInfo.textContent = `Signed in as ${data.admin.email} (${data.admin.role})`;
+        if (data.admin.role === 'super_admin') {
+          creatorSection.style.display = 'block';
+          loadCreatorUsers();
+        }
+      }
+
+      async function loadInstitutions() {
+        const response = await authFetch('/api/admin/institutions');
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || 'Failed to load institutions.');
+          return;
+        }
+        const selectedId = currentInstitutionId();
+        const selectedName = localStorage.getItem('selected_institution_name');
+        if (selectedName) selectedInstitutionName.textContent = selectedName;
+
+        institutionsTable.innerHTML = '';
+        (data.institutions || []).forEach((inst) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${inst.name}</td>
+            <td>${inst.slug}</td>
+            <td>${formatDate(inst.created_at)}</td>
+            <td><button data-id="${inst.id}">Select</button></td>
+          `;
+          row.querySelector('button').addEventListener('click', () => setSelectedInstitution(inst));
+          institutionsTable.appendChild(row);
+        });
+
+        if (selectedId && !data.institutions.some((inst) => inst.id === selectedId)) {
+          setSelectedInstitution(null);
+        }
+      }
+
+      async function loadInstitutionUsers() {
+        const institutionId = currentInstitutionId();
+        institutionUsersTable.innerHTML = '';
+        if (!institutionId) {
+          institutionUsersNote.textContent = 'Select an institution to manage users.';
+          return;
+        }
+        institutionUsersNote.textContent = '';
+
+        const response = await authFetch(`/api/admin/institution-users?institution_id=${institutionId}`);
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || 'Failed to load users.');
+          return;
+        }
+
+        (data.users || []).forEach((user) => {
+          const row = document.createElement('tr');
+          const statusClass = user.is_active ? 'active' : 'inactive';
+          const statusLabel = user.is_active ? 'Active' : 'Inactive';
+          row.innerHTML = `
+            <td>${user.name || '-'}</td>
+            <td>${user.email || '-'}</td>
+            <td>${user.role}</td>
+            <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+            <td class="row-actions">
+              <button data-action="reset">Reset Password</button>
+              <button data-action="toggle">${user.is_active ? 'Deactivate' : 'Activate'}</button>
+            </td>
+          `;
+          row.querySelector('[data-action="reset"]').addEventListener('click', async () => {
+            const newPassword = prompt('Enter a new password:');
+            if (!newPassword) return;
+            const updateResponse = await authFetch('/api/admin/institution-users', {
+              method: 'PATCH',
+              body: JSON.stringify({ institution_user_id: user.id, password: newPassword })
+            });
+            if (!updateResponse.ok) {
+              const updateData = await updateResponse.json();
+              alert(updateData.error || 'Failed to reset password.');
+            } else {
+              alert('Password updated.');
+            }
+          });
+          row.querySelector('[data-action="toggle"]').addEventListener('click', async () => {
+            const updateResponse = await authFetch('/api/admin/institution-users', {
+              method: 'PATCH',
+              body: JSON.stringify({ institution_user_id: user.id, is_active: !user.is_active })
+            });
+            if (!updateResponse.ok) {
+              const updateData = await updateResponse.json();
+              alert(updateData.error || 'Failed to update user.');
+            } else {
+              loadInstitutionUsers();
+            }
+          });
+          institutionUsersTable.appendChild(row);
+        });
+      }
+
+      async function loadLicense() {
+        const institutionId = currentInstitutionId();
+        if (!institutionId) {
+          licenseNote.textContent = 'Select an institution to manage licenses.';
+          licenseForm.reset();
+          return;
+        }
+        licenseNote.textContent = '';
+
+        const response = await authFetch(`/api/admin/licenses?institution_id=${institutionId}`);
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || 'Failed to load license.');
+          return;
+        }
+        if (data.license) {
+          licenseForm.plan.value = data.license.plan || 'pilot';
+          licenseForm.seats.value = data.license.seats || 1;
+          licenseForm.valid_until.value = data.license.valid_until || '';
+          licenseForm.status.value = data.license.status || 'active';
+        } else {
+          licenseForm.reset();
+          licenseForm.seats.value = 1;
+        }
+      }
+
+      async function loadCreatorUsers() {
+        const response = await authFetch('/api/admin/creator-users');
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || 'Failed to load creator users.');
+          return;
+        }
+        creatorUsersTable.innerHTML = '';
+        (data.creators || []).forEach((creator) => {
+          const row = document.createElement('tr');
+          const statusClass = creator.is_active ? 'active' : 'inactive';
+          const statusLabel = creator.is_active ? 'Active' : 'Inactive';
+          row.innerHTML = `
+            <td>${creator.email}</td>
+            <td>${creator.name || '-'}</td>
+            <td>${creator.role}</td>
+            <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+            <td class="row-actions">
+              <button data-action="reset">Reset Password</button>
+              <button data-action="toggle">${creator.is_active ? 'Deactivate' : 'Activate'}</button>
+            </td>
+          `;
+          row.querySelector('[data-action="reset"]').addEventListener('click', async () => {
+            const newPassword = prompt('Enter a new password:');
+            if (!newPassword) return;
+            const updateResponse = await authFetch('/api/admin/creator-users', {
+              method: 'PATCH',
+              body: JSON.stringify({ creator_user_id: creator.id, password: newPassword })
+            });
+            if (!updateResponse.ok) {
+              const updateData = await updateResponse.json();
+              alert(updateData.error || 'Failed to reset password.');
+            } else {
+              alert('Password updated.');
+            }
+          });
+          row.querySelector('[data-action="toggle"]').addEventListener('click', async () => {
+            const updateResponse = await authFetch('/api/admin/creator-users', {
+              method: 'PATCH',
+              body: JSON.stringify({ creator_user_id: creator.id, is_active: !creator.is_active })
+            });
+            if (!updateResponse.ok) {
+              const updateData = await updateResponse.json();
+              alert(updateData.error || 'Failed to update user.');
+            } else {
+              loadCreatorUsers();
+            }
+          });
+          creatorUsersTable.appendChild(row);
+        });
+      }
+
+      document.getElementById('institution-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const form = event.target;
+        const payload = {
+          name: form.name.value,
+          slug: form.slug.value,
+          logo_url: form.logo_url.value,
+          primary_color: form.primary_color.value,
+          secondary_color: form.secondary_color.value
+        };
+        const response = await authFetch('/api/admin/institutions', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || 'Failed to create institution.');
+          return;
+        }
+        form.reset();
+        loadInstitutions();
+      });
+
+      document.getElementById('institution-user-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const institutionId = currentInstitutionId();
+        if (!institutionId) {
+          alert('Select an institution first.');
+          return;
+        }
+        const form = event.target;
+        const payload = {
+          institution_id: institutionId,
+          name: form.name.value,
+          email: form.email.value,
+          role: form.role.value,
+          password: form.password.value
+        };
+        const response = await authFetch('/api/admin/institution-users', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || 'Failed to create user.');
+          return;
+        }
+        form.reset();
+        loadInstitutionUsers();
+      });
+
+      licenseForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const institutionId = currentInstitutionId();
+        if (!institutionId) {
+          alert('Select an institution first.');
+          return;
+        }
+        const payload = {
+          institution_id: institutionId,
+          plan: licenseForm.plan.value,
+          seats: Number(licenseForm.seats.value),
+          valid_until: licenseForm.valid_until.value || null,
+          status: licenseForm.status.value
+        };
+        const response = await authFetch('/api/admin/licenses', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || 'Failed to save license.');
+          return;
+        }
+        alert('License saved.');
+      });
+
+      document.getElementById('creator-user-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const form = event.target;
+        const payload = {
+          name: form.name.value,
+          email: form.email.value,
+          role: form.role.value,
+          password: form.password.value
+        };
+        const response = await authFetch('/api/admin/creator-users', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          alert(data.error || 'Failed to create creator user.');
+          return;
+        }
+        form.reset();
+        loadCreatorUsers();
+      });
+
+      logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('admin_token');
+        window.location.href = '/admin/login.html';
+      });
+
+      loadAdmin();
+      loadInstitutions();
+      loadInstitutionUsers();
+      loadLicense();
+    </script>
+  </body>
+</html>
