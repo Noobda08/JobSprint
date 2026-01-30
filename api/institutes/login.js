@@ -1,4 +1,5 @@
-const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { supabaseAdmin } = require('../_supabase.js');
 const { requireInstituteAuth } = require('../_institutes_auth.js');
 
@@ -7,32 +8,6 @@ function normalizeBody(body) {
     try { return JSON.parse(body || '{}'); } catch (_) { return {}; }
   }
   return body || {};
-}
-
-function base64UrlEncode(input) {
-  return Buffer.from(input)
-    .toString('base64')
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-}
-
-function signJwt(payload, secret, options = {}) {
-  const issuedAt = Math.floor(Date.now() / 1000);
-  const header = { alg: 'HS256', typ: 'JWT' };
-  const exp = options.expiresIn ? issuedAt + options.expiresIn : undefined;
-  const body = exp ? { ...payload, iat: issuedAt, exp } : { ...payload, iat: issuedAt };
-  const encodedHeader = base64UrlEncode(JSON.stringify(header));
-  const encodedPayload = base64UrlEncode(JSON.stringify(body));
-  const data = `${encodedHeader}.${encodedPayload}`;
-  const signature = crypto
-    .createHmac('sha256', secret)
-    .update(data)
-    .digest('base64')
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-  return `${data}.${signature}`;
 }
 
 async function handleMe(req, res) {
@@ -190,15 +165,27 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const { error: authError } = await supabaseAdmin.auth.signInWithPassword({ email, password });
-    if (authError) {
+    const passwordHash = authUser.user_metadata?.password_hash
+      || authUser.user_metadata?.passwordHash
+      || authUser.app_metadata?.password_hash
+      || authUser.app_metadata?.passwordHash;
+
+    if (!passwordHash) {
       return res.status(401).json({
         error: 'invalid_credentials',
         message: 'Invalid email or password.'
       });
     }
 
-    const token = signJwt(
+    const passwordMatches = await bcrypt.compare(password, passwordHash);
+    if (!passwordMatches) {
+      return res.status(401).json({
+        error: 'invalid_credentials',
+        message: 'Invalid email or password.'
+      });
+    }
+
+    const token = jwt.sign(
       {
         institution_id: institution.id,
         user_id: authUser.id,
