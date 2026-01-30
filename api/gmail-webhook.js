@@ -1,5 +1,5 @@
-const { supabaseAdmin } = require('./_supabase.js');
-const { listHistory, getMessage, parseJobApplication, refreshAccessToken } = require('./_gmail.js');
+const { supabaseAdmin } = require('../lib/_supabase.js');
+const { listHistory, getMessage, parseJobApplication, refreshAccessToken } = require('../lib/_gmail.js');
 
 async function ensureAccessToken(integration) {
   if (!integration.token_expires_at || !integration.refresh_token) {

@@ -1,5 +1,5 @@
 // api/get-user.js
-const { supabaseAdmin } = require('./_supabase.js');
+const { supabaseAdmin } = require('../lib/_supabase.js');
 
 module.exports = async function handler(req, res) {
   try {

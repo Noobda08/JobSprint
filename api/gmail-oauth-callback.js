@@ -1,6 +1,6 @@
-const { exchangeCodeForTokens, getProfile, registerWatch } = require('./_gmail.js');
-const { supabaseAdmin } = require('./_supabase.js');
-const { findUserFromRequest } = require('./_users.js');
+const { exchangeCodeForTokens, getProfile, registerWatch } = require('../lib/_gmail.js');
+const { supabaseAdmin } = require('../lib/_supabase.js');
+const { findUserFromRequest } = require('../lib/_users.js');
 
 function decodeState(state) {
   try {
