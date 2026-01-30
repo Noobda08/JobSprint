@@ -115,6 +115,7 @@
   <script src="scripts/theme.js"></script>
   <script>
     const PRICING_REDIRECT_URL = '/index.html#pricing';
+    const LEGACY_API_DISABLED = true;
     const searchParams = new URLSearchParams(location.search);
     const SIGNUP_STATE = {
       plan: (searchParams.get('plan') || '').trim().toLowerCase(),
@@ -198,82 +199,7 @@
     }
 
     async function startPayment() {
-      if (!SIGNUP_STATE.plan) {
-        throw new Error('Please pick a plan from the pricing page before continuing.');
-      }
-
-      const bodyPayload = {
-        plan: SIGNUP_STATE.plan,
-      };
-      if (SIGNUP_STATE.coupon) {
-        bodyPayload.coupon = SIGNUP_STATE.coupon;
-      }
-
-      const loadingToast = notifyLoading('Preparing secure payment…');
-      try {
-        const orderRes = await fetch('/api/create-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(bodyPayload),
-        });
-
-        if (!orderRes.ok) {
-          const errText = await orderRes.text().catch(() => '');
-          throw new Error(errText || 'Unable to start payment.');
-        }
-
-        const orderData = await orderRes.json();
-        loadingToast?.update?.('Launching secure payment…');
-        await ensureRazorpayLoaded();
-        loadingToast?.update?.('Waiting for confirmation…');
-
-        return await new Promise((resolve, reject) => {
-          const fail = (err) => {
-            loadingToast?.dismiss?.();
-            reject(err);
-          };
-
-          if (typeof window.Razorpay !== 'function') {
-            fail(new Error('Payment gateway unavailable.'));
-            return;
-          }
-
-          const rzp = new window.Razorpay({
-          key: orderData.keyId,
-          amount: orderData.amount,
-          currency: orderData.currency,
-          order_id: orderData.orderId,
-          name: 'JobSprint',
-          description: orderData.plan ? `JobSprint ${orderData.plan}` : 'JobSprint Plan',
-          prefill: {
-            name: SIGNUP_STATE.googlePayload?.name || '',
-            email: SIGNUP_STATE.googlePayload?.email || '',
-          },
-          handler: (response) => {
-            if (response && response.razorpay_payment_id) {
-              loadingToast?.dismiss?.();
-              resolve(response.razorpay_payment_id);
-            } else {
-              fail(new Error('Payment did not complete.'));
-            }
-          },
-          modal: {
-            ondismiss: () => {
-              fail(new Error('Payment window closed before completion.'));
-            },
-          },
-        });
-
-          try {
-            rzp.open();
-          } catch (err) {
-            fail(err);
-          }
-        });
-      } catch (err) {
-        loadingToast?.dismiss?.();
-        throw err;
-      }
+      throw new Error('Payments are temporarily unavailable. Please contact the JobSprint team.');
     }
 
     function parseJwt (token) {
@@ -312,68 +238,8 @@
         resetErrorBanner();
         hideContinueButton();
 
-        const mode       = SIGNUP_STATE.mode || 'signup';
-        const payment_id = SIGNUP_STATE.paymentIdFromQuery;
-
-        lookupToast = notifyLoading('Checking your account status…');
-
-        // 1) Check if user exists
-        let found = false, token = '', profile_complete = false;
-        try {
-          const r = await fetch('/api/get-user?google_id=' + encodeURIComponent(google_id), { headers:{'cache-control':'no-cache'} });
-          if (r.ok) {
-            const data = await r.json();
-            if (data.found) { found = true; token = data.token; profile_complete = !!data.profile_complete; }
-          }
-        } catch (e) { console.warn('get-user failed', e); }
-
-        lookupToast?.dismiss?.();
-        lookupToast = null;
-
-        // 2) Found user
-        if (found) {
-          hideContinueButton();
-          if (profile_complete) {
-            redirectWithToast('/workspace.html?u=' + encodeURIComponent(token), 'Taking you to your workspace…');
-          } else {
-            // send back to onboarding to finish
-            const qs = new URLSearchParams({ google_id, name, email, payment_id });
-            if (SIGNUP_STATE.plan) { qs.set('plan', SIGNUP_STATE.plan); }
-            redirectWithToast('/onboarding.html?' + qs.toString(), 'Let’s finish your onboarding…');
-          }
-          return;
-        }
-
-        // 3) New user → wait for payment before creating
-        SIGNUP_STATE.googlePayload = { google_id, name, email, credential: response.credential };
-        SIGNUP_STATE.googleCredential = response.credential;
-
-        if (mode === 'login') {
-          showErrorBanner('No active subscription found for this account. Please select a plan first.', PRICING_REDIRECT_URL);
-          return;
-        }
-
-        if (SIGNUP_STATE.paymentIdFromQuery) {
-          try {
-            const existingPayment = SIGNUP_STATE.paymentIdFromQuery;
-            SIGNUP_STATE.paymentId = existingPayment;
-            notify('Verifying your payment…', { variant: 'info' });
-            await completeSignup(existingPayment);
-            return;
-          } catch (err) {
-            console.error('Existing payment verification failed', err);
-            notify('We could not verify the previous payment. Please try again.', { variant: 'warning' });
-            SIGNUP_STATE.paymentIdFromQuery = '';
-            SIGNUP_STATE.paymentId = '';
-          }
-        }
-
-        if (!SIGNUP_STATE.plan) {
-          showErrorBanner('Please pick a plan from the pricing page before continuing.', PRICING_REDIRECT_URL);
-          return;
-        }
-
-        showContinueButton();
+        showErrorBanner('Self-serve signup is currently offline. Please contact the JobSprint team to continue.');
+        return;
 
       } catch (err) {
         lookupToast?.dismiss?.();
@@ -386,67 +252,7 @@
     };
 
     async function completeSignup(paymentId) {
-      if (!SIGNUP_STATE.googlePayload) {
-        throw new Error('Missing Google account details. Please sign in again.');
-      }
-
-      const { google_id, email, name } = SIGNUP_STATE.googlePayload;
-
-      const creationToast = notifyLoading('Creating your JobSprint workspace…');
-      const createRes = await fetch('/api/create-user', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          google_id,
-          email,
-          name,
-          payment_id: paymentId,
-          profile_complete: false,
-          onboarding_step: 'start',
-          plan: SIGNUP_STATE.plan || undefined,
-          coupon: SIGNUP_STATE.coupon || undefined,
-        })
-      });
-      let createData = {};
-      try {
-        createData = await createRes.json();
-      } catch (_) {
-        createData = {};
-      }
-
-      if (!createRes.ok || !createData.success) {
-        creationToast?.dismiss?.();
-        const errCode = createData && createData.error;
-        const errMessage = createData && createData.message
-          ? createData.message
-          : 'Could not create your account. Please try again.';
-
-        if (
-          createRes.status === 402 ||
-          createRes.status === 400 && typeof errCode === 'string' && errCode.startsWith('payment_') ||
-          errCode === 'payment_required' ||
-          errCode === 'payment_not_captured' ||
-          errCode === 'payment_verification_failed'
-        ) {
-          showErrorBanner(errMessage, PRICING_REDIRECT_URL);
-        } else {
-          showErrorBanner(errMessage);
-        }
-        throw new Error(errMessage);
-      }
-
-      creationToast?.dismiss?.();
-      notify('Workspace ready! Redirecting to onboarding…', { variant: 'success' });
-      const qs = new URLSearchParams({
-        google_id,
-        name,
-        email,
-        payment_id: paymentId,
-      });
-      if (SIGNUP_STATE.plan) {
-        qs.set('plan', SIGNUP_STATE.plan);
-      }
-      redirectWithToast('/onboarding.html?' + qs.toString(), 'Opening onboarding…');
+      throw new Error('Sign-up services are temporarily unavailable. Please contact the JobSprint team.');
     }
 
     if (continueButton) {
