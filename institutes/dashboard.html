@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Institute Dashboard • JobSprint</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/theme.css">
+
+  <style>
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:'Inter',system-ui,Segoe UI,Helvetica,Arial,sans-serif;background:#f6f8fb;color:var(--ink)}
+    .layout{min-height:100vh;display:flex}
+    .sidebar{width:240px;background:#0f172a;color:#f8fafc;padding:28px 20px;display:flex;flex-direction:column;gap:24px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand-logo{width:40px;height:40px;border-radius:12px;overflow:hidden;background:#1e293b;display:flex;align-items:center;justify-content:center;color:#e2e8f0;font-weight:700}
+    .brand-logo img{width:100%;height:100%;object-fit:cover}
+    .brand-name{font-size:16px;font-weight:600}
+    .brand-sub{font-size:12px;color:#94a3b8;margin-top:2px}
+    nav{display:flex;flex-direction:column;gap:10px}
+    nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:#e2e8f0;text-decoration:none;font-size:14px;font-weight:500}
+    nav a.active,nav a:hover{background:rgba(148,163,184,.2)}
+    .content{flex:1;padding:32px 40px}
+    .card{background:#fff;border-radius:20px;border:1px solid rgba(15,23,42,.12);padding:28px;box-shadow:var(--shadow-sm)}
+    .page-title{margin:0 0 12px;font-size:24px}
+    .placeholder{margin:0;color:var(--muted)}
+    .loading{font-size:13px;color:#94a3b8}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo" id="brand-logo">JS</div>
+        <div>
+          <div class="brand-name" id="brand-name">Institute</div>
+          <div class="brand-sub" id="brand-sub">Placement Center</div>
+        </div>
+      </div>
+      <div class="loading" id="brand-status">Loading branding…</div>
+      <nav>
+        <a class="active" href="#">Dashboard</a>
+        <a href="#">Students</a>
+        <a href="#">Drives</a>
+        <a href="#">Counselling</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="card">
+        <h1 class="page-title">Dashboard</h1>
+        <p class="placeholder">Placement Funnel (coming next)</p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('institutes_token');
+    const brandNameEl = document.getElementById('brand-name');
+    const brandLogoEl = document.getElementById('brand-logo');
+    const brandSubEl = document.getElementById('brand-sub');
+    const brandStatusEl = document.getElementById('brand-status');
+
+    const redirectToLogin = () => {
+      window.location.href = '/institutes/login';
+    };
+
+    const setBranding = (branding) => {
+      brandNameEl.textContent = branding?.name || 'Institute';
+      brandSubEl.textContent = branding?.tagline || 'Placement Center';
+      if (branding?.logo_url) {
+        brandLogoEl.innerHTML = `<img src="${branding.logo_url}" alt="${branding.name || 'Institute'} logo" />`;
+      } else {
+        brandLogoEl.textContent = (branding?.name || 'JS').slice(0, 2).toUpperCase();
+      }
+    };
+
+    const loadBranding = async () => {
+      if (!token) {
+        redirectToLogin();
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/institutes/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          redirectToLogin();
+          return;
+        }
+
+        const data = await response.json();
+        setBranding(data);
+        brandStatusEl.textContent = 'Institute ready';
+      } catch (error) {
+        redirectToLogin();
+      }
+    };
+
+    loadBranding();
+  </script>
+</body>
+</html>
