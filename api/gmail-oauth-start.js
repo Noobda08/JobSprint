@@ -1,5 +1,5 @@
-const { buildOAuthUrl } = require('./_gmail.js');
-const { findUserFromRequest } = require('./_users.js');
+const { buildOAuthUrl } = require('../lib/_gmail.js');
+const { findUserFromRequest } = require('../lib/_users.js');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
