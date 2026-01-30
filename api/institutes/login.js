@@ -16,6 +16,7 @@ async function handleMe(req, res) {
     return null;
   }
 
+  // Schema note: expects `institutions` table with `slug` (login) and branding columns.
   const { data: institution, error: institutionError } = await supabaseAdmin
     .from('institutions')
     .select('id, name, logo_url, primary_color, secondary_color')
@@ -108,6 +109,7 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({ error: 'missing_jwt_secret' });
     }
 
+    // Schema note: expects `institutions.slug` to be unique for institute login.
     const { data: institution, error: institutionError } = await supabaseAdmin
       .from('institutions')
       .select('id, name, logo_url, primary_color, secondary_color')
@@ -144,6 +146,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    // Schema note: expects `institution_users` join table keyed by institution_id + user_id.
     const { data: institutionUser, error: userError } = await supabaseAdmin
       .from('institution_users')
       .select('id, institution_id, role, user_id')
