@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { supabaseAdmin } = require('../_supabase.js');
-const { requireInstituteAuth } = require('../_institutes_auth.js');
+const { supabaseAdmin } = require('../../lib/_supabase.js');
+const { requireInstituteAuth } = require('../../lib/_institutes_auth.js');
 
 function normalizeBody(body) {
   if (typeof body === 'string') {
