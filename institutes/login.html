@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Institute Login • JobSprint</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/theme.css">
+
+  <style>
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:'Inter',system-ui,Segoe UI,Helvetica,Arial,sans-serif;background:#f6f8fb;color:var(--ink)}
+    .page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px}
+    .card{width:min(420px,100%);background:#fff;border:1px solid rgba(15,23,42,.12);border-radius:20px;padding:32px;box-shadow:var(--shadow-sm)}
+    h1{margin:0 0 10px;font-size:24px}
+    .sub{margin:0 0 24px;color:var(--muted);font-size:14px;line-height:1.5}
+    label{display:block;font-weight:600;font-size:13px;margin-bottom:8px}
+    input,select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(15,23,42,.16);font-size:14px;font-family:inherit}
+    input:focus,select:focus{outline:none;border-color:rgba(59,130,246,.6);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+    .field{margin-bottom:18px}
+    .helper{font-size:12px;color:var(--muted);margin-top:6px}
+    .error{display:none;margin-bottom:16px;padding:12px 14px;border-radius:12px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2);color:#b91c1c;font-size:13px}
+    .error.show{display:block}
+    .submit{width:100%;border:none;border-radius:12px;padding:12px 16px;background:linear-gradient(135deg,var(--brand),var(--brand-accent));color:#fff;font-weight:600;font-size:15px;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
+    .submit:disabled{opacity:.6;cursor:not-allowed;box-shadow:none}
+    .submit:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 14px 26px rgba(15,23,42,.15)}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <h1>Institute Login</h1>
+      <p class="sub">Sign in with your institute credentials to access the dashboard.</p>
+
+      <div id="error" class="error" role="alert" aria-live="assertive"></div>
+
+      <form id="login-form">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="name@university.edu" required />
+          <div class="helper">We use your email domain to suggest the right institute.</div>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required />
+        </div>
+
+        <div class="field">
+          <label for="institution">Institution</label>
+          <select id="institution" name="institution">
+            <option value="snu" selected>SNU</option>
+            <option value="mit">MIT</option>
+            <option value="stanford">Stanford</option>
+          </select>
+        </div>
+
+        <button class="submit" type="submit">Sign in</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('login-form');
+    const errorEl = document.getElementById('error');
+    const emailEl = document.getElementById('email');
+    const slugEl = document.getElementById('institution');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    const slugSuggestions = [
+      { slug: 'snu', domains: ['snu.ac.in', 'snu.edu.in', 'shivnadarfoundation.org'] },
+      { slug: 'mit', domains: ['mit.edu'] },
+      { slug: 'stanford', domains: ['stanford.edu'] },
+    ];
+
+    const showError = (message) => {
+      if (!message) {
+        errorEl.textContent = '';
+        errorEl.classList.remove('show');
+        return;
+      }
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
+    };
+
+    const detectSlugFromEmail = (email) => {
+      const domain = (email.split('@')[1] || '').toLowerCase().trim();
+      if (!domain) {
+        return null;
+      }
+      const match = slugSuggestions.find(({ domains }) =>
+        domains.some((known) => domain === known || domain.endsWith(`.${known}`))
+      );
+      return match ? match.slug : null;
+    };
+
+    emailEl.addEventListener('blur', () => {
+      const suggested = detectSlugFromEmail(emailEl.value);
+      if (suggested) {
+        slugEl.value = suggested;
+      }
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      showError('');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in…';
+
+      const payload = {
+        email: emailEl.value.trim(),
+        password: document.getElementById('password').value,
+        institution_slug: slugEl.value,
+      };
+
+      try {
+        const response = await fetch('/api/institutes/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.message || 'Login failed. Please check your credentials.');
+        }
+
+        if (!data.token) {
+          throw new Error('Login succeeded but no token was returned.');
+        }
+
+        localStorage.setItem('institutes_token', data.token);
+        window.location.href = '/institutes/dashboard.html';
+      } catch (error) {
+        showError(error.message || 'Unable to sign in right now.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign in';
+      }
+    });
+  </script>
+</body>
+</html>
