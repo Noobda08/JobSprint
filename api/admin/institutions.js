@@ -48,8 +48,6 @@ module.exports = async function handler(req, res) {
       const slug = typeof body.slug === 'string' ? body.slug.trim().toLowerCase() : '';
       const resolvedSlug = slug || slugify(name);
       const logoUrl = typeof body.logo_url === 'string' ? body.logo_url.trim() : null;
-      const primaryColor = typeof body.primary_color === 'string' ? body.primary_color.trim() : null;
-      const secondaryColor = typeof body.secondary_color === 'string' ? body.secondary_color.trim() : null;
 
       if (!name || !resolvedSlug) {
         return res.status(400).json({
@@ -64,8 +62,6 @@ module.exports = async function handler(req, res) {
           name,
           slug: resolvedSlug,
           logo_url: logoUrl || null,
-          primary_color: primaryColor || null,
-          secondary_color: secondaryColor || null,
           updated_at: new Date().toISOString(),
         })
         .select('id, name, slug, created_at, logo_url, primary_color, secondary_color')
