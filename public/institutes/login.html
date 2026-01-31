@@ -41,21 +41,12 @@
         <div class="field">
           <label for="email">Email</label>
           <input id="email" name="email" type="email" autocomplete="email" placeholder="name@university.edu" required />
-          <div class="helper">We use your email domain to suggest the right institute.</div>
+          <div class="helper">We use your email to locate your institute access.</div>
         </div>
 
         <div class="field">
           <label for="password">Password</label>
           <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required />
-        </div>
-
-        <div class="field">
-          <label for="institution">Institution</label>
-          <select id="institution" name="institution">
-            <option value="snu" selected>SNU</option>
-            <option value="mit">MIT</option>
-            <option value="stanford">Stanford</option>
-          </select>
         </div>
 
         <button class="submit" type="submit">Sign in</button>
@@ -67,14 +58,7 @@
     const form = document.getElementById('login-form');
     const errorEl = document.getElementById('error');
     const emailEl = document.getElementById('email');
-    const slugEl = document.getElementById('institution');
     const submitBtn = form.querySelector('button[type="submit"]');
-
-    const slugSuggestions = [
-      { slug: 'snu', domains: ['snu.ac.in', 'snu.edu.in', 'shivnadarfoundation.org'] },
-      { slug: 'mit', domains: ['mit.edu'] },
-      { slug: 'stanford', domains: ['stanford.edu'] },
-    ];
 
     const showError = (message) => {
       if (!message) {
@@ -86,24 +70,6 @@
       errorEl.classList.add('show');
     };
 
-    const detectSlugFromEmail = (email) => {
-      const domain = (email.split('@')[1] || '').toLowerCase().trim();
-      if (!domain) {
-        return null;
-      }
-      const match = slugSuggestions.find(({ domains }) =>
-        domains.some((known) => domain === known || domain.endsWith(`.${known}`))
-      );
-      return match ? match.slug : null;
-    };
-
-    emailEl.addEventListener('blur', () => {
-      const suggested = detectSlugFromEmail(emailEl.value);
-      if (suggested) {
-        slugEl.value = suggested;
-      }
-    });
-
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       showError('');
@@ -113,7 +79,6 @@
       const payload = {
         email: emailEl.value.trim(),
         password: document.getElementById('password').value,
-        institution_slug: slugEl.value,
       };
 
       try {
