@@ -67,6 +67,21 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      const { data: institution, error: institutionError } = await supabaseAdmin
+        .from('institutions')
+        .select('name')
+        .eq('id', institutionId)
+        .maybeSingle();
+
+      if (institutionError) {
+        return res.status(500).json({
+          error: 'supabase_error',
+          detail: institutionError.message || String(institutionError),
+        });
+      }
+
+      const institutionName = institution?.name || '';
+
       const results = await Promise.all((institutionUsers || []).map(async (row) => {
         const authUser = await getAuthUser(row.user_id);
         const name = authUser?.user_metadata?.name
@@ -82,6 +97,7 @@ module.exports = async function handler(req, res) {
           is_active: row.is_active !== false,
           name,
           email: authUser?.email || '',
+          institution_name: institutionName,
         };
       }));
 

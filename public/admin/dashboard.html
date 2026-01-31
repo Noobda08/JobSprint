@@ -203,6 +203,7 @@
           <thead>
             <tr>
               <th>Name</th>
+              <th>Institution</th>
               <th>Email</th>
               <th>Role</th>
               <th>Status</th>
@@ -526,6 +527,7 @@
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${user.name || '-'}</td>
+            <td>${user.institution_name || '-'}</td>
             <td>${user.email || '-'}</td>
             <td>${user.role}</td>
             <td><span class="badge">${user.is_active ? 'Active' : 'Inactive'}</span></td>
