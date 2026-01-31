@@ -130,12 +130,6 @@
           <span id="logo-upload-status" class="badge" style="display: none;">Uploaded</span>
         </div>
         <input type="hidden" name="logo_url" id="logo-url-input" />
-        <label>Primary Color
-          <input name="primary_color" />
-        </label>
-        <label>Secondary Color
-          <input name="secondary_color" />
-        </label>
         <button type="submit">Create Institution</button>
         <div class="message" id="institution-message"></div>
       </form>
@@ -451,6 +445,8 @@
       const formData = new FormData(event.target);
       const payload = Object.fromEntries(formData.entries());
       delete payload.logo_file;
+      delete payload.primary_color;
+      delete payload.secondary_color;
 
       try {
         await apiFetch('/api/admin/institutions', {
