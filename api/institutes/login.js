@@ -98,36 +98,15 @@ module.exports = async function handler(req, res) {
     const password = typeof body.password === 'string' ? body.password : '';
     const institutionSlug = typeof body.institution_slug === 'string' ? body.institution_slug.trim() : '';
 
-    if (!email || !password || !institutionSlug) {
+    if (!email || !password) {
       return res.status(400).json({
         error: 'missing_fields',
-        message: 'Email, password, and institution are required.'
+        message: 'Email and password are required.'
       });
     }
 
     if (!process.env.INSTITUTES_JWT_SECRET) {
       return res.status(500).json({ error: 'missing_jwt_secret' });
-    }
-
-    // Schema note: expects `institutions.slug` to be unique for institute login.
-    const { data: institution, error: institutionError } = await supabaseAdmin
-      .from('institutions')
-      .select('id, name, logo_url, primary_color, secondary_color')
-      .eq('slug', institutionSlug)
-      .maybeSingle();
-
-    if (institutionError) {
-      return res.status(500).json({
-        error: 'supabase_error',
-        detail: institutionError.message || String(institutionError)
-      });
-    }
-
-    if (!institution) {
-      return res.status(404).json({
-        error: 'institution_not_found',
-        message: 'Institution not found.'
-      });
     }
 
     const { data: authLookup, error: authLookupError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
@@ -146,26 +125,104 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Schema note: expects `institution_users` join table keyed by institution_id + user_id.
-    const { data: institutionUser, error: userError } = await supabaseAdmin
-      .from('institution_users')
-      .select('id, institution_id, role, user_id')
-      .eq('institution_id', institution.id)
-      .eq('user_id', authUser.id)
-      .maybeSingle();
+    let institution = null;
+    if (institutionSlug) {
+      // Schema note: expects `institutions.slug` to be unique for institute login.
+      const { data: institutionRecord, error: institutionError } = await supabaseAdmin
+        .from('institutions')
+        .select('id, name, logo_url, primary_color, secondary_color')
+        .eq('slug', institutionSlug)
+        .maybeSingle();
 
-    if (userError) {
-      return res.status(500).json({
-        error: 'supabase_error',
-        detail: userError.message || String(userError)
-      });
+      if (institutionError) {
+        return res.status(500).json({
+          error: 'supabase_error',
+          detail: institutionError.message || String(institutionError)
+        });
+      }
+
+      if (!institutionRecord) {
+        return res.status(404).json({
+          error: 'institution_not_found',
+          message: 'Institution not found.'
+        });
+      }
+
+      institution = institutionRecord;
     }
 
-    if (!institutionUser) {
+    // Schema note: expects `institution_users` join table keyed by institution_id + user_id.
+    let institutionUser = null;
+    if (institution) {
+      const { data: userRecord, error: userError } = await supabaseAdmin
+        .from('institution_users')
+        .select('id, institution_id, role, user_id, is_active')
+        .eq('institution_id', institution.id)
+        .eq('user_id', authUser.id)
+        .maybeSingle();
+
+      if (userError) {
+        return res.status(500).json({
+          error: 'supabase_error',
+          detail: userError.message || String(userError)
+        });
+      }
+
+      institutionUser = userRecord;
+    } else {
+      const { data: userRecords, error: userError } = await supabaseAdmin
+        .from('institution_users')
+        .select('id, institution_id, role, user_id, is_active, created_at')
+        .eq('user_id', authUser.id)
+        .order('created_at', { ascending: true });
+
+      if (userError) {
+        return res.status(500).json({
+          error: 'supabase_error',
+          detail: userError.message || String(userError)
+        });
+      }
+
+      const activeRecords = (userRecords || []).filter((row) => row.is_active !== false);
+      if (activeRecords.length === 1) {
+        institutionUser = activeRecords[0];
+      } else if (activeRecords.length > 1) {
+        return res.status(400).json({
+          error: 'multiple_institutions',
+          message: 'Multiple institute memberships found. Contact support to resolve.'
+        });
+      }
+    }
+
+    if (!institutionUser || institutionUser.is_active === false) {
       return res.status(401).json({
         error: 'invalid_credentials',
         message: 'Invalid email or password.'
       });
+    }
+
+    if (!institution) {
+      const { data: institutionRecord, error: institutionError } = await supabaseAdmin
+        .from('institutions')
+        .select('id, name, logo_url, primary_color, secondary_color')
+        .eq('id', institutionUser.institution_id)
+        .maybeSingle();
+
+      if (institutionError) {
+        return res.status(500).json({
+          error: 'supabase_error',
+          detail: institutionError.message || String(institutionError)
+        });
+      }
+
+      if (!institutionRecord) {
+        return res.status(404).json({
+          error: 'institution_not_found',
+          message: 'Institution not found.'
+        });
+      }
+
+      institution = institutionRecord;
     }
 
     const passwordHash = authUser.user_metadata?.password_hash
