@@ -113,6 +113,14 @@
       background: #e5e7eb;
       font-size: 12px;
     }
+    .badge.ok {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .badge.alert {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
     .section-title {
       display: flex;
       align-items: center;
@@ -207,6 +215,7 @@
               <th>Email</th>
               <th>Role</th>
               <th>Status</th>
+              <th>Password</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -524,6 +533,11 @@
         const data = await apiFetch(`/api/admin/institution-users?institution_id=${selectedInstitutionId}`);
         institutionUsersTable.innerHTML = '';
         data.users.forEach((user) => {
+          const passwordInitialized = Boolean(user.password_initialized);
+          const passwordBadge = passwordInitialized
+            ? '<span class="badge ok">Set</span>'
+            : '<span class="badge alert">Missing</span>';
+          const passwordLabel = passwordInitialized ? 'Reset Password' : 'Initialize Password';
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${user.name || '-'}</td>
@@ -531,8 +545,9 @@
             <td>${user.email || '-'}</td>
             <td>${user.role}</td>
             <td><span class="badge">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td>${passwordBadge}</td>
             <td>
-              <button data-action="reset" data-id="${user.id}">Reset Password</button>
+              <button data-action="reset" data-id="${user.id}">${passwordLabel}</button>
               <button class="secondary" data-action="toggle" data-id="${user.id}" data-active="${user.is_active}">
                 ${user.is_active ? 'Deactivate' : 'Reactivate'}
               </button>

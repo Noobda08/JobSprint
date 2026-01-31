@@ -124,6 +124,7 @@ module.exports = async function handler(req, res) {
           || authUser?.user_metadata?.display_name
           || authUser?.email
           || '';
+        const passwordInitialized = Boolean(authUser?.user_metadata?.password_hash);
 
         return {
           id: row.id,
@@ -133,6 +134,7 @@ module.exports = async function handler(req, res) {
           name,
           email: authUser?.email || '',
           institution_name: institutionName,
+          password_initialized: passwordInitialized,
         };
       }));
 
@@ -182,7 +184,7 @@ module.exports = async function handler(req, res) {
           password_hash: passwordHash,
         };
 
-        const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(authUser.id, {
+        const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(authUser.id, {
           user_metadata: userMetadata,
         });
 
@@ -192,6 +194,8 @@ module.exports = async function handler(req, res) {
             detail: updateError.message || String(updateError),
           });
         }
+
+        authUser = updatedUser?.user || authUser;
       } else {
         const randomPassword = crypto.randomBytes(16).toString('hex');
         const { data, error: createError } = await supabaseAdmin.auth.admin.createUser({
