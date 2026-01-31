@@ -194,9 +194,16 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    if (!institutionUser || institutionUser.is_active === false) {
+    if (!institutionUser) {
       return res.status(401).json({
-        error: 'invalid_credentials',
+        error: 'membership_missing',
+        message: 'Invalid email or password.'
+      });
+    }
+
+    if (institutionUser.is_active === false) {
+      return res.status(401).json({
+        error: 'membership_inactive',
         message: 'Invalid email or password.'
       });
     }
@@ -232,7 +239,7 @@ module.exports = async function handler(req, res) {
 
     if (!passwordHash) {
       return res.status(401).json({
-        error: 'invalid_credentials',
+        error: 'password_not_initialized',
         message: 'Invalid email or password.'
       });
     }
