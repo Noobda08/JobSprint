@@ -38,6 +38,41 @@ function getAuthUserFromEmailLookup(data, email) {
   return null;
 }
 
+async function ensurePasswordMetadata({ authUser, passwordHash }) {
+  if (!authUser?.id) {
+    return { error: { code: 'auth_user_missing', message: 'Auth user not found.' } };
+  }
+
+  const currentHash = authUser?.user_metadata?.password_hash;
+  if (currentHash !== passwordHash) {
+    const userMetadata = {
+      ...(authUser?.user_metadata || {}),
+      password_hash: passwordHash,
+    };
+
+    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(authUser.id, {
+      user_metadata: userMetadata,
+    });
+
+    if (error) {
+      return { error: { code: 'auth_update_failed', message: error.message || String(error) } };
+    }
+
+    authUser = data?.user || authUser;
+  }
+
+  if (!authUser?.user_metadata?.password_hash) {
+    return {
+      error: {
+        code: 'password_not_initialized',
+        message: 'Password metadata is missing. Please reset the password.',
+      },
+    };
+  }
+
+  return { authUser };
+}
+
 module.exports = async function handler(req, res) {
   try {
     const auth = requireAdminAuth(req, res);
@@ -183,6 +218,29 @@ module.exports = async function handler(req, res) {
         return res.status(500).json({ error: 'auth_user_missing' });
       }
 
+      if (password) {
+        const { authUser: ensuredUser, error: ensureError } = await ensurePasswordMetadata({
+          authUser,
+          passwordHash,
+        });
+
+        if (ensureError) {
+          if (ensureError.code === 'password_not_initialized') {
+            return res.status(409).json({
+              error: ensureError.code,
+              message: ensureError.message,
+            });
+          }
+
+          return res.status(500).json({
+            error: ensureError.code || 'auth_update_failed',
+            detail: ensureError.message,
+          });
+        }
+
+        authUser = ensuredUser;
+      }
+
       const { data: institutionUser, error: insertError } = await supabaseAdmin
         .from('institution_users')
         .upsert({
@@ -273,20 +331,22 @@ module.exports = async function handler(req, res) {
       if (password) {
         const passwordHash = await bcrypt.hash(password, 10);
         const authUser = await getAuthUser(institutionUser.user_id);
-        const userMetadata = {
-          ...(authUser?.user_metadata || {}),
-          password_hash: passwordHash,
-        };
+        const { error: ensureError } = await ensurePasswordMetadata({
+          authUser,
+          passwordHash,
+        });
 
-        const { error: authUpdateError } = await supabaseAdmin.auth.admin.updateUserById(
-          institutionUser.user_id,
-          { user_metadata: userMetadata }
-        );
+        if (ensureError) {
+          if (ensureError.code === 'password_not_initialized') {
+            return res.status(409).json({
+              error: ensureError.code,
+              message: ensureError.message,
+            });
+          }
 
-        if (authUpdateError) {
           return res.status(500).json({
-            error: 'auth_update_failed',
-            detail: authUpdateError.message || String(authUpdateError),
+            error: ensureError.code || 'auth_update_failed',
+            detail: ensureError.message,
           });
         }
       }
