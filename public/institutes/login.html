@@ -59,6 +59,12 @@
     const errorEl = document.getElementById('error');
     const emailEl = document.getElementById('email');
     const submitBtn = form.querySelector('button[type="submit"]');
+    const errorMessages = {
+      membership_not_found: 'We could not find an active institute membership for this email. Please contact your admin.',
+      membership_inactive: 'Your institute access is inactive. Ask an admin to reactivate your account.',
+      password_not_initialized: 'Your account has not been initialized. Ask an admin to reset your password.',
+      password_incorrect: 'That password is incorrect. Please try again or contact your admin for help.',
+    };
 
     const showError = (message) => {
       if (!message) {
@@ -90,7 +96,8 @@
 
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.message || 'Login failed. Please check your credentials.');
+          const mappedMessage = errorMessages[data.error];
+          throw new Error(mappedMessage || data.message || 'Login failed. Please check your credentials.');
         }
 
         if (!data.token) {
