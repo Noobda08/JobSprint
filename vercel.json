@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/signup", "destination": "/signup.html" },
+    { "source": "/onboarding", "destination": "/onboarding.html" },
+    { "source": "/persona", "destination": "/persona.html" },
+    { "source": "/sprint-readiness", "destination": "/sprint-readiness.html" },
+    { "source": "/workspace", "destination": "/workspace.html" },
+    { "source": "/institutes/login", "destination": "/institutes/login.html" },
+    { "source": "/institutes/dashboard", "destination": "/institutes/dashboard.html" }
+  ]
+}
