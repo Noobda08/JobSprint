@@ -1,4 +1,7 @@
 {
+  "env": {
+    "INSTITUTES_JWT_SECRET": "xlfZCLTnH57RVaD3QYLOTIaTtpHAofgGycBbeq9okVx5YeJ60wEU97tjhjtdacFb"
+  },
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
     { "source": "/signup", "destination": "/signup.html" },
