@@ -122,9 +122,14 @@
           <input name="slug" required />
         </label>
         <div class="helper-text">Auto-generated from name; used for institute login URL.</div>
-        <label>Logo URL
-          <input name="logo_url" />
+        <label>Logo File
+          <input name="logo_file" type="file" accept="image/*" />
         </label>
+        <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
+          <button type="button" id="logo-upload-btn">Upload Logo</button>
+          <span id="logo-upload-status" class="badge" style="display: none;">Uploaded</span>
+        </div>
+        <input type="hidden" name="logo_url" id="logo-url-input" />
         <label>Primary Color
           <input name="primary_color" />
         </label>
@@ -286,6 +291,10 @@
     const institutionForm = document.getElementById('institution-form');
     const institutionNameInput = institutionForm.querySelector('input[name="name"]');
     const institutionSlugInput = institutionForm.querySelector('input[name="slug"]');
+    const logoFileInput = institutionForm.querySelector('input[name="logo_file"]');
+    const logoUrlInput = institutionForm.querySelector('input[name="logo_url"]');
+    const logoUploadBtn = document.getElementById('logo-upload-btn');
+    const logoUploadStatus = document.getElementById('logo-upload-status');
 
     const institutionsTable = document.getElementById('institutions-table');
     const institutionUsersTable = document.getElementById('institution-users-table');
@@ -309,6 +318,49 @@
 
     institutionNameInput.addEventListener('input', (event) => {
       institutionSlugInput.value = slugify(event.target.value || '');
+    });
+
+    logoFileInput.addEventListener('change', () => {
+      logoUploadStatus.style.display = 'none';
+      logoUrlInput.value = '';
+    });
+
+    logoUploadBtn.addEventListener('click', async () => {
+      institutionMessage.textContent = '';
+      if (!logoFileInput.files || !logoFileInput.files.length) {
+        showMessage(institutionMessage, 'Select a logo file to upload.');
+        return;
+      }
+
+      logoUploadBtn.disabled = true;
+      logoUploadStatus.style.display = 'none';
+
+      try {
+        const uploadData = new FormData();
+        uploadData.append('file', logoFileInput.files[0]);
+
+        const response = await fetch('/api/admin/logo-upload', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          body: uploadData
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.message || data.error || 'Logo upload failed.');
+        }
+
+        logoUrlInput.value = data.url || '';
+        logoUploadStatus.textContent = 'Uploaded';
+        logoUploadStatus.style.display = 'inline-block';
+        showMessage(institutionMessage, 'Logo uploaded.', false);
+      } catch (error) {
+        showMessage(institutionMessage, error.message || 'Logo upload failed.');
+        logoUploadStatus.style.display = 'none';
+      } finally {
+        logoUploadBtn.disabled = false;
+      }
     });
 
     async function apiFetch(url, options = {}) {
@@ -398,6 +450,7 @@
       institutionMessage.textContent = '';
       const formData = new FormData(event.target);
       const payload = Object.fromEntries(formData.entries());
+      delete payload.logo_file;
 
       try {
         await apiFetch('/api/admin/institutions', {
@@ -405,6 +458,8 @@
           body: JSON.stringify(payload)
         });
         event.target.reset();
+        logoUploadStatus.style.display = 'none';
+        logoUrlInput.value = '';
         showMessage(institutionMessage, 'Institution created.', false);
         await loadInstitutions();
       } catch (error) {
