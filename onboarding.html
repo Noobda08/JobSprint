@@ -565,6 +565,7 @@
 
   <script src="scripts/theme.js"></script>
   <script>
+    const LEGACY_API_DISABLED = true;
     const params = new URLSearchParams(location.search);
     let googleId = params.get('google_id');
     const paymentId = params.get('payment_id');
@@ -1668,31 +1669,17 @@
         resumeStatusEl.textContent = 'Checking saved resume...';
       }
       try {
-        const response = await fetch(`/api/get-user?google_id=${encodeURIComponent(id)}`);
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          console.error('Failed to fetch profile', payload);
-          updateResumeStatus();
+        const localProfile = readStoredProfile();
+        if (localProfile?.google_id === id) {
+          populateFromProfile(localProfile);
+          updateWorkspaceShortcutVisibility({ profileComplete: localProfile?.profile_complete === true });
           return;
         }
-        if (!payload?.found) {
-          updateResumeStatus();
-          return;
-        }
-        populateFromProfile(payload);
-        try {
-          const { found, ...rest } = payload;
-          const existing = readStoredProfile();
-          const merged = { ...existing, ...rest, google_id: id };
-          writeStoredProfile(merged);
-        } catch (storageErr) {
-          console.warn('Could not sync profile to localStorage', storageErr);
-        }
-        updateWorkspaceShortcutVisibility({ profileComplete: payload?.profile_complete === true });
-      } catch (err) {
-        console.error('Failed to load existing profile', err);
-        updateResumeStatus();
+      } catch (storageErr) {
+        console.warn('Could not read local profile', storageErr);
       }
+      updateResumeStatus();
+      return;
     };
 
     if (googleId) {
@@ -1728,75 +1715,19 @@
 
     const parsingToast = notifyLoading('Parsing your resume…');
     try {
-      const r = await fetch('/api/parse-resume', { method: 'POST', body: fd });
-      const j = await r.json();
-      if (!r.ok || !j.success) {
-        parsingToast?.dismiss?.();
-        const reason = j?.detail || j?.error || 'Use PDF/DOCX or fill manually.';
-        notify(`Could not parse resume. ${reason}`, { variant: 'danger' });
-        return;
-      }
-      const f = j.fields || {};
-      const resumeMeta = j.resume || {};
-      uploadedResume = {
-        path: resumeMeta.path || null,
-        publicUrl: resumeMeta.public_url || null
-      };
-      const uploadedUrl = uploadedResume.publicUrl || uploadedResume.path || null;
-      updateResumeStatus(uploadedUrl);
-      if (uploadedUrl) {
-        resumeOnFile = true;
-      }
-      sessionHasParsedResume = true;
-      const rawText = typeof j.raw_text === 'string' ? j.raw_text : '';
+      parsingToast?.dismiss?.();
+      notify('Resume parsing is currently offline. Please fill the fields manually.', { variant: 'warning' });
+      const rawText = typeof file.text === 'function' ? await file.text() : '';
       if (rawText) {
         try {
           const existing = readStoredProfile();
           writeStoredProfile({ ...existing, resume_text: rawText });
+          sessionHasParsedResume = true;
         } catch (storageErr) {
-          console.warn('Could not persist parsed resume text', storageErr);
+          console.warn('Could not persist resume text', storageErr);
         }
       }
-      applyPersonalFields({
-        name: f.name,
-        email: f.email,
-        phone: f.phone,
-        city: f.city,
-        preferred_cities: f.preferred_cities
-      }, { force: true });
-      if (f.dob) document.getElementById('dob').value = f.dob;
-      const candidateTitles = new Set();
-      if (typeof f.role === 'string') candidateTitles.add(f.role);
-      if (Array.isArray(f.roles)) f.roles.forEach((title) => candidateTitles.add(title));
-      if (Array.isArray(f.titles)) f.titles.forEach((title) => candidateTitles.add(title));
-      if (Array.isArray(j?.parsed?.roles)) j.parsed.roles.forEach((title) => candidateTitles.add(title));
-      if (Array.isArray(j?.parsed?.titles)) j.parsed.titles.forEach((title) => candidateTitles.add(title));
-      if (Array.isArray(j?.parsed?.positions)) {
-        j.parsed.positions.forEach((position) => {
-          if (typeof position === 'string') {
-            candidateTitles.add(position);
-          } else if (position && typeof position.title === 'string') {
-            candidateTitles.add(position.title);
-          }
-        });
-      }
-      const bestRoleMatch = findBestRoleMatchFromList(Array.from(candidateTitles));
-      if (bestRoleMatch && bestRoleMatch.score >= 0.72) {
-        console.info('Matched resume role to curated option', bestRoleMatch);
-        setRoleValue(bestRoleMatch.value);
-      } else if (typeof f.role === 'string' && f.role.trim()) {
-        setRoleValue(f.role);
-      }
-      if (typeof f.experience === 'number') document.getElementById('experience').value = f.experience;
-
-      const confidence = f._confidence || j.parsed?._confidence;
-      const profileHints = f.profiles || j.parsed?.profiles;
-      console.info('Resume parse confidence', confidence);
-      if (profileHints?.linkedin) console.info('LinkedIn detected:', profileHints.linkedin);
-      if (profileHints?.github) console.info('GitHub detected:', profileHints.github);
-
-      parsingToast?.dismiss?.();
-      notify('✨ Resume parsed with advanced heuristics! Review and adjust if needed.', { variant: 'success' });
+      updateResumeStatus();
     }
     catch (err)
     {
@@ -1933,48 +1864,26 @@
       let savingToast = null;
       try {
         savingToast = notifyLoading('Saving your onboarding…');
-        const resp = await fetch('/api/create-user', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(payload)
+        const data = { success: true };
+        const existing = readStoredProfile();
+        const storageUpdate = { google_id };
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value !== undefined) {
+            storageUpdate[key] = value;
+          }
         });
-        const data = await resp.json().catch(() => ({}));
-        if (!resp.ok || !data.success) {
-          console.error(data);
-          const detailMessage = data?.detail || data?.error;
-          const message = detailMessage ? `Could not save your onboarding. ${detailMessage}` : 'Could not save your onboarding. Please try again.';
-          savingToast?.dismiss?.();
-          notify(message, { variant: 'danger' });
-          finishBtn.disabled = false;
-          finishBtn.innerText = "Finish Setup";
-          return;
+        const mergedProfile = { ...existing, ...storageUpdate };
+        if (Array.isArray(storageUpdate.preferred_cities)) {
+          delete mergedProfile.city;
         }
+        writeStoredProfile(mergedProfile);
+        hasCompletedOnboarding = true;
+        if (payload.resume_url) {
+          resumeOnFile = true;
+        }
+        updateWorkspaceShortcutVisibility({ storedProfile: mergedProfile });
         savingToast?.dismiss?.();
         const wasReturningUser = hasCompletedOnboarding === true || hasSeenReadiness();
-        try {
-          const existing = readStoredProfile();
-          const storageUpdate = { google_id };
-          Object.entries(payload).forEach(([key, value]) => {
-            if (value !== undefined) {
-              storageUpdate[key] = value;
-            }
-          });
-          if (data.token) {
-            storageUpdate.token = data.token;
-          }
-          const mergedProfile = { ...existing, ...storageUpdate };
-          if (Array.isArray(storageUpdate.preferred_cities)) {
-            delete mergedProfile.city;
-          }
-          writeStoredProfile(mergedProfile);
-          hasCompletedOnboarding = true;
-          if (payload.resume_url) {
-            resumeOnFile = true;
-          }
-          updateWorkspaceShortcutVisibility({ storedProfile: mergedProfile });
-        } catch (storageErr) {
-          console.warn('Could not update stored profile after onboarding', storageErr);
-        }
         try {
           localStorage.setItem('jobsprint_readiness_seen', new Date().toISOString());
         } catch (flagErr) {

@@ -68,13 +68,13 @@
       window.location.href = '/institutes/login';
     };
 
-    const setBranding = (branding) => {
-      brandNameEl.textContent = branding?.name || 'Institute';
-      brandSubEl.textContent = branding?.tagline || 'Placement Center';
-      if (branding?.logo_url) {
-        brandLogoEl.innerHTML = `<img src="${branding.logo_url}" alt="${branding.name || 'Institute'} logo" />`;
+    const setBranding = (institution) => {
+      brandNameEl.textContent = institution?.name || 'Institute';
+      brandSubEl.textContent = institution?.tagline || 'Placement Center';
+      if (institution?.logo_url) {
+        brandLogoEl.innerHTML = `<img src="${institution.logo_url}" alt="${institution.name || 'Institute'} logo" />`;
       } else {
-        brandLogoEl.textContent = (branding?.name || 'JS').slice(0, 2).toUpperCase();
+        brandLogoEl.textContent = (institution?.name || 'JS').slice(0, 2).toUpperCase();
       }
     };
 
@@ -85,7 +85,7 @@
       }
 
       try {
-        const response = await fetch('/api/institutes/me', {
+        const response = await fetch('/api/institutes/login', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -97,7 +97,7 @@
         }
 
         const data = await response.json();
-        setBranding(data);
+        setBranding(data?.institution);
         brandStatusEl.textContent = 'Institute ready';
       } catch (error) {
         redirectToLogin();

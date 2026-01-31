@@ -516,6 +516,7 @@
 <script src="scripts/theme.js"></script>
 <script src="scripts/ats-scorer.js"></script>
 <script>
+  const LEGACY_API_DISABLED = true;
   const qs = new URLSearchParams(location.search);
   const token = qs.get('u') || (JSON.parse(localStorage.getItem('jobsprint_profile')||'{}').token) || 'guest';
 
@@ -942,45 +943,17 @@
   }
 
   async function persistApplicationToServer(card, statusOverride) {
-    const payload = cardToApiPayload(card, statusOverride);
-    const res = await fetch('/api/applications', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ token, application: payload })
-    });
-    if (!res.ok) {
-      let msg = 'Could not save application.';
-      try { const data = await res.json(); msg = data?.detail || data?.error || msg; } catch (_) { /* noop */ }
-      throw new Error(msg);
-    }
-    return res.json();
+    return { localOnly: true };
   }
 
   async function deleteApplicationOnServer(id) {
-    const res = await fetch('/api/applications', {
-      method: 'DELETE',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ token, id })
-    });
-    if (!res.ok) {
-      throw new Error('Could not delete application');
-    }
+    return;
   }
 
   async function loadBoardFromServer() {
     boardLoading = true;
     try {
-      const res = await fetch('/api/applications?token=' + encodeURIComponent(token), { headers: { 'cache-control': 'no-cache' } });
-      if (!res.ok) throw new Error('load_failed');
-      const data = await res.json();
-      const shaped = emptyBoard();
-      (data.applications || []).forEach(row => {
-        const col = COLUMNS.includes(row.status) ? row.status : 'research';
-        shaped[col].push(rowToCard(row));
-      });
-      board = shaped;
       renderBoard();
-      saveBoard();
     } catch (err) {
       console.warn('Falling back to cached board', err);
       renderBoard();
@@ -991,26 +964,12 @@
 
   async function loadGmailStatus() {
     if (!gmailStatusText) return;
-    gmailStatusText.textContent = 'Checking…';
-    try {
-      const res = await fetch('/api/gmail-integration?token=' + encodeURIComponent(token), { headers: { 'cache-control': 'no-cache' } });
-      if (!res.ok) throw new Error('status_error');
-      const data = await res.json();
-      if (data.integration) {
-        const expiry = data.integration.watch_expiration ? new Date(data.integration.watch_expiration) : null;
-        const expiryText = expiry && !Number.isNaN(expiry) ? `Watch expires ${expiry.toLocaleString()}` : 'Watch pending';
-        gmailStatusText.textContent = `${data.integration.gmail_address} · ${expiryText}`;
-        return;
-      }
-      gmailStatusText.textContent = 'Not connected';
-    } catch (err) {
-      gmailStatusText.textContent = 'Status unavailable';
-    }
+    gmailStatusText.textContent = 'Gmail sync offline';
   }
 
   function startGmailConnect() {
     if (!connectGmailBtn) return;
-    window.location.href = `/api/gmail-oauth-start?token=${encodeURIComponent(token)}`;
+    notify('Gmail integration is currently offline.', { variant: 'warning' });
   }
 
   async function rearmGmailWatch() {
@@ -1018,16 +977,9 @@
     rearmWatchBtn.disabled = true;
     rearmWatchBtn.textContent = 'Re-arming…';
     try {
-      const res = await fetch('/api/gmail-integration', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ token })
-      });
-      if (!res.ok) throw new Error('failed');
-      await loadGmailStatus();
-      notify('Gmail watch refreshed.', { variant: 'success' });
+      throw new Error('offline');
     } catch (err) {
-      notify('Could not refresh Gmail watch.', { variant: 'danger' });
+      notify('Gmail integration is currently offline.', { variant: 'danger' });
     } finally {
       rearmWatchBtn.disabled = false;
       rearmWatchBtn.textContent = 'Re-arm Watch';
@@ -1132,36 +1084,8 @@
       throw new Error('Enter a number greater than 0.');
     }
 
-    const payload = {
-      google_id: profile?.google_id,
-      email: profile?.email,
-      applications_goal_per_day: numericGoal,
-      allow_payment_pending: true
-    };
-
-    if (!payload.google_id || !payload.email) {
-      profile = { ...(profile || {}), applications_goal_per_day: numericGoal, goal_per_day: numericGoal };
-      try { localStorage.setItem('jobsprint_profile', JSON.stringify(profile)); } catch (_) {}
-      syncGoalUI();
-      renderGoalProgress();
-      return;
-    }
-
-    const res = await fetch('/api/create-user', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      let detail = 'Unable to update goal right now.';
-      try {
-        const data = await res.json();
-        detail = data?.message || data?.error || detail;
-      } catch (_) {
-        detail = 'Unable to update goal right now.';
-      }
-      throw new Error(detail);
+    if (LEGACY_API_DISABLED) {
+      notify('Daily goals are stored locally while sync is offline.', { variant: 'info' });
     }
 
     profile = { ...(profile || {}), applications_goal_per_day: numericGoal, goal_per_day: numericGoal };
@@ -1338,31 +1262,10 @@
   });
 
   (async () => {
-    try {
-      const r = await fetch('/api/get-user-by-token?token=' + encodeURIComponent(token), { headers: { 'cache-control': 'no-cache' } });
-      if (r.ok) {
-        const data = await r.json();
-        if (data.found) {
-          const merged = { ...(profile || {}), name: data.name, email: data.email, applications_goal_per_day: data.goal_per_day, google_id: data.google_id, token };
-          profile = merged;
-          localStorage.setItem('jobsprint_profile', JSON.stringify(merged));
-          userLine.textContent = data.name ? `Hello, ${data.name}` : 'Welcome back';
-          syncGoalUI();
-          hydrateSprintCoach();
-          await loadBoardFromServer();
-          return;
-        }
-      }
-      userLine.textContent = profile?.name ? `Hello, ${profile.name}` : 'Welcome back';
-      syncGoalUI();
-      hydrateSprintCoach();
-      await loadBoardFromServer();
-    } catch {
-      userLine.textContent = profile?.name ? `Hello, ${profile.name}` : 'Welcome back';
-      syncGoalUI();
-      hydrateSprintCoach();
-      await loadBoardFromServer();
-    }
+    userLine.textContent = profile?.name ? `Hello, ${profile.name}` : 'Welcome back';
+    syncGoalUI();
+    hydrateSprintCoach();
+    await loadBoardFromServer();
   })();
 
   function saveBoard() {
@@ -2200,44 +2103,9 @@
       return;
     }
 
-    let response;
     const deletingToast = notifyLoading('Deleting your account…');
-    try {
-      response = await fetch('/api/delete-user', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ token })
-      });
-    } catch (err) {
-      console.error('delete account request failed', err);
-      deletingToast?.dismiss?.();
-      notify('Could not delete account. Please check your connection and try again.', { variant: 'danger' });
-      return;
-    }
-
-    let payload = {};
-    try {
-      payload = await response.json();
-    } catch (_) {
-      payload = {};
-    }
-
-    if (!response.ok || !payload?.success) {
-      const message = payload?.error
-        ? `Could not delete account (${payload.error}).`
-        : 'Could not delete account. Please try again.';
-      deletingToast?.dismiss?.();
-      notify(message, { variant: 'danger' });
-      return;
-    }
-
     deletingToast?.dismiss?.();
-    clearLocalUserData();
-    board = emptyBoard();
-    renderBoard();
-    reflectToday();
-    notify('Your JobSprint account has been deleted. You can sign up again anytime to start fresh.', { variant: 'success' });
-    redirectWithToast('/signup.html?mode=signup', 'Taking you to sign-up…');
+    notify('Account deletion is currently offline. Please contact support.', { variant: 'warning' });
   }
 
   document.getElementById('hamBtn').onclick = () => menu.style.display = (menu.style.display === 'block' ? 'none' : 'block');

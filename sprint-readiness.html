@@ -153,6 +153,7 @@
   <script src="scripts/theme.js"></script>
   <script src="scripts/ats-scorer.js"></script>
   <script>
+    const LEGACY_API_DISABLED = true;
     const LOADING_DELAY_MS = 1400;
     const DEFAULT_LOADING_HEADLINE = "Analyzing your resume…";
     const DEFAULT_LOADING_SUBTEXT = "Hang tight, we’re preparing your sprint summary.";
@@ -640,31 +641,8 @@
           const paramEmail = params.get("email");
           const identityEmail = storedEmail || (paramEmail ? paramEmail.trim() : "");
 
-          const formData = new FormData();
-          formData.append("file", file);
-          if (googleId) {
-            formData.append("google_id", googleId);
-          }
-          if (identityEmail) {
-            formData.append("email", identityEmail);
-          }
-
           let parseData = null;
-          let parseErrorMessage = "";
-          try {
-            const response = await fetch("/api/parse-resume", {
-              method: "POST",
-              body: formData
-            });
-            const payload = await response.json().catch(() => ({}));
-            if (!response.ok || !payload?.success) {
-              parseErrorMessage = payload?.detail || payload?.error || "Unable to parse resume.";
-            } else {
-              parseData = payload;
-            }
-          } catch (parseErr) {
-            parseErrorMessage = parseErr?.message || "Unable to parse resume.";
-          }
+          let parseErrorMessage = LEGACY_API_DISABLED ? "Resume parsing is currently offline." : "";
 
           const sanitizedText = parseData?.raw_text && String(parseData.raw_text).trim()
             ? String(parseData.raw_text)
@@ -704,34 +682,8 @@
           let syncSucceeded = false;
           let syncErrorMessage = "";
 
-          if (!parseErrorMessage && resumeUrlCandidate && resumeUrlCandidate !== previousResumeUrl) {
-            if (googleId && identityEmail) {
-              syncAttempted = true;
-              try {
-                const syncResponse = await fetch("/api/create-user", {
-                  method: "POST",
-                  headers: { "content-type": "application/json" },
-                  body: JSON.stringify({
-                    google_id: googleId,
-                    email: identityEmail,
-                    resume_url: resumeUrlCandidate,
-                    allow_payment_pending: true
-                  })
-                });
-                if (!syncResponse.ok) {
-                  const errorPayload = await syncResponse.json().catch(() => ({}));
-                  const reason = errorPayload?.message || errorPayload?.error || "Please try again.";
-                  throw new Error(reason);
-                }
-                syncSucceeded = true;
-                notify("Resume synced to onboarding workspace.", { variant: 'success' });
-              } catch (syncErr) {
-                syncErrorMessage = syncErr?.message || "Unable to sync resume.";
-                notify(`Couldn't sync resume to onboarding. ${syncErrorMessage}`.trim(), { variant: 'warning' });
-              }
-            } else {
-              syncErrorMessage = "Sign in to sync resume to onboarding.";
-            }
+          if (!LEGACY_API_DISABLED && !parseErrorMessage && resumeUrlCandidate && resumeUrlCandidate !== previousResumeUrl) {
+            syncErrorMessage = "Resume sync is currently offline.";
           }
 
           if (resumeUrlCandidate) {
