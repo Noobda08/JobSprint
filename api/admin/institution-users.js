@@ -24,12 +24,16 @@ async function getAuthUser(userId) {
   return data?.user || null;
 }
 
-function getAuthUserFromEmailLookup(data) {
-  if (data?.user) {
-    return data.user;
+function getAuthUserFromEmailLookup(data, email) {
+  const normalizedEmail = typeof email === 'string' ? email.toLowerCase() : '';
+  if (data?.user && typeof data.user?.email === 'string') {
+    return data.user.email.toLowerCase() === normalizedEmail ? data.user : null;
   }
   if (Array.isArray(data?.users) && data.users.length > 0) {
-    return data.users[0];
+    return data.users.find((user) => (
+      typeof user?.email === 'string'
+      && user.email.toLowerCase() === normalizedEmail
+    )) || null;
   }
   return null;
 }
@@ -109,7 +113,7 @@ module.exports = async function handler(req, res) {
       const passwordHash = await bcrypt.hash(password, 10);
 
       let authUser = null;
-      const { data: existingUser, error: existingError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+      const { data: existingUser, error: existingError } = await supabaseAdmin.auth.admin.listUsers({ email });
 
       if (existingError) {
         return res.status(500).json({
@@ -118,7 +122,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      const existingAuthUser = getAuthUserFromEmailLookup(existingUser);
+      const existingAuthUser = getAuthUserFromEmailLookup(existingUser, email);
       if (existingAuthUser) {
         authUser = existingAuthUser;
         const userMetadata = {
