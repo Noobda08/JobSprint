@@ -19,6 +19,25 @@ function slugify(value) {
     .replace(/^-+|-+$/g, '');
 }
 
+function formatSupabaseError(error) {
+  const detail = error?.message || String(error);
+  let message;
+
+  if (error?.code === '23505') {
+    if (error?.details && error.details.includes('slug')) {
+      message = 'Slug already exists. Choose a unique slug.';
+    } else {
+      message = 'This record already exists.';
+    }
+  } else if (error?.code === '23503') {
+    message = 'A related record could not be found.';
+  } else if (error?.code === '23514') {
+    message = 'One or more fields failed validation.';
+  }
+
+  return { detail, message };
+}
+
 module.exports = async function handler(req, res) {
   try {
     const auth = requireAdminAuth(req, res);
@@ -33,9 +52,11 @@ module.exports = async function handler(req, res) {
         .order('created_at', { ascending: false });
 
       if (error) {
+        const { detail, message } = formatSupabaseError(error);
         return res.status(500).json({
           error: 'supabase_error',
-          detail: error.message || String(error),
+          detail,
+          message,
         });
       }
 
@@ -74,9 +95,11 @@ module.exports = async function handler(req, res) {
             message: 'Slug already exists. Choose a unique slug.'
           });
         }
+        const { detail, message } = formatSupabaseError(error);
         return res.status(500).json({
           error: 'supabase_error',
-          message: error.message || String(error),
+          detail,
+          message,
         });
       }
 

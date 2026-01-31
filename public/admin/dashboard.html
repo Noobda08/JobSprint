@@ -78,9 +78,33 @@
       cursor: pointer;
     }
     .message {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-top: 8px;
       font-size: 13px;
       color: #b00020;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      padding: 8px 10px;
+      border-radius: 6px;
+      gap: 8px;
+    }
+    .message:empty {
+      display: none;
+    }
+    .message.success {
+      background: #ecfdf3;
+      border-color: #86efac;
+      color: #136f63;
+    }
+    .message-dismiss {
+      border: none;
+      background: transparent;
+      color: inherit;
+      font-size: 16px;
+      cursor: pointer;
+      line-height: 1;
     }
     .badge {
       display: inline-block;
@@ -299,8 +323,31 @@
     let selectedInstitutionName = '';
 
     function showMessage(element, text, isError = true) {
-      element.textContent = text;
-      element.style.color = isError ? '#b00020' : '#136f63';
+      element.innerHTML = '';
+      if (!text) {
+        return;
+      }
+      element.classList.toggle('success', !isError);
+      const messageText = document.createElement('span');
+      messageText.textContent = text;
+      const dismissButton = document.createElement('button');
+      dismissButton.type = 'button';
+      dismissButton.className = 'message-dismiss';
+      dismissButton.setAttribute('aria-label', 'Dismiss message');
+      dismissButton.textContent = '×';
+      dismissButton.addEventListener('click', () => {
+        clearMessage(element);
+      });
+      element.append(messageText, dismissButton);
+    }
+
+    function clearMessage(element) {
+      element.textContent = '';
+      element.classList.remove('success');
+    }
+
+    function getErrorText(data, fallback) {
+      return data?.message || data?.detail || data?.error || fallback;
     }
 
     function slugify(value) {
@@ -320,7 +367,7 @@
     });
 
     logoUploadBtn.addEventListener('click', async () => {
-      institutionMessage.textContent = '';
+      clearMessage(institutionMessage);
       if (!logoFileInput.files || !logoFileInput.files.length) {
         showMessage(institutionMessage, 'Select a logo file to upload.');
         return;
@@ -342,7 +389,7 @@
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(data.message || data.error || 'Logo upload failed.');
+          throw new Error(getErrorText(data, 'Logo upload failed.'));
         }
 
         logoUrlInput.value = data.url || '';
@@ -366,7 +413,7 @@
       const response = await fetch(url, { ...options, headers });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const message = data.message || data.error || 'Request failed.';
+        const message = getErrorText(data, 'Request failed.');
         throw new Error(message);
       }
       return data;
@@ -388,7 +435,7 @@
     }
 
     async function loadInstitutions() {
-      institutionMessage.textContent = '';
+      clearMessage(institutionMessage);
       try {
         const data = await apiFetch('/api/admin/institutions');
         institutionsTable.innerHTML = '';
@@ -441,7 +488,7 @@
 
     document.getElementById('institution-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      institutionMessage.textContent = '';
+      clearMessage(institutionMessage);
       const formData = new FormData(event.target);
       const payload = Object.fromEntries(formData.entries());
       delete payload.logo_file;
@@ -464,7 +511,7 @@
     });
 
     async function loadInstitutionUsers() {
-      institutionUserMessage.textContent = '';
+      clearMessage(institutionUserMessage);
       institutionUsersTable.innerHTML = '';
 
       if (!selectedInstitutionId) {
@@ -498,7 +545,7 @@
 
     document.getElementById('institution-user-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      institutionUserMessage.textContent = '';
+      clearMessage(institutionUserMessage);
 
       if (!selectedInstitutionId) {
         showMessage(institutionUserMessage, 'Select an institution first.');
@@ -558,7 +605,7 @@
     });
 
     async function loadLicense() {
-      licenseMessage.textContent = '';
+      clearMessage(licenseMessage);
       const form = document.getElementById('license-form');
 
       if (!selectedInstitutionId) {
@@ -581,7 +628,7 @@
 
     document.getElementById('license-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      licenseMessage.textContent = '';
+      clearMessage(licenseMessage);
 
       if (!selectedInstitutionId) {
         showMessage(licenseMessage, 'Select an institution first.');
@@ -605,7 +652,7 @@
     });
 
     async function loadCreatorUsers() {
-      creatorUserMessage.textContent = '';
+      clearMessage(creatorUserMessage);
       try {
         const data = await apiFetch('/api/admin/creator-users');
         creatorUsersTable.innerHTML = '';
@@ -631,7 +678,7 @@
 
     document.getElementById('creator-user-form').addEventListener('submit', async (event) => {
       event.preventDefault();
-      creatorUserMessage.textContent = '';
+      clearMessage(creatorUserMessage);
       const formData = new FormData(event.target);
       const payload = Object.fromEntries(formData.entries());
 
