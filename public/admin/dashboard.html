@@ -39,6 +39,11 @@
       display: block;
       margin-top: 10px;
     }
+    .helper-text {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #6b7280;
+    }
     input, select {
       width: 100%;
       padding: 8px;
@@ -116,6 +121,7 @@
         <label>Slug
           <input name="slug" required />
         </label>
+        <div class="helper-text">Auto-generated from name; used for institute login URL.</div>
         <label>Logo URL
           <input name="logo_url" />
         </label>
@@ -277,6 +283,9 @@
     const institutionUserMessage = document.getElementById('institution-user-message');
     const licenseMessage = document.getElementById('license-message');
     const creatorUserMessage = document.getElementById('creator-user-message');
+    const institutionForm = document.getElementById('institution-form');
+    const institutionNameInput = institutionForm.querySelector('input[name="name"]');
+    const institutionSlugInput = institutionForm.querySelector('input[name="slug"]');
 
     const institutionsTable = document.getElementById('institutions-table');
     const institutionUsersTable = document.getElementById('institution-users-table');
@@ -290,6 +299,17 @@
       element.textContent = text;
       element.style.color = isError ? '#b00020' : '#136f63';
     }
+
+    function slugify(value) {
+      return value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
+
+    institutionNameInput.addEventListener('input', (event) => {
+      institutionSlugInput.value = slugify(event.target.value || '');
+    });
 
     async function apiFetch(url, options = {}) {
       const headers = Object.assign({
