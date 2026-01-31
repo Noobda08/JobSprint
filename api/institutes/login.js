@@ -10,6 +10,20 @@ function normalizeBody(body) {
   return body || {};
 }
 
+function getAuthUserFromEmailLookup(data, email) {
+  const normalizedEmail = typeof email === 'string' ? email.toLowerCase() : '';
+  if (data?.user && typeof data.user?.email === 'string') {
+    return data.user.email.toLowerCase() === normalizedEmail ? data.user : null;
+  }
+  if (Array.isArray(data?.users) && data.users.length > 0) {
+    return data.users.find((user) => (
+      typeof user?.email === 'string'
+      && user.email.toLowerCase() === normalizedEmail
+    )) || null;
+  }
+  return null;
+}
+
 async function handleMe(req, res) {
   const auth = requireInstituteAuth(req, res);
   if (!auth) {
@@ -109,7 +123,7 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({ error: 'missing_jwt_secret' });
     }
 
-    const { data: authLookup, error: authLookupError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
+    const { data: authLookup, error: authLookupError } = await supabaseAdmin.auth.admin.listUsers({ email });
     if (authLookupError) {
       return res.status(500).json({
         error: 'auth_lookup_failed',
@@ -117,7 +131,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const authUser = authLookup?.user;
+    const authUser = getAuthUserFromEmailLookup(authLookup, email);
     if (!authUser) {
       return res.status(401).json({
         error: 'invalid_credentials',
