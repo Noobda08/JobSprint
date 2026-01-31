@@ -21,7 +21,10 @@
     input,select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(15,23,42,.16);font-size:14px;font-family:inherit}
     input:focus,select:focus{outline:none;border-color:rgba(59,130,246,.6);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
     .field{margin-bottom:18px}
+    .field.hidden{display:none}
     .helper{font-size:12px;color:var(--muted);margin-top:6px}
+    .link{background:none;border:none;color:var(--brand);padding:0;font-size:12px;font-weight:600;cursor:pointer}
+    .link:hover{text-decoration:underline}
     .error{display:none;margin-bottom:16px;padding:12px 14px;border-radius:12px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.2);color:#b91c1c;font-size:13px}
     .error.show{display:block}
     .submit{width:100%;border:none;border-radius:12px;padding:12px 16px;background:linear-gradient(135deg,var(--brand),var(--brand-accent));color:#fff;font-weight:600;font-size:15px;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease}
@@ -44,6 +47,15 @@
           <div class="helper">We use your email to locate your institute access.</div>
         </div>
 
+        <div class="field hidden" id="institution-slug-field">
+          <label for="institution-slug">Institute slug</label>
+          <input id="institution-slug" name="institution_slug" type="text" autocomplete="organization" placeholder="example-university" />
+          <div class="helper">Use the slug provided by your admin if you belong to multiple institutes.</div>
+        </div>
+        <div class="field" id="institution-slug-toggle">
+          <button class="link" type="button">Have multiple memberships? Enter an institute slug.</button>
+        </div>
+
         <div class="field">
           <label for="password">Password</label>
           <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required />
@@ -58,12 +70,16 @@
     const form = document.getElementById('login-form');
     const errorEl = document.getElementById('error');
     const emailEl = document.getElementById('email');
+    const slugField = document.getElementById('institution-slug-field');
+    const slugToggle = document.getElementById('institution-slug-toggle');
+    const slugInput = document.getElementById('institution-slug');
     const submitBtn = form.querySelector('button[type="submit"]');
     const errorMessages = {
       membership_not_found: 'We could not find an active institute membership for this email. Please contact your admin.',
       membership_inactive: 'Your institute access is inactive. Ask an admin to reactivate your account.',
       password_not_initialized: 'Your account has not been initialized. Ask an admin to reset your password.',
       password_incorrect: 'That password is incorrect. Please try again or contact your admin for help.',
+      multiple_institutions: 'Multiple institute memberships were found. Enter your institute slug to continue.',
     };
 
     const showError = (message) => {
@@ -76,6 +92,19 @@
       errorEl.classList.add('show');
     };
 
+    const revealSlugField = () => {
+      if (!slugField.classList.contains('hidden')) {
+        return;
+      }
+      slugField.classList.remove('hidden');
+      slugToggle.classList.add('hidden');
+      slugInput.focus();
+    };
+
+    slugToggle.querySelector('button').addEventListener('click', () => {
+      revealSlugField();
+    });
+
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       showError('');
@@ -86,6 +115,11 @@
         email: emailEl.value.trim(),
         password: document.getElementById('password').value,
       };
+
+      const slugValue = slugInput.value.trim();
+      if (slugValue) {
+        payload.institution_slug = slugValue;
+      }
 
       let responseData = {};
 
@@ -99,6 +133,9 @@
         responseData = await response.json().catch(() => ({}));
         if (!response.ok) {
           const mappedMessage = errorMessages[responseData.error];
+          if (responseData.error === 'multiple_institutions') {
+            revealSlugField();
+          }
           throw new Error(mappedMessage || responseData.message || 'Login failed. Please check your credentials.');
         }
 
