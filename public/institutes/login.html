@@ -87,6 +87,8 @@
         password: document.getElementById('password').value,
       };
 
+      let responseData = {};
+
       try {
         const response = await fetch('/api/institutes/login', {
           method: 'POST',
@@ -94,20 +96,25 @@
           body: JSON.stringify(payload),
         });
 
-        const data = await response.json().catch(() => ({}));
+        responseData = await response.json().catch(() => ({}));
         if (!response.ok) {
-          const mappedMessage = errorMessages[data.error];
-          throw new Error(mappedMessage || data.message || 'Login failed. Please check your credentials.');
+          const mappedMessage = errorMessages[responseData.error];
+          throw new Error(mappedMessage || responseData.message || 'Login failed. Please check your credentials.');
         }
 
-        if (!data.token) {
+        if (!responseData.token) {
           throw new Error('Login succeeded but no token was returned.');
         }
 
-        localStorage.setItem('institutes_token', data.token);
+        localStorage.setItem('institutes_token', responseData.token);
         window.location.href = '/institutes/dashboard.html';
       } catch (error) {
-        showError(error.message || 'Unable to sign in right now.');
+        if (responseData?.error && !errorMessages[responseData.error]) {
+          const fallbackMessage = responseData.message || `Login failed: ${responseData.error}`;
+          showError(fallbackMessage);
+        } else {
+          showError(error.message || 'Unable to sign in right now.');
+        }
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Sign in';
