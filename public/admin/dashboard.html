@@ -347,7 +347,7 @@
     }
 
     function getErrorText(data, fallback) {
-      return data?.message || data?.detail || data?.error || fallback;
+      return data?.detail || data?.message || data?.error || fallback;
     }
 
     function slugify(value) {

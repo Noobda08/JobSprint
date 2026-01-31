@@ -24,6 +24,16 @@ async function getAuthUser(userId) {
   return data?.user || null;
 }
 
+function getAuthUserFromEmailLookup(data) {
+  if (data?.user) {
+    return data.user;
+  }
+  if (Array.isArray(data?.users) && data.users.length > 0) {
+    return data.users[0];
+  }
+  return null;
+}
+
 module.exports = async function handler(req, res) {
   try {
     const auth = requireAdminAuth(req, res);
@@ -108,8 +118,9 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      if (existingUser?.user) {
-        authUser = existingUser.user;
+      const existingAuthUser = getAuthUserFromEmailLookup(existingUser);
+      if (existingAuthUser) {
+        authUser = existingAuthUser;
         const userMetadata = {
           ...(authUser.user_metadata || {}),
           name: name || authUser.user_metadata?.name,
@@ -274,6 +285,7 @@ module.exports = async function handler(req, res) {
 
     return res.status(405).json({ error: 'method_not_allowed' });
   } catch (error) {
-    return res.status(500).json({ error: 'server_error' });
+    const detail = [error?.message, error?.stack].filter(Boolean).join('\n') || String(error);
+    return res.status(500).json({ error: 'server_error', detail });
   }
 };
