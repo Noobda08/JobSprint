@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { supabaseAdmin } = require('../../lib/_supabase.js');
+const { getAdminJwtSecret } = require('../_admin_auth.js');
 
 function normalizeBody(body) {
   if (typeof body === 'string') {
@@ -19,7 +20,8 @@ module.exports = async function handler(req, res) {
       return res.status(405).json({ error: 'method_not_allowed' });
     }
 
-    if (!process.env.ADMIN_JWT_SECRET) {
+    const jwtSecret = getAdminJwtSecret();
+    if (!jwtSecret) {
       return res.status(500).json({ error: 'missing_jwt_secret' });
     }
 
@@ -68,7 +70,7 @@ module.exports = async function handler(req, res) {
         role: creatorUser.role,
         email: creatorUser.email,
       },
-      process.env.ADMIN_JWT_SECRET,
+      jwtSecret,
       { expiresIn: 60 * 60 * 24 * 7 }
     );
 

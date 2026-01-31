@@ -23,9 +23,14 @@ function extractBearerToken(authorizationHeader) {
   return token.trim();
 }
 
+function getAdminJwtSecret() {
+  return process.env.ADMIN_JWT_SECRET || process.env.INSTITUTES_JWT_SECRET;
+}
+
 function requireAdminAuth(req, res) {
   try {
-    if (!process.env.ADMIN_JWT_SECRET) {
+    const jwtSecret = getAdminJwtSecret();
+    if (!jwtSecret) {
       const error = new Error('JWT secret is not configured.');
       error.status = 500;
       error.code = 'missing_jwt_secret';
@@ -34,7 +39,7 @@ function requireAdminAuth(req, res) {
 
     const authorization = getAuthorizationHeader(req);
     const token = extractBearerToken(authorization);
-    const payload = jwt.verify(token, process.env.ADMIN_JWT_SECRET);
+    const payload = jwt.verify(token, jwtSecret);
 
     const creatorUserId = payload?.creator_user_id;
     const role = payload?.role;
@@ -64,4 +69,4 @@ function requireAdminAuth(req, res) {
   }
 }
 
-module.exports = { requireAdminAuth };
+module.exports = { requireAdminAuth, getAdminJwtSecret };
