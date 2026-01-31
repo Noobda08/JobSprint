@@ -196,15 +196,15 @@ module.exports = async function handler(req, res) {
 
     if (!institutionUser) {
       return res.status(401).json({
-        error: 'membership_missing',
-        message: 'Invalid email or password.'
+        error: 'membership_not_found',
+        message: 'No active institute membership found for this account.'
       });
     }
 
     if (institutionUser.is_active === false) {
       return res.status(401).json({
         error: 'membership_inactive',
-        message: 'Invalid email or password.'
+        message: 'Institute membership is inactive.'
       });
     }
 
@@ -240,15 +240,15 @@ module.exports = async function handler(req, res) {
     if (!passwordHash) {
       return res.status(401).json({
         error: 'password_not_initialized',
-        message: 'Invalid email or password.'
+        message: 'Password has not been initialized.'
       });
     }
 
     const passwordMatches = await bcrypt.compare(password, passwordHash);
     if (!passwordMatches) {
       return res.status(401).json({
-        error: 'invalid_credentials',
-        message: 'Invalid email or password.'
+        error: 'password_incorrect',
+        message: 'Password is incorrect.'
       });
     }
 
