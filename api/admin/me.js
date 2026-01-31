@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
 
     const { data: creatorUser, error: lookupError } = await supabaseAdmin
       .from('creator_users')
-      .select('id, email, name, role, is_active, created_at')
+      .select('id, email, name, role, is_active')
       .eq('id', auth.creator_user_id)
       .maybeSingle();
 
