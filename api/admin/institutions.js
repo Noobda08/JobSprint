@@ -12,6 +12,13 @@ function normalizeBody(body) {
   return body || {};
 }
 
+function slugify(value) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 module.exports = async function handler(req, res) {
   try {
     const auth = requireAdminAuth(req, res);
@@ -39,11 +46,12 @@ module.exports = async function handler(req, res) {
       const body = normalizeBody(req.body);
       const name = typeof body.name === 'string' ? body.name.trim() : '';
       const slug = typeof body.slug === 'string' ? body.slug.trim().toLowerCase() : '';
+      const resolvedSlug = slug || slugify(name);
       const logoUrl = typeof body.logo_url === 'string' ? body.logo_url.trim() : null;
       const primaryColor = typeof body.primary_color === 'string' ? body.primary_color.trim() : null;
       const secondaryColor = typeof body.secondary_color === 'string' ? body.secondary_color.trim() : null;
 
-      if (!name || !slug) {
+      if (!name || !resolvedSlug) {
         return res.status(400).json({
           error: 'missing_fields',
           message: 'Name and slug are required.'
@@ -54,7 +62,7 @@ module.exports = async function handler(req, res) {
         .from('institutions')
         .insert({
           name,
-          slug,
+          slug: resolvedSlug,
           logo_url: logoUrl || null,
           primary_color: primaryColor || null,
           secondary_color: secondaryColor || null,
@@ -64,9 +72,15 @@ module.exports = async function handler(req, res) {
         .single();
 
       if (error) {
+        if (error.code === '23505') {
+          return res.status(409).json({
+            error: 'duplicate_slug',
+            message: 'Slug already exists. Choose a unique slug.'
+          });
+        }
         return res.status(500).json({
           error: 'supabase_error',
-          detail: error.message || String(error),
+          message: error.message || String(error),
         });
       }
 
