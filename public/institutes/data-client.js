@@ -11,9 +11,53 @@ function emptyPlacementPayload(message = '') {
 }
 
 let cache = null;
+const PRELOADED_PLACEMENT_KEY = 'institutes_preloaded_placement';
+
+function readPreloadedPlacement(token) {
+  if (!token) return null;
+  try {
+    const raw = sessionStorage.getItem(PRELOADED_PLACEMENT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.token !== token || !parsed?.payload) return null;
+    return parsed.payload;
+  } catch (_) {
+    return null;
+  }
+}
+
+function writePreloadedPlacement(token, payload) {
+  if (!token || !payload) return;
+  try {
+    sessionStorage.setItem(PRELOADED_PLACEMENT_KEY, JSON.stringify({ token, payload }));
+  } catch (_) {
+    // ignore session storage write errors
+  }
+}
+
+function clearPreloadedPlacement() {
+  try {
+    sessionStorage.removeItem(PRELOADED_PLACEMENT_KEY);
+  } catch (_) {
+    // ignore session storage clear errors
+  }
+}
+
+export function primePlacementData(token, payload) {
+  if (!token || !payload) return;
+  cache = payload;
+  writePreloadedPlacement(token, payload);
+}
 
 export async function loadPlacementData(token, { force = false } = {}) {
   if (!force && cache) return cache;
+  if (!force) {
+    const preloaded = readPreloadedPlacement(token);
+    if (preloaded) {
+      cache = preloaded;
+      return cache;
+    }
+  }
 
   const response = await fetch('/api/institutes/placement-data', {
     headers: { Authorization: `Bearer ${token}` },
@@ -24,12 +68,14 @@ export async function loadPlacementData(token, { force = false } = {}) {
   if (!response.ok) {
     if (payload?.error === 'schema_not_ready') {
       cache = emptyPlacementPayload(payload.message || 'Placement schema setup is pending.');
+      writePreloadedPlacement(token, cache);
       return cache;
     }
     throw new Error(payload?.message || 'Unable to load institute placement data.');
   }
 
   cache = payload;
+  writePreloadedPlacement(token, cache);
   return cache;
 }
 
@@ -48,6 +94,7 @@ async function request(token, method, body) {
     throw new Error(payload.message || `${method} failed.`);
   }
   cache = null;
+  clearPreloadedPlacement();
   return payload;
 }
 

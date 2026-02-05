@@ -55,7 +55,7 @@
     bindPlaceholderActions(); bindSampleCsvDownloads();
 
     const render = async () => {
-      const data = await loadPlacementData(token, { force: true });
+      const data = await loadPlacementData(token);
       const { applications = [], drives = [], students = [] } = data;
       const setupNotice = document.getElementById('setup-notice');
       if (data.setup_required) { setupNotice.style.display = 'block'; setupNotice.textContent = data.setup_message || 'Placement schema setup is pending in Supabase.'; } else { setupNotice.style.display = 'none'; }
