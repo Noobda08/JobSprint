@@ -6,8 +6,8 @@
 </section></main></div>
 <script type="module">
 import { loadPlacementData } from '/institutes/data-client.js';
-import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, bindRecordManagement, bindSampleCsvDownloads, bindInstituteAccountPanel, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
-const token=requireInstituteAuth(); if(!token) throw new Error('Unauthorized'); bindInstituteAccountPanel(token); loadInstituteBranding(token).then(applyBranding); setActiveNav('students'); bindPlaceholderActions(); bindSampleCsvDownloads();
+import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, bindRecordManagement, bindSampleCsvDownloads, bindInstituteAccountPanel, loadInstituteBranding, requireInstituteAuth, setActiveNav, buildInstitutePath, guardInstituteSlugRoute } from '/institutes/app-shell.js';
+const token=requireInstituteAuth(); if(!token) throw new Error('Unauthorized'); const routeGuard=await guardInstituteSlugRoute(token); if(routeGuard===null) throw new Error('Route corrected'); bindInstituteAccountPanel(token); loadInstituteBranding(token).then(applyBranding); setActiveNav('students'); bindPlaceholderActions(); bindSampleCsvDownloads();
 const deptFilter=document.getElementById('dept-filter'); const minCgpa=document.getElementById('min-cgpa'); const maxCgpa=document.getElementById('max-cgpa'); const riskFilter=document.getElementById('risk-filter'); const tbody=document.getElementById('student-rows');
 let students = [];
 function hydrateDepartments(){const current = deptFilter.value; deptFilter.innerHTML='<option value="">All</option>'; [...new Set(students.map((s)=>s.dept).filter(Boolean))].sort().forEach((dept)=>{const option=document.createElement('option');option.value=dept;option.textContent=dept;deptFilter.append(option);}); deptFilter.value = current;}
@@ -16,7 +16,7 @@ const filtered=students.filter((s)=>(!dept||s.dept===dept)&&(!risk||s.risk_level
 tbody.innerHTML=filtered.map((s)=>`<tr class="clickable" data-id="${s.id}"><td>${s.name}</td><td>${s.email}</td><td>${s.dept || '-'}</td><td>${Number(s.cgpa || 0).toFixed(2)}</td><td>${s.batch_year || '-'}</td><td><span class="pill ${s.risk_level}">${s.risk_level}</span></td></tr>`).join('') || '<tr><td colspan="6">No students uploaded yet.</td></tr>';}
 async function refresh(){const data = await loadPlacementData(token, { force: true }); students = data.students || []; hydrateDepartments(); renderRows(); }
 [deptFilter,minCgpa,maxCgpa,riskFilter].forEach((el)=>el.addEventListener('input',renderRows));
-tbody.addEventListener('click',(event)=>{const row=event.target.closest('tr[data-id]'); if(row) window.location.href=`/institutes/student.html?student_id=${row.dataset.id}`;});
+tbody.addEventListener('click',(event)=>{const row=event.target.closest('tr[data-id]'); if(row) window.location.href=`${buildInstitutePath('student', { slug: routeGuard?.institution?.slug })}?student_id=${row.dataset.id}`;});
 bindRecordManagement(token, { onChanged: refresh });
 bindCsvUploadActions(token, { onUploaded: refresh });
 await refresh();

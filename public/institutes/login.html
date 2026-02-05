@@ -144,7 +144,10 @@
         }
 
         localStorage.setItem('institutes_token', responseData.token);
-        window.location.href = '/institutes/dashboard.html';
+        const redirectSlug = responseData?.institution?.slug;
+        window.location.href = redirectSlug
+          ? `/institutes/${encodeURIComponent(redirectSlug)}/dashboard`
+          : '/institutes/dashboard.html';
       } catch (error) {
         if (responseData?.error && !errorMessages[responseData.error]) {
           const fallbackMessage = responseData.message || `Login failed: ${responseData.error}`;

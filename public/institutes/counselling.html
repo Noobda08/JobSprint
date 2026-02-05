@@ -5,8 +5,8 @@
 <div class="table-wrap"><table><thead><tr><th>Student</th><th>Department</th><th>Scheduled Time</th><th>Status</th></tr></thead><tbody id="session-rows"></tbody></table></div></section></main></div>
 <script type="module">
 import { loadPlacementData } from '/institutes/data-client.js';
-import { applyBranding, bindCsvUploadActions, bindInstituteAccountPanel, bindPlaceholderActions, bindRecordManagement, bindSampleCsvDownloads, formatDateTime, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
-const token=requireInstituteAuth(); if(!token) throw new Error('Unauthorized'); bindInstituteAccountPanel(token); loadInstituteBranding(token).then(applyBranding); setActiveNav('counselling'); bindPlaceholderActions(); bindSampleCsvDownloads();
+import { applyBranding, bindCsvUploadActions, bindInstituteAccountPanel, bindPlaceholderActions, bindRecordManagement, bindSampleCsvDownloads, formatDateTime, loadInstituteBranding, requireInstituteAuth, setActiveNav, buildInstitutePath, guardInstituteSlugRoute } from '/institutes/app-shell.js';
+const token=requireInstituteAuth(); if(!token) throw new Error('Unauthorized'); const routeGuard=await guardInstituteSlugRoute(token); if(routeGuard===null) throw new Error('Route corrected'); bindInstituteAccountPanel(token); loadInstituteBranding(token).then(applyBranding); setActiveNav('counselling'); bindPlaceholderActions(); bindSampleCsvDownloads();
 const statusFilter=document.getElementById('status-filter'); const fromDate=document.getElementById('from-date'); const toDate=document.getElementById('to-date'); const tbody=document.getElementById('session-rows');
 let counsellingSessions = []; let students = [];
 function renderRows(){ const status=statusFilter.value; const from=fromDate.value? new Date(fromDate.value):null; const to=toDate.value? new Date(toDate.value+'T23:59:59'):null; const studentsById = new Map(students.map((s)=>[String(s.id), s]));
@@ -15,7 +15,7 @@ tbody.innerHTML=filtered.map((session)=>{const student=studentsById.get(String(s
 }
 async function refresh(){ const data = await loadPlacementData(token, { force: true }); counsellingSessions = data.counselling_sessions || []; students = data.students || []; renderRows(); }
 [statusFilter,fromDate,toDate].forEach((el)=>el.addEventListener('input',renderRows));
-tbody.addEventListener('click',(event)=>{const row=event.target.closest('tr[data-student]'); if(row) window.location.href=`/institutes/student.html?student_id=${row.dataset.student}`;});
+tbody.addEventListener('click',(event)=>{const row=event.target.closest('tr[data-student]'); if(row) window.location.href=`${buildInstitutePath('student', { slug: routeGuard?.institution?.slug })}?student_id=${row.dataset.student}`;});
 bindRecordManagement(token, { onChanged: refresh });
 bindCsvUploadActions(token, { onUploaded: refresh });
 await refresh();

@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
 
     const { data: institution, error: institutionError } = await supabaseAdmin
       .from('institutions')
-      .select('id, name, logo_url, primary_color, secondary_color')
+      .select('id, slug, name, logo_url, primary_color, secondary_color')
       .eq('id', auth.institution_id)
       .maybeSingle();
 
