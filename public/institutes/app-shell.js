@@ -65,6 +65,8 @@ export function requireInstituteAuth() {
 }
 
 const INSTITUTE_USER_FALLBACK_NAME = 'Signed-in user';
+const PRELOADED_INSTITUTE_ME_KEY = 'institutes_preloaded_me';
+const INSTITUTE_ME_CACHE_TTL_MS = 10 * 60 * 1000;
 
 
 const INSTITUTE_ROUTE_PAGES = new Set(['dashboard', 'students', 'drives', 'counselling', 'student', 'drive']);
@@ -137,9 +139,56 @@ export async function guardInstituteSlugRoute(token) {
 }
 let instituteMeCache = { token: null, payload: null };
 
+function readPreloadedInstituteMe(token) {
+  if (!token) return null;
+  try {
+    const raw = sessionStorage.getItem(PRELOADED_INSTITUTE_ME_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const cachedAt = Number(parsed?.cachedAt || 0);
+    const isExpired = !cachedAt || Date.now() - cachedAt > INSTITUTE_ME_CACHE_TTL_MS;
+    if (parsed?.token !== token || !parsed?.payload || isExpired) {
+      if (isExpired || parsed?.token !== token) {
+        sessionStorage.removeItem(PRELOADED_INSTITUTE_ME_KEY);
+      }
+      return null;
+    }
+    return parsed.payload;
+  } catch (_) {
+    return null;
+  }
+}
+
+function writePreloadedInstituteMe(token, payload) {
+  if (!token || !payload) return;
+  try {
+    sessionStorage.setItem(
+      PRELOADED_INSTITUTE_ME_KEY,
+      JSON.stringify({ token, payload, cachedAt: Date.now() }),
+    );
+  } catch (_) {
+    // ignore session storage write errors
+  }
+}
+
+function clearPreloadedInstituteMe() {
+  instituteMeCache = { token: null, payload: null };
+  try {
+    sessionStorage.removeItem(PRELOADED_INSTITUTE_ME_KEY);
+  } catch (_) {
+    // ignore session storage clear errors
+  }
+}
+
 async function loadInstituteMe(token) {
   if (!token) return null;
   if (instituteMeCache.token === token) return instituteMeCache.payload;
+
+  const preloaded = readPreloadedInstituteMe(token);
+  if (preloaded) {
+    instituteMeCache = { token, payload: Promise.resolve(preloaded) };
+    return instituteMeCache.payload;
+  }
 
   instituteMeCache = {
     token,
@@ -148,7 +197,9 @@ async function loadInstituteMe(token) {
     })
       .then(async (response) => {
         if (!response.ok) return null;
-        return response.json();
+        const payload = await response.json();
+        writePreloadedInstituteMe(token, payload);
+        return payload;
       })
       .catch(() => null),
   };
@@ -187,6 +238,7 @@ export async function bindInstituteAccountPanel(token, root = document) {
     button.dataset.logoutBound = 'true';
     button.addEventListener('click', () => {
       localStorage.removeItem('institutes_token');
+      clearPreloadedInstituteMe();
       window.location.href = '/institutes/login.html';
     });
   });
