@@ -21,6 +21,7 @@
         <a data-nav="drives" href="/institutes/drives.html">Drives</a>
         <a data-nav="counselling" href="/institutes/counselling.html">Counselling</a>
       </nav>
+      <div class="sidebar-account"><div class="sidebar-account-name" data-user-name>Signed-in user</div><div class="sidebar-account-meta" data-user-email>—</div><div class="sidebar-account-meta" data-user-role>—</div><button class="btn secondary sidebar-logout" type="button" data-logout>Log out</button></div>
     </aside>
     <main class="content">
       <div class="card" id="setup-notice" style="display:none;border-color:#f59e0b;background:#fffbeb;color:#92400e"></div>
@@ -42,10 +43,11 @@
 
   <script type="module">
     import { loadPlacementData } from '/institutes/data-client.js';
-    import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, bindRecordManagement, bindSampleCsvDownloads, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
+    import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, bindRecordManagement, bindSampleCsvDownloads, bindInstituteAccountPanel, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
 
     const token = requireInstituteAuth();
     if (!token) throw new Error('Unauthorized');
+    bindInstituteAccountPanel(token);
     loadInstituteBranding(token).then(applyBranding);
     setActiveNav('dashboard');
     bindPlaceholderActions(); bindSampleCsvDownloads();

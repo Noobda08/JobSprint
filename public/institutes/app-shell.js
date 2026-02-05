@@ -64,20 +64,67 @@ export function requireInstituteAuth() {
   return token;
 }
 
+const INSTITUTE_USER_FALLBACK_NAME = 'Signed-in user';
+let instituteMeCache = { token: null, payload: null };
+
+async function loadInstituteMe(token) {
+  if (!token) return null;
+  if (instituteMeCache.token === token) return instituteMeCache.payload;
+
+  instituteMeCache = {
+    token,
+    payload: fetch('/api/institutes/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return response.json();
+      })
+      .catch(() => null),
+  };
+
+  return instituteMeCache.payload;
+}
+
+export async function loadCurrentInstituteUser(token) {
+  const profile = await loadInstituteMe(token);
+  return profile?.user || null;
+}
+
 export async function loadInstituteBranding(token) {
   const fallback = { name: 'Institute', tagline: 'Placement Center', logo_url: '' };
   if (!token) return fallback;
 
-  try {
-    const response = await fetch('/api/institutes/me', {
-      headers: { Authorization: `Bearer ${token}` },
+  const data = await loadInstituteMe(token);
+  return data?.institution || data || fallback;
+}
+
+export async function bindInstituteAccountPanel(token, root = document) {
+  const setText = (selector, text) => {
+    root.querySelectorAll(selector).forEach((node) => {
+      node.textContent = text;
     });
-    if (!response.ok) return fallback;
-    const data = await response.json();
-    return data?.institution || data || fallback;
-  } catch (error) {
-    return fallback;
-  }
+  };
+
+  setText('[data-user-name]', INSTITUTE_USER_FALLBACK_NAME);
+  setText('[data-user-email]', '—');
+  setText('[data-user-role]', '—');
+
+  root.querySelectorAll('[data-logout]').forEach((button) => {
+    if (button.dataset.logoutBound === 'true') return;
+    button.dataset.logoutBound = 'true';
+    button.addEventListener('click', () => {
+      localStorage.removeItem('institutes_token');
+      window.location.href = '/institutes/login.html';
+    });
+  });
+
+  const user = await loadCurrentInstituteUser(token);
+  if (!user) return;
+
+  setText('[data-user-name]', user.name || INSTITUTE_USER_FALLBACK_NAME);
+  setText('[data-user-email]', user.email || '—');
+  setText('[data-user-role]', user.role || '—');
 }
 
 export function applyBranding(branding) {
