@@ -1,15 +1,136 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Placement Drives • JobSprint</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles/theme.css"><link rel="stylesheet" href="/institutes/placement.css"></head><body>
 <div class="layout"><aside class="sidebar"><div class="brand"><div class="brand-logo" data-brand-logo>JS</div><div><div class="brand-name" data-brand-name>Institute</div><div class="brand-sub" data-brand-sub>Placement Center</div></div></div><nav><a data-nav="dashboard" href="/institutes/dashboard.html">Dashboard</a><a data-nav="students" href="/institutes/students.html">Students</a><a data-nav="drives" href="/institutes/drives.html">Drives</a><a data-nav="counselling" href="/institutes/counselling.html">Counselling</a></nav></aside>
 <main class="content"><div class="topbar"><div><h1>Placement Drives</h1><small>Filter and inspect hiring drives</small></div><strong data-brand-name>Institute</strong></div>
-<section class="card"><div class="section-head"><h2 class="section-title">Drive Master</h2><div class="section-actions"><button class="btn primary" data-placeholder-action="Create Drive" data-section="Drives">Create Drive</button><button class="btn secondary" data-upload-dataset="drives">Upload CSV</button><button class="btn secondary" data-download-sample="drives">Sample CSV</button><button class="btn secondary" data-manage-dataset="drives">Manage</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Drives">Sync</button></div></div><div class="filters"><div><label>Status</label><select id="status-filter"><option value="">All</option><option value="upcoming">Upcoming</option><option value="completed">Completed</option></select></div><div><label>Min CGPA (≥)</label><input id="cgpa-filter" type="number" min="0" max="10" step="0.1" /></div><div><label>Department</label><select id="dept-filter"><option value="">All</option></select></div></div>
+<section class="card"><div class="section-head"><h2 class="section-title">Drive Master</h2><div class="section-actions"><button class="btn primary" data-create-drive>Create Drive</button><button class="btn secondary" data-upload-dataset="drives">Upload CSV</button><button class="btn secondary" data-download-sample="drives">Sample CSV</button><button class="btn secondary" data-manage-dataset="drives">Manage</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Drives">Sync</button></div></div><div class="filters"><div><label>Status</label><select id="status-filter"><option value="">All</option><option value="upcoming">Upcoming</option><option value="completed">Completed</option></select></div><div><label>Min CGPA (≥)</label><input id="cgpa-filter" type="number" min="0" max="10" step="0.1" /></div><div><label>Department</label><select id="dept-filter"><option value="">All</option></select></div></div>
 <div class="table-wrap"><table><thead><tr><th>Company</th><th>Role</th><th>Date</th><th>Min CGPA</th><th>Departments</th><th>Status</th></tr></thead><tbody id="drive-rows"></tbody></table></div></section>
 </main></div>
 <script type="module">
-import { loadPlacementData } from '/institutes/data-client.js';
+import { createDatasetRecord, loadPlacementData } from '/institutes/data-client.js';
 import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, bindRecordManagement, bindSampleCsvDownloads, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
 const token = requireInstituteAuth(); if (!token) throw new Error('Unauthorized'); loadInstituteBranding(token).then(applyBranding); setActiveNav('drives'); bindPlaceholderActions(); bindSampleCsvDownloads();
 const statusFilter = document.getElementById('status-filter'); const cgpaFilter = document.getElementById('cgpa-filter'); const deptFilter = document.getElementById('dept-filter'); const tbody = document.getElementById('drive-rows');
 let drives = [];
+
+function normalizeDeptList(rawValue) {
+ return String(rawValue || '').split(',').map((value) => value.trim().toUpperCase()).filter(Boolean);
+}
+
+function toTodayDate() {
+ const now = new Date();
+ const tz = now.getTimezoneOffset() * 60000;
+ return new Date(now - tz).toISOString().slice(0, 10);
+}
+
+function openCreateDriveJourney() {
+ const overlay = document.createElement('div');
+ overlay.className = 'wizard-overlay';
+ overlay.innerHTML = `<div class="wizard-modal" role="dialog" aria-modal="true" aria-labelledby="drive-journey-title">
+  <h3 id="drive-journey-title">Create Drive Journey</h3>
+  <p>Follow the 3-step setup to publish a new placement drive.</p>
+  <div class="wizard-steps"><span class="active">1. Company</span><span>2. Eligibility</span><span>3. Review</span></div>
+  <div class="wizard-panel" data-step="1">
+    <label>Company Name</label>
+    <input id="wizard-company" type="text" placeholder="e.g. Astra Systems" required />
+    <label>Role</label>
+    <input id="wizard-role" type="text" placeholder="e.g. Software Engineer" required />
+    <label>Drive Date</label>
+    <input id="wizard-date" type="date" value="${toTodayDate()}" required />
+  </div>
+  <div class="wizard-panel hidden" data-step="2">
+    <label>Minimum CGPA</label>
+    <input id="wizard-cgpa" type="number" min="0" max="10" step="0.1" value="6" />
+    <label>Minimum Batch Year</label>
+    <input id="wizard-batch" type="number" min="2000" max="2100" step="1" value="${new Date().getFullYear()}" />
+    <label>Allowed Departments (comma separated)</label>
+    <input id="wizard-departments" type="text" placeholder="CSE, IT, ECE" />
+  </div>
+  <div class="wizard-panel hidden" data-step="3">
+    <div class="wizard-review" id="wizard-review"></div>
+    <label>Drive Status</label>
+    <select id="wizard-status"><option value="upcoming">Upcoming</option><option value="completed">Completed</option></select>
+  </div>
+  <div class="wizard-error" id="wizard-error"></div>
+  <div class="wizard-actions">
+    <button class="btn secondary" type="button" data-action="cancel">Cancel</button>
+    <button class="btn secondary" type="button" data-action="prev" disabled>Back</button>
+    <button class="btn primary" type="button" data-action="next">Next</button>
+  </div>
+ </div>`;
+ document.body.append(overlay);
+
+ const steps = Array.from(overlay.querySelectorAll('.wizard-panel'));
+ const stepIndicators = Array.from(overlay.querySelectorAll('.wizard-steps span'));
+ const errorEl = overlay.querySelector('#wizard-error');
+ const nextBtn = overlay.querySelector('[data-action="next"]');
+ const prevBtn = overlay.querySelector('[data-action="prev"]');
+ const reviewEl = overlay.querySelector('#wizard-review');
+ let step = 0;
+
+ const close = () => overlay.remove();
+ const readForm = () => ({
+  company: overlay.querySelector('#wizard-company').value.trim(),
+  role: overlay.querySelector('#wizard-role').value.trim(),
+  date: overlay.querySelector('#wizard-date').value,
+  min_cgpa: Number(overlay.querySelector('#wizard-cgpa').value || 0),
+  min_batch_year: Number(overlay.querySelector('#wizard-batch').value || new Date().getFullYear()),
+  allowed_departments: normalizeDeptList(overlay.querySelector('#wizard-departments').value),
+  status: overlay.querySelector('#wizard-status').value,
+ });
+
+ const validateStep = () => {
+  errorEl.textContent = '';
+  const data = readForm();
+  if (step === 0 && (!data.company || !data.role || !data.date)) {
+   errorEl.textContent = 'Company, role, and drive date are required.';
+   return false;
+  }
+  if (step === 1 && (Number.isNaN(data.min_cgpa) || data.min_cgpa < 0 || data.min_cgpa > 10)) {
+   errorEl.textContent = 'Minimum CGPA should be between 0 and 10.';
+   return false;
+  }
+  return true;
+ };
+
+ const updateStep = () => {
+  steps.forEach((panel, idx) => panel.classList.toggle('hidden', idx !== step));
+  stepIndicators.forEach((item, idx) => item.classList.toggle('active', idx === step));
+  prevBtn.disabled = step === 0;
+  nextBtn.textContent = step === 2 ? 'Create Drive' : 'Next';
+  errorEl.textContent = '';
+  if (step === 2) {
+   const data = readForm();
+   reviewEl.innerHTML = `<div><strong>Company:</strong> ${data.company || '-'}</div><div><strong>Role:</strong> ${data.role || '-'}</div><div><strong>Date:</strong> ${data.date || '-'}</div><div><strong>Min CGPA:</strong> ${Number(data.min_cgpa || 0).toFixed(1)}</div><div><strong>Batch Year:</strong> ${data.min_batch_year || '-'}</div><div><strong>Departments:</strong> ${(data.allowed_departments || []).join(', ') || 'All'}</div>`;
+  }
+ };
+
+ overlay.addEventListener('click', (event) => {
+  if (event.target === overlay || event.target.closest('[data-action="cancel"]')) close();
+ });
+ prevBtn.addEventListener('click', () => { step = Math.max(0, step - 1); updateStep(); });
+ nextBtn.addEventListener('click', async () => {
+  if (!validateStep()) return;
+  if (step < 2) {
+   step += 1;
+   updateStep();
+   return;
+  }
+  const payload = readForm();
+  if (!payload.allowed_departments.length) payload.allowed_departments = ['ALL'];
+  nextBtn.disabled = true;
+  prevBtn.disabled = true;
+  try {
+   await createDatasetRecord(token, 'drives', payload);
+   close();
+   await refresh();
+  } catch (error) {
+   errorEl.textContent = error?.message || 'Unable to create drive.';
+  } finally {
+   nextBtn.disabled = false;
+   prevBtn.disabled = step === 0;
+  }
+ });
+ updateStep();
+}
 
 function hydrateDeptFilter() { deptFilter.innerHTML = '<option value="">All</option>'; [...new Set(drives.flatMap((d) => d.allowed_departments || []))].sort().forEach((dept) => { const option = document.createElement('option'); option.value = dept; option.textContent = dept; deptFilter.append(option); }); }
 function renderRows() {
@@ -22,5 +143,6 @@ async function refresh(){ const data = await loadPlacementData(token, { force: t
 tbody.addEventListener('click',(event)=>{const row=event.target.closest('tr[data-id]'); if(row) window.location.href=`/institutes/drive.html?drive_id=${row.dataset.id}`;});
 bindRecordManagement(token, { onChanged: refresh });
 bindCsvUploadActions(token, { onUploaded: refresh });
+document.querySelector('[data-create-drive]').addEventListener('click', openCreateDriveJourney);
 await refresh();
 </script></body></html>
