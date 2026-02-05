@@ -129,6 +129,30 @@
     .section-title small {
       color: #6b7280;
     }
+    .logo-preview {
+      margin-top: 8px;
+      width: 180px;
+      max-width: 100%;
+      height: 56px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: #f9fafb;
+    }
+    .logo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #fff;
+    }
+    .logo-meta {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #4b5563;
+    }
   </style>
 </head>
 <body>
@@ -161,8 +185,14 @@
           <button type="button" id="logo-upload-btn">Upload Logo</button>
           <span id="logo-upload-status" class="badge" style="display: none;">Uploaded</span>
         </div>
+        <div class="logo-meta" id="logo-meta">No logo associated.</div>
+        <a id="logo-link" href="#" target="_blank" rel="noopener" style="display:none; font-size:12px;">Open current logo</a>
+        <div class="logo-preview" id="logo-preview"><img id="logo-preview-img" alt="Institution logo preview" /></div>
         <input type="hidden" name="logo_url" id="logo-url-input" />
-        <button type="submit">Create Institution</button>
+        <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+          <button type="submit" id="institution-submit-btn">Create Institution</button>
+          <button type="button" class="secondary" id="institution-cancel-btn" style="display:none;">Cancel Edit</button>
+        </div>
         <div class="message" id="institution-message"></div>
       </form>
       <div style="flex: 2; min-width: 320px;">
@@ -171,6 +201,7 @@
             <tr>
               <th>Name</th>
               <th>Slug</th>
+              <th>Logo</th>
               <th>Created At</th>
             </tr>
           </thead>
@@ -323,6 +354,12 @@
     const logoUrlInput = institutionForm.querySelector('input[name="logo_url"]');
     const logoUploadBtn = document.getElementById('logo-upload-btn');
     const logoUploadStatus = document.getElementById('logo-upload-status');
+    const logoMeta = document.getElementById('logo-meta');
+    const logoLink = document.getElementById('logo-link');
+    const logoPreview = document.getElementById('logo-preview');
+    const logoPreviewImg = document.getElementById('logo-preview-img');
+    const institutionSubmitBtn = document.getElementById('institution-submit-btn');
+    const institutionCancelBtn = document.getElementById('institution-cancel-btn');
 
     const institutionsTable = document.getElementById('institutions-table');
     const institutionUsersTable = document.getElementById('institution-users-table');
@@ -331,6 +368,7 @@
 
     let selectedInstitutionId = localStorage.getItem('selected_institution_id');
     let selectedInstitutionName = '';
+    let institutionEditMode = false;
 
     function showMessage(element, text, isError = true) {
       element.innerHTML = '';
@@ -367,6 +405,45 @@
         .replace(/^-+|-+$/g, '');
     }
 
+    function setLogoPreview(url) {
+      if (url) {
+        logoMeta.textContent = 'Logo associated with this institution.';
+        logoLink.href = url;
+        logoLink.style.display = 'inline-block';
+        logoPreviewImg.src = url;
+        logoPreview.style.display = 'flex';
+      } else {
+        logoMeta.textContent = 'No logo associated.';
+        logoLink.removeAttribute('href');
+        logoLink.style.display = 'none';
+        logoPreviewImg.removeAttribute('src');
+        logoPreview.style.display = 'none';
+      }
+    }
+
+    function setInstitutionFormMode(isEdit) {
+      institutionEditMode = isEdit;
+      institutionSubmitBtn.textContent = isEdit ? 'Update Institution' : 'Create Institution';
+      institutionCancelBtn.style.display = isEdit ? 'inline-block' : 'none';
+    }
+
+    function fillInstitutionForm(institution) {
+      institutionNameInput.value = institution?.name || '';
+      institutionSlugInput.value = institution?.slug || '';
+      logoUrlInput.value = institution?.logo_url || '';
+      logoUploadStatus.style.display = logoUrlInput.value ? 'inline-block' : 'none';
+      logoUploadStatus.textContent = logoUrlInput.value ? 'Uploaded' : 'No file';
+      setLogoPreview(logoUrlInput.value);
+    }
+
+    function resetInstitutionForm() {
+      institutionForm.reset();
+      logoUrlInput.value = '';
+      logoUploadStatus.style.display = 'none';
+      setInstitutionFormMode(false);
+      setLogoPreview('');
+    }
+
     institutionNameInput.addEventListener('input', (event) => {
       institutionSlugInput.value = slugify(event.target.value || '');
     });
@@ -374,6 +451,7 @@
     logoFileInput.addEventListener('change', () => {
       logoUploadStatus.style.display = 'none';
       logoUrlInput.value = '';
+      setLogoPreview('');
     });
 
     logoUploadBtn.addEventListener('click', async () => {
@@ -405,6 +483,7 @@
         logoUrlInput.value = data.url || '';
         logoUploadStatus.textContent = 'Uploaded';
         logoUploadStatus.style.display = 'inline-block';
+        setLogoPreview(logoUrlInput.value);
         showMessage(institutionMessage, 'Logo uploaded.', false);
       } catch (error) {
         showMessage(institutionMessage, error.message || 'Logo upload failed.');
@@ -454,9 +533,12 @@
           row.classList.add('clickable');
           row.dataset.id = institution.id;
           row.dataset.name = institution.name;
+          row.dataset.slug = institution.slug;
+          row.dataset.logoUrl = institution.logo_url || '';
           row.innerHTML = `
             <td>${institution.name}</td>
             <td>${institution.slug}</td>
+            <td>${institution.logo_url ? '<span class="badge ok">Available</span>' : '<span class="badge">Missing</span>'}</td>
             <td>${new Date(institution.created_at).toLocaleString()}</td>
           `;
           institutionsTable.appendChild(row);
@@ -466,7 +548,16 @@
           const selectedRow = data.institutions.find(inst => inst.id === selectedInstitutionId);
           if (selectedRow) {
             selectedInstitutionName = selectedRow.name;
+            fillInstitutionForm(selectedRow);
+            setInstitutionFormMode(true);
+          } else {
+            selectedInstitutionId = null;
+            selectedInstitutionName = '';
+            localStorage.removeItem('selected_institution_id');
+            resetInstitutionForm();
           }
+        } else {
+          resetInstitutionForm();
         }
 
         updateSelectedInstitutionLabel();
@@ -491,9 +582,20 @@
       selectedInstitutionId = row.dataset.id;
       selectedInstitutionName = row.dataset.name;
       localStorage.setItem('selected_institution_id', selectedInstitutionId);
+      fillInstitutionForm({
+        name: row.dataset.name,
+        slug: row.dataset.slug,
+        logo_url: row.dataset.logoUrl || '',
+      });
+      setInstitutionFormMode(true);
       updateSelectedInstitutionLabel();
       loadInstitutionUsers();
       loadLicense();
+    });
+
+    institutionCancelBtn.addEventListener('click', () => {
+      clearMessage(institutionMessage);
+      resetInstitutionForm();
     });
 
     document.getElementById('institution-form').addEventListener('submit', async (event) => {
@@ -504,16 +606,21 @@
       delete payload.logo_file;
       delete payload.primary_color;
       delete payload.secondary_color;
+      if (institutionEditMode) {
+        payload.institution_id = selectedInstitutionId;
+      }
 
       try {
         await apiFetch('/api/admin/institutions', {
-          method: 'POST',
+          method: institutionEditMode ? 'PATCH' : 'POST',
           body: JSON.stringify(payload)
         });
-        event.target.reset();
-        logoUploadStatus.style.display = 'none';
-        logoUrlInput.value = '';
-        showMessage(institutionMessage, 'Institution created.', false);
+        if (institutionEditMode) {
+          showMessage(institutionMessage, 'Institution updated.', false);
+        } else {
+          showMessage(institutionMessage, 'Institution created.', false);
+        }
+        resetInstitutionForm();
         await loadInstitutions();
       } catch (error) {
         showMessage(institutionMessage, error.message);

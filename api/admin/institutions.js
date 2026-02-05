@@ -106,6 +106,50 @@ module.exports = async function handler(req, res) {
       return res.status(201).json({ institution: data });
     }
 
+    if (req.method === 'PATCH') {
+      const body = normalizeBody(req.body);
+      const institutionId = typeof body.institution_id === 'string' ? body.institution_id.trim() : '';
+      const name = typeof body.name === 'string' ? body.name.trim() : '';
+      const slug = typeof body.slug === 'string' ? body.slug.trim().toLowerCase() : '';
+      const logoUrl = typeof body.logo_url === 'string' ? body.logo_url.trim() : '';
+
+      if (!institutionId || !name || !slug) {
+        return res.status(400).json({
+          error: 'missing_fields',
+          message: 'institution_id, name, and slug are required.'
+        });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('institutions')
+        .update({
+          name,
+          slug,
+          logo_url: logoUrl || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', institutionId)
+        .select('id, name, slug, created_at, logo_url, primary_color, secondary_color')
+        .single();
+
+      if (error) {
+        if (error.code === '23505') {
+          return res.status(409).json({
+            error: 'duplicate_slug',
+            message: 'Slug already exists. Choose a unique slug.'
+          });
+        }
+        const { detail, message } = formatSupabaseError(error);
+        return res.status(500).json({
+          error: 'supabase_error',
+          detail,
+          message,
+        });
+      }
+
+      return res.status(200).json({ institution: data });
+    }
+
     return res.status(405).json({ error: 'method_not_allowed' });
   } catch (error) {
     return res.status(500).json({ error: 'server_error' });
