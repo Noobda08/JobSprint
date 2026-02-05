@@ -24,6 +24,7 @@
       </nav>
     </aside>
     <main class="content">
+      <div class="card" id="setup-notice" style="display:none;border-color:#f59e0b;background:#fffbeb;color:#92400e"></div>
       <div class="topbar"><div><h1>Placement Dashboard</h1><small>Overview of placement readiness</small></div><strong data-brand-name>Institute</strong></div>
       <section class="card">
         <div class="section-head"><h2 class="section-title">Placement Funnel</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="applications">Upload CSV</button><button class="btn secondary" data-download-sample="applications">Sample CSV</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Placement Funnel">Sync</button></div></div>
@@ -51,7 +52,10 @@
     bindPlaceholderActions(); bindSampleCsvDownloads();
 
     const render = async () => {
-      const { applications = [], drives = [], students = [] } = await loadPlacementData(token, { force: true });
+      const data = await loadPlacementData(token, { force: true });
+      const { applications = [], drives = [], students = [] } = data;
+      const setupNotice = document.getElementById('setup-notice');
+      if (data.setup_required) { setupNotice.style.display = 'block'; setupNotice.textContent = data.setup_message || 'Placement schema setup is pending in Supabase.'; } else { setupNotice.style.display = 'none'; }
       const stages = ['applied', 'interview', 'offer', 'rejected'];
       const counts = stages.reduce((acc, stage) => ({ ...acc, [stage]: applications.filter((item) => item.stage === stage).length }), {});
       document.getElementById('funnel-metrics').innerHTML = `

@@ -1,3 +1,15 @@
+function emptyPlacementPayload(message = '') {
+  return {
+    drives: [],
+    students: [],
+    applications: [],
+    counselling_sessions: [],
+    counselling_notes: [],
+    setup_required: true,
+    setup_message: message,
+  };
+}
+
 let cache = null;
 
 export async function loadPlacementData(token, { force = false } = {}) {
@@ -7,11 +19,17 @@ export async function loadPlacementData(token, { force = false } = {}) {
     headers: { Authorization: `Bearer ${token}` },
   });
 
+  const payload = await response.json().catch(() => ({}));
+
   if (!response.ok) {
-    throw new Error('Unable to load institute placement data.');
+    if (payload?.error === 'schema_not_ready') {
+      cache = emptyPlacementPayload(payload.message || 'Placement schema setup is pending.');
+      return cache;
+    }
+    throw new Error(payload?.message || 'Unable to load institute placement data.');
   }
 
-  cache = await response.json();
+  cache = payload;
   return cache;
 }
 

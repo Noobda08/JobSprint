@@ -23,6 +23,38 @@ const SAMPLE_CSV = {
   ].join('\n'),
 };
 
+const DATASET_MAPPING_CONFIG = {
+  students: {
+    required: ['email', 'full_name', 'department', 'batch_year'],
+    optional: ['cgpa', 'risk_level'],
+    aliases: {
+      full_name: ['full_name', 'name'],
+      department: ['department', 'dept'],
+      risk_level: ['risk_level', 'risk'],
+    },
+  },
+  drives: {
+    required: ['company', 'role', 'date'],
+    optional: ['min_cgpa', 'min_batch_year', 'allowed_departments', 'status'],
+    aliases: {},
+  },
+  applications: {
+    required: ['student_email', 'drive_company', 'drive_role', 'drive_date', 'stage'],
+    optional: [],
+    aliases: {},
+  },
+  counselling_sessions: {
+    required: ['student_email', 'scheduled_at', 'status'],
+    optional: [],
+    aliases: {},
+  },
+  counselling_notes: {
+    required: ['student_email', 'note'],
+    optional: ['created_at'],
+    aliases: {},
+  },
+};
+
 export function requireInstituteAuth() {
   const token = localStorage.getItem('institutes_token');
   if (!token) {
@@ -110,6 +142,177 @@ export function bindPlaceholderActions(root = document) {
   });
 }
 
+function normalizeHeader(header) {
+  return String(header || '').replace(/^\ufeff/, '').trim();
+}
+
+function parseCsvLine(line) {
+  const cells = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === ',' && !inQuotes) {
+      cells.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  cells.push(current);
+  return cells;
+}
+
+function csvEscape(value) {
+  const text = String(value ?? '');
+  if (text.includes(',') || text.includes('"') || text.includes('\n')) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+  return text;
+}
+
+function parseCsvText(csvText) {
+  const lines = String(csvText || '').split(/\r?\n/).filter((line) => line.trim());
+  if (lines.length < 2) return null;
+  const headers = parseCsvLine(lines[0]).map(normalizeHeader);
+  const rows = lines.slice(1).map((line) => parseCsvLine(line));
+  return { headers, rows };
+}
+
+function suggestHeaderMatch(targetField, sourceHeaders, aliases = {}) {
+  const normalizedHeaders = sourceHeaders.map((header) => header.toLowerCase());
+  const candidates = [targetField, ...(aliases[targetField] || [])].map((value) => value.toLowerCase());
+  for (const candidate of candidates) {
+    const idx = normalizedHeaders.indexOf(candidate);
+    if (idx >= 0) return sourceHeaders[idx];
+  }
+  return '';
+}
+
+function openColumnMappingModal(dataset, sourceHeaders) {
+  const config = DATASET_MAPPING_CONFIG[dataset];
+  if (!config) return Promise.resolve(null);
+
+  const fields = [...config.required, ...config.optional];
+
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'csv-map-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = 'csv-map-modal';
+
+    const title = document.createElement('h3');
+    title.textContent = `Map CSV columns (${dataset})`;
+
+    const subtitle = document.createElement('p');
+    subtitle.textContent = 'Please map your CSV columns before upload.';
+
+    const form = document.createElement('div');
+    form.className = 'csv-map-form';
+
+    const selects = new Map();
+
+    fields.forEach((field) => {
+      const row = document.createElement('div');
+      row.className = 'csv-map-row';
+
+      const label = document.createElement('label');
+      const requiredMark = config.required.includes(field) ? ' *' : '';
+      label.textContent = `${field}${requiredMark}`;
+
+      const select = document.createElement('select');
+      const empty = document.createElement('option');
+      empty.value = '';
+      empty.textContent = '-- Ignore --';
+      select.append(empty);
+
+      sourceHeaders.forEach((header) => {
+        const option = document.createElement('option');
+        option.value = header;
+        option.textContent = header;
+        select.append(option);
+      });
+
+      select.value = suggestHeaderMatch(field, sourceHeaders, config.aliases);
+      selects.set(field, select);
+
+      row.append(label, select);
+      form.append(row);
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'csv-map-actions';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'btn secondary';
+    cancelBtn.textContent = 'Cancel';
+
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'button';
+    submitBtn.className = 'btn primary';
+    submitBtn.textContent = 'Continue Upload';
+
+    cancelBtn.addEventListener('click', () => {
+      overlay.remove();
+      resolve(null);
+    });
+
+    submitBtn.addEventListener('click', () => {
+      const mapping = {};
+      for (const [field, select] of selects.entries()) {
+        mapping[field] = select.value;
+      }
+
+      const missing = config.required.filter((field) => !mapping[field]);
+      if (missing.length) {
+        window.alert(`Please map required fields: ${missing.join(', ')}`);
+        return;
+      }
+
+      overlay.remove();
+      resolve(mapping);
+    });
+
+    actions.append(cancelBtn, submitBtn);
+    modal.append(title, subtitle, form, actions);
+    overlay.append(modal);
+    document.body.append(overlay);
+  });
+}
+
+function remapCsvForUpload(dataset, csvText, mapping) {
+  const parsed = parseCsvText(csvText);
+  if (!parsed) return csvText;
+
+  const config = DATASET_MAPPING_CONFIG[dataset];
+  if (!config) return csvText;
+
+  const targetHeaders = [...config.required, ...config.optional].filter((field) => mapping[field]);
+  const headerIndex = new Map(parsed.headers.map((header, idx) => [header, idx]));
+
+  const csvRows = [targetHeaders.join(',')];
+  parsed.rows.forEach((row) => {
+    const mappedCells = targetHeaders.map((field) => {
+      const sourceHeader = mapping[field];
+      const idx = headerIndex.get(sourceHeader);
+      return csvEscape(idx === undefined ? '' : (row[idx] || '').trim());
+    });
+    csvRows.push(mappedCells.join(','));
+  });
+
+  return csvRows.join('\n');
+}
+
 export function bindCsvUploadActions(token, { onUploaded } = {}) {
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
@@ -123,10 +326,23 @@ export function bindCsvUploadActions(token, { onUploaded } = {}) {
     const file = fileInput.files && fileInput.files[0];
     if (!file || !pendingDataset) return;
 
-    const csvText = await file.text();
+    const originalCsvText = await file.text();
+
     try {
-      const result = await uploadCsvDataset(token, pendingDataset, csvText);
-      window.alert(`Uploaded ${result.imported || 0} rows to ${pendingDataset}.`);
+      const parsed = parseCsvText(originalCsvText);
+      if (!parsed) {
+        throw new Error('CSV must include headers and at least one data row.');
+      }
+
+      const mapping = await openColumnMappingModal(pendingDataset, parsed.headers);
+      if (!mapping) {
+        return;
+      }
+
+      const remappedCsvText = remapCsvForUpload(pendingDataset, originalCsvText, mapping);
+      const result = await uploadCsvDataset(token, pendingDataset, remappedCsvText);
+      const warning = result.warning ? `\n\n${result.warning}` : '';
+      window.alert(`Uploaded ${result.imported || 0} rows to ${pendingDataset}.${warning}`);
       if (typeof onUploaded === 'function') await onUploaded();
     } catch (error) {
       window.alert(error?.message || 'CSV upload failed.');

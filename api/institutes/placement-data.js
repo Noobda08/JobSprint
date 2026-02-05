@@ -33,10 +33,22 @@ function parseCsvLine(line) {
   return cells;
 }
 
+function normalizeHeader(header) {
+  return String(header || '').replace(/^\ufeff/, '').trim().toLowerCase();
+}
+
+function getField(row, keys = []) {
+  for (const key of keys) {
+    const value = row[normalizeHeader(key)];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+}
+
 function parseCsv(csvText) {
   const lines = String(csvText || '').split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
-  const headers = parseCsvLine(lines[0]).map((h) => h.toLowerCase());
+  const headers = parseCsvLine(lines[0]).map((h) => normalizeHeader(h));
 
   return lines.slice(1).map((line) => {
     const cells = parseCsvLine(line);
@@ -45,6 +57,14 @@ function parseCsv(csvText) {
       return acc;
     }, {});
   });
+}
+
+
+function isSchemaNotReadyError(error) {
+  const message = String(error?.message || '').toLowerCase();
+  return message.includes('schema cache')
+    || message.includes('does not exist')
+    || message.includes('relation') && message.includes('public.');
 }
 
 function mapStage(stage) {
@@ -167,14 +187,20 @@ async function importCsvDataset({ institutionId, dataset, csvText }) {
   if (dataset === 'students') {
     const studentPayload = rows.map((row) => ({
       institution_id: institutionId,
-      full_name: row.name,
-      email: String(row.email || '').toLowerCase(),
-      department: row.dept,
-      cgpa: row.cgpa ? Number(row.cgpa) : null,
-      batch_year: row.batch_year ? Number(row.batch_year) : null,
+      full_name: getField(row, ['name', 'full_name']),
+      email: String(getField(row, ['email', 'student_email']) || '').toLowerCase(),
+      department: getField(row, ['dept', 'department']),
+      cgpa: getField(row, ['cgpa']) ? Number(getField(row, ['cgpa'])) : null,
+      batch_year: getField(row, ['batch_year', 'batch']) ? Number(getField(row, ['batch_year', 'batch'])) : null,
     })).filter((row) => row.full_name && row.email && row.batch_year);
 
-    if (!studentPayload.length) return { imported: 0, dataset };
+    if (!studentPayload.length) {
+      return {
+        imported: 0,
+        dataset,
+        warning: 'No valid student rows found. Expected headers include email + (name/full_name) + (dept/department) + batch_year.',
+      };
+    }
 
     const { error } = await supabaseAdmin.from('students').upsert(studentPayload, {
       onConflict: 'institution_id,email',
@@ -190,11 +216,11 @@ async function importCsvDataset({ institutionId, dataset, csvText }) {
     const studentByEmail = new Map((studentRows || []).map((row) => [row.email.toLowerCase(), row.id]));
 
     const riskPayload = rows
-      .filter((row) => row.risk_level && studentByEmail.get(String(row.email || '').toLowerCase()))
+      .filter((row) => getField(row, ['risk_level', 'risk']) && studentByEmail.get(String(getField(row, ['email', 'student_email']) || '').toLowerCase()))
       .map((row) => ({
         institution_id: institutionId,
-        student_id: studentByEmail.get(String(row.email || '').toLowerCase()),
-        risk_status: row.risk_level.toLowerCase(),
+        student_id: studentByEmail.get(String(getField(row, ['email', 'student_email']) || '').toLowerCase()),
+        risk_status: getField(row, ['risk_level', 'risk']).toLowerCase(),
       }));
 
     if (riskPayload.length) {
@@ -316,6 +342,14 @@ module.exports = async function handler(req, res) {
 
     return res.status(405).json({ error: 'method_not_allowed' });
   } catch (error) {
+    if (isSchemaNotReadyError(error)) {
+      return res.status(503).json({
+        error: 'schema_not_ready',
+        message: 'Institute placement tables are not set up yet. Please run Supabase migrations before using the Institutes dashboard.',
+        detail: error?.message || 'Schema is missing required placement tables.',
+      });
+    }
+
     return res.status(500).json({ error: 'server_error', message: error?.message || 'Server error.' });
   }
 };

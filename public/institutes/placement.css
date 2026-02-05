@@ -65,3 +65,35 @@ button[disabled] { opacity:.6; cursor:not-allowed; }
   .grid-3 { grid-template-columns: 1fr; }
   .section-head { align-items:flex-start; flex-direction:column; }
 }
+
+.csv-map-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 18px;
+}
+.csv-map-modal {
+  width: min(680px, 100%);
+  max-height: 82vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.32);
+  padding: 18px;
+}
+.csv-map-modal h3 { margin: 0 0 6px; }
+.csv-map-modal p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+.csv-map-form { display: grid; gap: 10px; }
+.csv-map-row { display: grid; grid-template-columns: 220px 1fr; gap: 10px; align-items: center; }
+.csv-map-row label { font-size: 13px; font-weight: 600; }
+.csv-map-row select { width: 100%; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 10px; }
+.csv-map-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+@media (max-width: 760px) {
+  .csv-map-row { grid-template-columns: 1fr; }
+}
