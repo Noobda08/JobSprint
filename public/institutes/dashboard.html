@@ -27,15 +27,15 @@
       <div class="card" id="setup-notice" style="display:none;border-color:#f59e0b;background:#fffbeb;color:#92400e"></div>
       <div class="topbar"><div><h1>Placement Dashboard</h1><small>Overview of placement readiness</small></div><strong data-brand-name>Institute</strong></div>
       <section class="card">
-        <div class="section-head"><h2 class="section-title">Placement Funnel</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="applications">Upload CSV</button><button class="btn secondary" data-download-sample="applications">Sample CSV</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Placement Funnel">Sync</button></div></div>
+        <div class="section-head"><h2 class="section-title">Placement Funnel</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="applications">Upload CSV</button><button class="btn secondary" data-download-sample="applications">Sample CSV</button><button class="btn secondary" data-manage-dataset="applications">Manage</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Placement Funnel">Sync</button></div></div>
         <div class="grid-3" id="funnel-metrics"></div>
       </section>
       <section class="card">
-        <div class="section-head"><h2 class="section-title">Upcoming Placement Drives</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="drives">Upload CSV</button><button class="btn secondary" data-download-sample="drives">Sample CSV</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Upcoming Placement Drives">Sync</button></div></div>
+        <div class="section-head"><h2 class="section-title">Upcoming Placement Drives</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="drives">Upload CSV</button><button class="btn secondary" data-download-sample="drives">Sample CSV</button><button class="btn secondary" data-manage-dataset="drives">Manage</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Upcoming Placement Drives">Sync</button></div></div>
         <div class="table-wrap"><table><thead><tr><th>Company</th><th>Role</th><th>Date</th><th>Min CGPA</th><th>Status</th></tr></thead><tbody id="upcoming-drives"></tbody></table></div>
       </section>
       <section class="card">
-        <div class="section-head"><h2 class="section-title">High-Risk Students</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="students">Upload CSV</button><button class="btn secondary" data-download-sample="students">Sample CSV</button><button class="btn secondary" data-placeholder-action="Sync" data-section="High-Risk Students">Sync</button></div></div>
+        <div class="section-head"><h2 class="section-title">High-Risk Students</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="students">Upload CSV</button><button class="btn secondary" data-download-sample="students">Sample CSV</button><button class="btn secondary" data-manage-dataset="students">Manage</button><button class="btn secondary" data-placeholder-action="Sync" data-section="High-Risk Students">Sync</button></div></div>
         <div class="table-wrap"><table><thead><tr><th>Name</th><th>Department</th><th>CGPA</th><th>Risk</th></tr></thead><tbody id="high-risk-students"></tbody></table></div>
       </section>
     </main>
@@ -43,7 +43,7 @@
 
   <script type="module">
     import { loadPlacementData } from '/institutes/data-client.js';
-    import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, bindSampleCsvDownloads, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
+    import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, bindRecordManagement, bindSampleCsvDownloads, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
 
     const token = requireInstituteAuth();
     if (!token) throw new Error('Unauthorized');
@@ -72,6 +72,7 @@
       document.getElementById('high-risk-students').innerHTML = highRisk.map((student) => `<tr class="clickable" data-id="${student.id}"><td>${student.name}</td><td>${student.dept || '-'}</td><td>${Number(student.cgpa || 0).toFixed(2)}</td><td><span class="pill ${student.risk_level}">${student.risk_level}</span></td></tr>`).join('') || '<tr><td colspan="4">No students uploaded yet.</td></tr>';
     };
 
+    bindRecordManagement(token, { onChanged: render });
     bindCsvUploadActions(token, { onUploaded: render });
     await render();
 

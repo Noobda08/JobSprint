@@ -1,4 +1,4 @@
-import { uploadCsvDataset } from '/institutes/data-client.js';
+import { createDatasetRecord, deleteDatasetRecord, loadPlacementData, updateDatasetRecord, uploadCsvDataset } from '/institutes/data-client.js';
 
 const SAMPLE_CSV = {
   drives: [
@@ -357,6 +357,79 @@ export function bindCsvUploadActions(token, { onUploaded } = {}) {
     if (!button) return;
     pendingDataset = button.dataset.uploadDataset;
     fileInput.click();
+  });
+}
+
+
+
+function getDatasetRecords(payload, dataset) {
+  return Array.isArray(payload?.[dataset]) ? payload[dataset] : [];
+}
+
+function openJsonEditor(title, initialValue = '{}') {
+  const response = window.prompt(title, initialValue);
+  if (response === null) return null;
+  const trimmed = response.trim();
+  if (!trimmed) return {};
+  return JSON.parse(trimmed);
+}
+
+export function bindRecordManagement(token, { onChanged } = {}) {
+  document.addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-manage-dataset]');
+    if (!button) return;
+
+    const dataset = button.dataset.manageDataset;
+    try {
+      const data = await loadPlacementData(token, { force: true });
+      const records = getDatasetRecords(data, dataset);
+
+      const idInput = window.prompt(
+        `Manage ${dataset}\nType: add | edit:<id> | delete:<id> | list\nCurrent rows: ${records.length}`
+      );
+      if (!idInput) return;
+
+      const command = idInput.trim();
+      if (command === 'list') {
+        const preview = records.slice(0, 20).map((row) => JSON.stringify(row)).join('\n');
+        window.alert(preview || `No records in ${dataset}.`);
+        return;
+      }
+
+      if (command === 'add') {
+        const record = openJsonEditor(`Add ${dataset} record as JSON`, '{}');
+        if (!record) return;
+        await createDatasetRecord(token, dataset, record);
+        window.alert(`Added record to ${dataset}.`);
+        if (typeof onChanged === 'function') await onChanged();
+        return;
+      }
+
+      if (command.startsWith('edit:')) {
+        const id = command.slice(5).trim();
+        const existing = records.find((row) => String(row.id) === id);
+        const updates = openJsonEditor(`Edit ${dataset} ${id} with JSON updates`, JSON.stringify(existing || {}, null, 2));
+        if (!updates) return;
+        await updateDatasetRecord(token, dataset, id, updates);
+        window.alert(`Updated ${dataset} record ${id}.`);
+        if (typeof onChanged === 'function') await onChanged();
+        return;
+      }
+
+      if (command.startsWith('delete:')) {
+        const id = command.slice(7).trim();
+        const confirmed = window.confirm(`Delete ${dataset} record ${id}?`);
+        if (!confirmed) return;
+        await deleteDatasetRecord(token, dataset, id);
+        window.alert(`Deleted ${dataset} record ${id}.`);
+        if (typeof onChanged === 'function') await onChanged();
+        return;
+      }
+
+      window.alert('Unsupported command. Use add, edit:<id>, delete:<id>, list');
+    } catch (error) {
+      window.alert(error?.message || 'Manage action failed.');
+    }
   });
 }
 

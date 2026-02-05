@@ -33,21 +33,36 @@ export async function loadPlacementData(token, { force = false } = {}) {
   return cache;
 }
 
-export async function uploadCsvDataset(token, dataset, csvText) {
+async function request(token, method, body) {
   const response = await fetch('/api/institutes/placement-data', {
-    method: 'POST',
+    method,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ dataset, csv: csvText }),
+    body: JSON.stringify(body),
   });
 
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(payload.message || 'CSV upload failed.');
+    throw new Error(payload.message || `${method} failed.`);
   }
-
   cache = null;
   return payload;
+}
+
+export async function uploadCsvDataset(token, dataset, csvText) {
+  return request(token, 'POST', { dataset, csv: csvText });
+}
+
+export async function createDatasetRecord(token, dataset, record) {
+  return request(token, 'PUT', { dataset, record });
+}
+
+export async function updateDatasetRecord(token, dataset, id, updates) {
+  return request(token, 'PATCH', { dataset, id, updates });
+}
+
+export async function deleteDatasetRecord(token, dataset, id) {
+  return request(token, 'DELETE', { dataset, id });
 }
