@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { supabaseAdmin } = require('../../lib/_supabase.js');
 const { requireInstituteAuth } = require('../../lib/_institutes_auth.js');
 
@@ -42,6 +43,27 @@ module.exports = async function handler(req, res) {
       || authUser.user_metadata?.display_name
       || email
       || 'Signed-in user';
+
+    const cacheControl = 'private, max-age=60, stale-while-revalidate=300';
+    const etagSeed = [
+      institution.id,
+      institution.logo_url || '',
+      institution.name || '',
+      authUser.id,
+      auth.role || '',
+    ].join('|');
+    const etag = `W/\"${crypto.createHash('sha1').update(etagSeed).digest('base64url')}\"`;
+
+    res.setHeader('Cache-Control', cacheControl);
+    res.setHeader('ETag', etag);
+
+    const ifNoneMatch = req.headers['if-none-match'];
+    if (typeof ifNoneMatch === 'string') {
+      const requestedEtags = ifNoneMatch.split(',').map((item) => item.trim());
+      if (requestedEtags.includes(etag)) {
+        return res.status(304).end();
+      }
+    }
 
     return res.status(200).json({
       institution,
