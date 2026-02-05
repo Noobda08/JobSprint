@@ -4,107 +4,93 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Institute Dashboard • JobSprint</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles/theme.css">
-
-  <style>
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:'Inter',system-ui,Segoe UI,Helvetica,Arial,sans-serif;background:#f6f8fb;color:var(--ink)}
-    .layout{min-height:100vh;display:flex}
-    .sidebar{width:240px;background:#0f172a;color:#f8fafc;padding:28px 20px;display:flex;flex-direction:column;gap:24px}
-    .brand{display:flex;align-items:center;gap:12px}
-    .brand-logo{width:40px;height:40px;border-radius:12px;overflow:hidden;background:#1e293b;display:flex;align-items:center;justify-content:center;color:#e2e8f0;font-weight:700}
-    .brand-logo img{width:100%;height:100%;object-fit:cover}
-    .brand-name{font-size:16px;font-weight:600}
-    .brand-sub{font-size:12px;color:#94a3b8;margin-top:2px}
-    nav{display:flex;flex-direction:column;gap:10px}
-    nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:#e2e8f0;text-decoration:none;font-size:14px;font-weight:500}
-    nav a.active,nav a:hover{background:rgba(148,163,184,.2)}
-    .content{flex:1;padding:32px 40px}
-    .card{background:#fff;border-radius:20px;border:1px solid rgba(15,23,42,.12);padding:28px;box-shadow:var(--shadow-sm)}
-    .page-title{margin:0 0 12px;font-size:24px}
-    .placeholder{margin:0;color:var(--muted)}
-    .loading{font-size:13px;color:#94a3b8}
-  </style>
+  <link rel="stylesheet" href="/institutes/placement.css">
 </head>
 <body>
   <div class="layout">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-logo" id="brand-logo">JS</div>
-        <div>
-          <div class="brand-name" id="brand-name">Institute</div>
-          <div class="brand-sub" id="brand-sub">Placement Center</div>
-        </div>
+        <div class="brand-logo" data-brand-logo>JS</div>
+        <div><div class="brand-name" data-brand-name>Institute</div><div class="brand-sub" data-brand-sub>Placement Center</div></div>
       </div>
-      <div class="loading" id="brand-status">Loading branding…</div>
       <nav>
-        <a class="active" href="#">Dashboard</a>
-        <a href="#">Students</a>
-        <a href="#">Drives</a>
-        <a href="#">Counselling</a>
+        <a data-nav="dashboard" href="/institutes/dashboard.html">Dashboard</a>
+        <a data-nav="students" href="/institutes/students.html">Students</a>
+        <a data-nav="drives" href="/institutes/drives.html">Drives</a>
+        <a data-nav="counselling" href="/institutes/counselling.html">Counselling</a>
       </nav>
     </aside>
-
     <main class="content">
-      <div class="card">
-        <h1 class="page-title">Dashboard</h1>
-        <p class="placeholder">Placement Funnel (coming next)</p>
-      </div>
+      <div class="topbar"><div><h1>Placement Dashboard</h1><small>Overview of placement readiness</small></div><strong data-brand-name>Institute</strong></div>
+      <section class="card">
+        <h2 class="section-title">Placement Funnel</h2>
+        <div class="grid-3" id="funnel-metrics"></div>
+      </section>
+      <section class="card">
+        <h2 class="section-title">Upcoming Placement Drives</h2>
+        <div class="table-wrap">
+          <table><thead><tr><th>Company</th><th>Role</th><th>Date</th><th>Min CGPA</th><th>Status</th></tr></thead><tbody id="upcoming-drives"></tbody></table>
+        </div>
+      </section>
+      <section class="card">
+        <h2 class="section-title">High-Risk Students</h2>
+        <div class="table-wrap">
+          <table><thead><tr><th>Name</th><th>Department</th><th>CGPA</th><th>Risk</th></tr></thead><tbody id="high-risk-students"></tbody></table>
+        </div>
+      </section>
     </main>
   </div>
 
-  <script>
-    const token = localStorage.getItem('institutes_token');
-    const brandNameEl = document.getElementById('brand-name');
-    const brandLogoEl = document.getElementById('brand-logo');
-    const brandSubEl = document.getElementById('brand-sub');
-    const brandStatusEl = document.getElementById('brand-status');
+  <script type="module">
+    import { applications, drives, students } from '/institutes/demo-data.js';
+    import { applyBranding, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
 
-    const redirectToLogin = () => {
-      window.location.href = '/institutes/login';
-    };
+    const token = requireInstituteAuth();
+    if (token) {
+      loadInstituteBranding(token).then(applyBranding);
+    }
+    setActiveNav('dashboard');
 
-    const setBranding = (institution) => {
-      brandNameEl.textContent = institution?.name || 'Institute';
-      brandSubEl.textContent = institution?.tagline || 'Placement Center';
-      if (institution?.logo_url) {
-        brandLogoEl.innerHTML = `<img src="${institution.logo_url}" alt="${institution.name || 'Institute'} logo" />`;
-      } else {
-        brandLogoEl.textContent = (institution?.name || 'JS').slice(0, 2).toUpperCase();
-      }
-    };
+    const stages = ['applied', 'interview', 'offer', 'rejected'];
+    const counts = stages.reduce((acc, stage) => ({ ...acc, [stage]: applications.filter((item) => item.stage === stage).length }), {});
+    const totalApplications = applications.length;
 
-    const loadBranding = async () => {
-      if (!token) {
-        redirectToLogin();
-        return;
-      }
+    document.getElementById('funnel-metrics').innerHTML = `
+      <div class="metric"><div class="label">Total Applications</div><div class="value">${totalApplications}</div></div>
+      <div class="metric"><div class="label">Interviews</div><div class="value">${counts.interview}</div></div>
+      <div class="metric"><div class="label">Offers</div><div class="value">${counts.offer}</div></div>
+    `;
 
-      try {
-        const response = await fetch('/api/institutes/login', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+    const upcoming = drives
+      .filter((drive) => drive.status === 'upcoming')
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .slice(0, 5);
 
-        if (!response.ok) {
-          redirectToLogin();
-          return;
-        }
+    document.getElementById('upcoming-drives').innerHTML = upcoming
+      .map((drive) => `<tr class="clickable" data-id="${drive.id}"><td>${drive.company}</td><td>${drive.role}</td><td>${formatDate(drive.date)}</td><td>${drive.min_cgpa.toFixed(1)}</td><td><span class="pill ${drive.status}">${drive.status}</span></td></tr>`)
+      .join('');
 
-        const data = await response.json();
-        setBranding(data?.institution);
-        brandStatusEl.textContent = 'Institute ready';
-      } catch (error) {
-        redirectToLogin();
-      }
-    };
+    const riskRank = { high: 0, medium: 1, low: 2 };
+    const highRisk = [...students]
+      .sort((a, b) => (riskRank[a.risk_level] - riskRank[b.risk_level]) || (a.cgpa - b.cgpa))
+      .slice(0, 8);
 
-    loadBranding();
+    document.getElementById('high-risk-students').innerHTML = highRisk
+      .map((student) => `<tr class="clickable" data-id="${student.id}"><td>${student.name}</td><td>${student.dept}</td><td>${student.cgpa.toFixed(2)}</td><td><span class="pill ${student.risk_level}">${student.risk_level}</span></td></tr>`)
+      .join('');
+
+    document.getElementById('upcoming-drives').addEventListener('click', (event) => {
+      const row = event.target.closest('tr[data-id]');
+      if (row) window.location.href = `/institutes/drive.html?drive_id=${row.dataset.id}`;
+    });
+
+    document.getElementById('high-risk-students').addEventListener('click', (event) => {
+      const row = event.target.closest('tr[data-id]');
+      if (row) window.location.href = `/institutes/student.html?student_id=${row.dataset.id}`;
+    });
   </script>
 </body>
 </html>
