@@ -7,6 +7,11 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  overflow-y: auto;
 }
 .brand { display: block; }
 .brand-copy { display: flex; flex-direction: column; gap: 4px; }
@@ -78,7 +83,13 @@ tr.clickable:hover { background:#f8fafc; }
 button[disabled] { opacity:.6; cursor:not-allowed; }
 @media (max-width: 980px) {
   .layout { flex-direction: column; }
-  .sidebar { width: 100%; }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    align-self: auto;
+    overflow-y: visible;
+  }
   .filters { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .grid-3 { grid-template-columns: 1fr; }
   .section-head { align-items:flex-start; flex-direction:column; }

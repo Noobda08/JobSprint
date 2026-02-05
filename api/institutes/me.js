@@ -26,7 +26,32 @@ module.exports = async function handler(req, res) {
       return res.status(404).json({ error: 'institution_not_found', message: 'Institution not found.' });
     }
 
-    return res.status(200).json({ institution });
+    const { data: authLookup, error: authLookupError } = await supabaseAdmin.auth.admin.getUserById(auth.user_id);
+    if (authLookupError) {
+      return res.status(500).json({ error: 'auth_lookup_failed', detail: authLookupError.message || String(authLookupError) });
+    }
+
+    const authUser = authLookup?.user;
+    if (!authUser) {
+      return res.status(404).json({ error: 'user_not_found', message: 'User not found.' });
+    }
+
+    const email = authUser.email || '';
+    const name = authUser.user_metadata?.name
+      || authUser.user_metadata?.full_name
+      || authUser.user_metadata?.display_name
+      || email
+      || 'Signed-in user';
+
+    return res.status(200).json({
+      institution,
+      user: {
+        id: authUser.id,
+        name,
+        email,
+        role: auth.role,
+      },
+    });
   } catch (error) {
     return res.status(500).json({ error: 'server_error', message: error?.message || 'Server error.' });
   }
