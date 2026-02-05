@@ -1,5 +1,28 @@
 import { uploadCsvDataset } from '/institutes/data-client.js';
 
+const SAMPLE_CSV = {
+  drives: [
+    'company,role,date,min_cgpa,min_batch_year,allowed_departments,status',
+    'Astra Systems,Software Engineer,2026-03-12,7.0,2026,CSE|IT|ECE,upcoming',
+  ].join('\n'),
+  students: [
+    'name,email,dept,cgpa,batch_year,risk_level',
+    'Aarav Sharma,aarav.sharma@campus.edu,CSE,7.8,2026,medium',
+  ].join('\n'),
+  applications: [
+    'student_email,drive_company,drive_role,drive_date,stage',
+    'aarav.sharma@campus.edu,Astra Systems,Software Engineer,2026-03-12,applied',
+  ].join('\n'),
+  counselling_sessions: [
+    'student_email,scheduled_at,status',
+    'aarav.sharma@campus.edu,2026-03-20T11:00:00,scheduled',
+  ].join('\n'),
+  counselling_notes: [
+    'student_email,note,created_at',
+    'aarav.sharma@campus.edu,Needs mock interview support,2026-03-21T09:30:00',
+  ].join('\n'),
+};
+
 export function requireInstituteAuth() {
   const token = localStorage.getItem('institutes_token');
   if (!token) {
@@ -118,5 +141,29 @@ export function bindCsvUploadActions(token, { onUploaded } = {}) {
     if (!button) return;
     pendingDataset = button.dataset.uploadDataset;
     fileInput.click();
+  });
+}
+
+export function bindSampleCsvDownloads(root = document) {
+  root.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-download-sample]');
+    if (!button) return;
+
+    const dataset = button.dataset.downloadSample;
+    const csv = SAMPLE_CSV[dataset];
+    if (!csv) {
+      window.alert('Sample format not available for this dataset.');
+      return;
+    }
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${dataset}-sample.csv`;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
   });
 }
