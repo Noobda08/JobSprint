@@ -26,62 +26,50 @@
     <main class="content">
       <div class="topbar"><div><h1>Placement Dashboard</h1><small>Overview of placement readiness</small></div><strong data-brand-name>Institute</strong></div>
       <section class="card">
-        <div class="section-head"><h2 class="section-title">Placement Funnel</h2><div class="section-actions"><button class="btn secondary" data-placeholder-action="Sync" data-section="Placement Funnel">Sync</button></div></div>
+        <div class="section-head"><h2 class="section-title">Placement Funnel</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="applications">Upload CSV</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Placement Funnel">Sync</button></div></div>
         <div class="grid-3" id="funnel-metrics"></div>
       </section>
       <section class="card">
-        <div class="section-head"><h2 class="section-title">Upcoming Placement Drives</h2><div class="section-actions"><button class="btn secondary" data-placeholder-action="Sync" data-section="Upcoming Placement Drives">Sync</button><button class="btn secondary" data-placeholder-action="Add / Edit / Remove" data-section="Upcoming Placement Drives">Manage Data</button></div></div>
-        <div class="table-wrap">
-          <table><thead><tr><th>Company</th><th>Role</th><th>Date</th><th>Min CGPA</th><th>Status</th></tr></thead><tbody id="upcoming-drives"></tbody></table>
-        </div>
+        <div class="section-head"><h2 class="section-title">Upcoming Placement Drives</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="drives">Upload CSV</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Upcoming Placement Drives">Sync</button></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Company</th><th>Role</th><th>Date</th><th>Min CGPA</th><th>Status</th></tr></thead><tbody id="upcoming-drives"></tbody></table></div>
       </section>
       <section class="card">
-        <div class="section-head"><h2 class="section-title">High-Risk Students</h2><div class="section-actions"><button class="btn secondary" data-placeholder-action="Sync" data-section="High-Risk Students">Sync</button><button class="btn secondary" data-placeholder-action="Add / Edit / Remove" data-section="High-Risk Students">Manage Data</button></div></div>
-        <div class="table-wrap">
-          <table><thead><tr><th>Name</th><th>Department</th><th>CGPA</th><th>Risk</th></tr></thead><tbody id="high-risk-students"></tbody></table>
-        </div>
+        <div class="section-head"><h2 class="section-title">High-Risk Students</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="students">Upload CSV</button><button class="btn secondary" data-placeholder-action="Sync" data-section="High-Risk Students">Sync</button></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Name</th><th>Department</th><th>CGPA</th><th>Risk</th></tr></thead><tbody id="high-risk-students"></tbody></table></div>
       </section>
     </main>
   </div>
 
   <script type="module">
-    import { applications, drives, students } from '/institutes/demo-data.js';
-    import { applyBranding, bindPlaceholderActions, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
+    import { loadPlacementData } from '/institutes/data-client.js';
+    import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
 
     const token = requireInstituteAuth();
-    if (token) {
-      loadInstituteBranding(token).then(applyBranding);
-    }
+    if (!token) throw new Error('Unauthorized');
+    loadInstituteBranding(token).then(applyBranding);
     setActiveNav('dashboard');
     bindPlaceholderActions();
 
-    const stages = ['applied', 'interview', 'offer', 'rejected'];
-    const counts = stages.reduce((acc, stage) => ({ ...acc, [stage]: applications.filter((item) => item.stage === stage).length }), {});
-    const totalApplications = applications.length;
+    const render = async () => {
+      const { applications = [], drives = [], students = [] } = await loadPlacementData(token, { force: true });
+      const stages = ['applied', 'interview', 'offer', 'rejected'];
+      const counts = stages.reduce((acc, stage) => ({ ...acc, [stage]: applications.filter((item) => item.stage === stage).length }), {});
+      document.getElementById('funnel-metrics').innerHTML = `
+        <div class="metric"><div class="label">Total Applications</div><div class="value">${applications.length}</div></div>
+        <div class="metric"><div class="label">Interviews</div><div class="value">${counts.interview || 0}</div></div>
+        <div class="metric"><div class="label">Offers</div><div class="value">${counts.offer || 0}</div></div>
+      `;
 
-    document.getElementById('funnel-metrics').innerHTML = `
-      <div class="metric"><div class="label">Total Applications</div><div class="value">${totalApplications}</div></div>
-      <div class="metric"><div class="label">Interviews</div><div class="value">${counts.interview}</div></div>
-      <div class="metric"><div class="label">Offers</div><div class="value">${counts.offer}</div></div>
-    `;
+      const upcoming = drives.filter((drive) => drive.status === 'upcoming').sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 5);
+      document.getElementById('upcoming-drives').innerHTML = upcoming.map((drive) => `<tr class="clickable" data-id="${drive.id}"><td>${drive.company}</td><td>${drive.role}</td><td>${formatDate(drive.date)}</td><td>${Number(drive.min_cgpa || 0).toFixed(1)}</td><td><span class="pill ${drive.status}">${drive.status}</span></td></tr>`).join('') || '<tr><td colspan="5">No drives uploaded yet.</td></tr>';
 
-    const upcoming = drives
-      .filter((drive) => drive.status === 'upcoming')
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .slice(0, 5);
+      const riskRank = { high: 0, medium: 1, low: 2 };
+      const highRisk = [...students].sort((a, b) => (riskRank[a.risk_level] - riskRank[b.risk_level]) || (a.cgpa - b.cgpa)).slice(0, 8);
+      document.getElementById('high-risk-students').innerHTML = highRisk.map((student) => `<tr class="clickable" data-id="${student.id}"><td>${student.name}</td><td>${student.dept || '-'}</td><td>${Number(student.cgpa || 0).toFixed(2)}</td><td><span class="pill ${student.risk_level}">${student.risk_level}</span></td></tr>`).join('') || '<tr><td colspan="4">No students uploaded yet.</td></tr>';
+    };
 
-    document.getElementById('upcoming-drives').innerHTML = upcoming
-      .map((drive) => `<tr class="clickable" data-id="${drive.id}"><td>${drive.company}</td><td>${drive.role}</td><td>${formatDate(drive.date)}</td><td>${drive.min_cgpa.toFixed(1)}</td><td><span class="pill ${drive.status}">${drive.status}</span></td></tr>`)
-      .join('');
-
-    const riskRank = { high: 0, medium: 1, low: 2 };
-    const highRisk = [...students]
-      .sort((a, b) => (riskRank[a.risk_level] - riskRank[b.risk_level]) || (a.cgpa - b.cgpa))
-      .slice(0, 8);
-
-    document.getElementById('high-risk-students').innerHTML = highRisk
-      .map((student) => `<tr class="clickable" data-id="${student.id}"><td>${student.name}</td><td>${student.dept}</td><td>${student.cgpa.toFixed(2)}</td><td><span class="pill ${student.risk_level}">${student.risk_level}</span></td></tr>`)
-      .join('');
+    bindCsvUploadActions(token, { onUploaded: render });
+    await render();
 
     document.getElementById('upcoming-drives').addEventListener('click', (event) => {
       const row = event.target.closest('tr[data-id]');

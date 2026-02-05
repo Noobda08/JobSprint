@@ -1,3 +1,5 @@
+import { uploadCsvDataset } from '/institutes/data-client.js';
+
 export function requireInstituteAuth() {
   const token = localStorage.getItem('institutes_token');
   if (!token) {
@@ -82,5 +84,39 @@ export function bindPlaceholderActions(root = document) {
     const actionLabel = actionEl.dataset.placeholderAction || 'Action';
     const sectionLabel = actionEl.dataset.section || 'this section';
     window.alert(`${actionLabel} for ${sectionLabel} is a demo placeholder. Integrations are coming soon.`);
+  });
+}
+
+export function bindCsvUploadActions(token, { onUploaded } = {}) {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = '.csv,text/csv';
+  fileInput.style.display = 'none';
+  document.body.append(fileInput);
+
+  let pendingDataset = null;
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file || !pendingDataset) return;
+
+    const csvText = await file.text();
+    try {
+      const result = await uploadCsvDataset(token, pendingDataset, csvText);
+      window.alert(`Uploaded ${result.imported || 0} rows to ${pendingDataset}.`);
+      if (typeof onUploaded === 'function') await onUploaded();
+    } catch (error) {
+      window.alert(error?.message || 'CSV upload failed.');
+    } finally {
+      fileInput.value = '';
+      pendingDataset = null;
+    }
+  });
+
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-upload-dataset]');
+    if (!button) return;
+    pendingDataset = button.dataset.uploadDataset;
+    fileInput.click();
   });
 }

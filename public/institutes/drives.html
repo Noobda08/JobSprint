@@ -1,21 +1,25 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Placement Drives • JobSprint</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles/theme.css"><link rel="stylesheet" href="/institutes/placement.css"></head><body>
 <div class="layout"><aside class="sidebar"><div class="brand"><div class="brand-logo" data-brand-logo>JS</div><div><div class="brand-name" data-brand-name>Institute</div><div class="brand-sub" data-brand-sub>Placement Center</div></div></div><nav><a data-nav="dashboard" href="/institutes/dashboard.html">Dashboard</a><a data-nav="students" href="/institutes/students.html">Students</a><a data-nav="drives" href="/institutes/drives.html">Drives</a><a data-nav="counselling" href="/institutes/counselling.html">Counselling</a></nav></aside>
 <main class="content"><div class="topbar"><div><h1>Placement Drives</h1><small>Filter and inspect hiring drives</small></div><strong data-brand-name>Institute</strong></div>
-<section class="card"><div class="section-head"><h2 class="section-title">Drive Master</h2><div class="section-actions"><button class="btn primary" data-placeholder-action="Create Drive" data-section="Drives">Create Drive</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Drives">Sync</button><button class="btn secondary" data-placeholder-action="Add / Edit / Remove" data-section="Drives">Manage Data</button></div></div><div class="filters"><div><label>Status</label><select id="status-filter"><option value="">All</option><option value="upcoming">Upcoming</option><option value="completed">Completed</option></select></div><div><label>Min CGPA (≥)</label><input id="cgpa-filter" type="number" min="0" max="10" step="0.1" /></div><div><label>Department</label><select id="dept-filter"><option value="">All</option></select></div></div>
+<section class="card"><div class="section-head"><h2 class="section-title">Drive Master</h2><div class="section-actions"><button class="btn primary" data-placeholder-action="Create Drive" data-section="Drives">Create Drive</button><button class="btn secondary" data-upload-dataset="drives">Upload CSV</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Drives">Sync</button></div></div><div class="filters"><div><label>Status</label><select id="status-filter"><option value="">All</option><option value="upcoming">Upcoming</option><option value="completed">Completed</option></select></div><div><label>Min CGPA (≥)</label><input id="cgpa-filter" type="number" min="0" max="10" step="0.1" /></div><div><label>Department</label><select id="dept-filter"><option value="">All</option></select></div></div>
 <div class="table-wrap"><table><thead><tr><th>Company</th><th>Role</th><th>Date</th><th>Min CGPA</th><th>Departments</th><th>Status</th></tr></thead><tbody id="drive-rows"></tbody></table></div></section>
 </main></div>
 <script type="module">
-import { drives } from '/institutes/demo-data.js';
-import { applyBranding, bindPlaceholderActions, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
-const token = requireInstituteAuth(); if (token) loadInstituteBranding(token).then(applyBranding); setActiveNav('drives'); bindPlaceholderActions();
+import { loadPlacementData } from '/institutes/data-client.js';
+import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
+const token = requireInstituteAuth(); if (!token) throw new Error('Unauthorized'); loadInstituteBranding(token).then(applyBranding); setActiveNav('drives'); bindPlaceholderActions();
 const statusFilter = document.getElementById('status-filter'); const cgpaFilter = document.getElementById('cgpa-filter'); const deptFilter = document.getElementById('dept-filter'); const tbody = document.getElementById('drive-rows');
-[...new Set(drives.flatMap((d) => d.allowed_departments))].sort().forEach((dept) => { const option = document.createElement('option'); option.value = dept; option.textContent = dept; deptFilter.append(option); });
+let drives = [];
+
+function hydrateDeptFilter() { deptFilter.innerHTML = '<option value="">All</option>'; [...new Set(drives.flatMap((d) => d.allowed_departments || []))].sort().forEach((dept) => { const option = document.createElement('option'); option.value = dept; option.textContent = dept; deptFilter.append(option); }); }
 function renderRows() {
  const status = statusFilter.value; const cgpa = Number(cgpaFilter.value || 0); const dept = deptFilter.value;
- const filtered = drives.filter((drive) => (!status || drive.status === status) && drive.min_cgpa >= cgpa && (!dept || drive.allowed_departments.includes(dept))).sort((a,b)=> new Date(a.date)-new Date(b.date));
- tbody.innerHTML = filtered.map((drive)=>`<tr class="clickable" data-id="${drive.id}"><td>${drive.company}</td><td>${drive.role}</td><td>${formatDate(drive.date)}</td><td>${drive.min_cgpa.toFixed(1)}</td><td>${drive.allowed_departments.join(', ')}</td><td><span class="pill ${drive.status}">${drive.status}</span></td></tr>`).join('') || '<tr><td colspan="6">No drives match current filters.</td></tr>';
+ const filtered = drives.filter((drive) => (!status || drive.status === status) && Number(drive.min_cgpa || 0) >= cgpa && (!dept || (drive.allowed_departments || []).includes(dept))).sort((a,b)=> new Date(a.date)-new Date(b.date));
+ tbody.innerHTML = filtered.map((drive)=>`<tr class="clickable" data-id="${drive.id}"><td>${drive.company}</td><td>${drive.role}</td><td>${formatDate(drive.date)}</td><td>${Number(drive.min_cgpa || 0).toFixed(1)}</td><td>${(drive.allowed_departments || []).join(', ')}</td><td><span class="pill ${drive.status}">${drive.status}</span></td></tr>`).join('') || '<tr><td colspan="6">No drives uploaded yet.</td></tr>';
 }
+async function refresh(){ const data = await loadPlacementData(token, { force: true }); drives = data.drives || []; hydrateDeptFilter(); renderRows(); }
 [statusFilter,cgpaFilter,deptFilter].forEach((el)=>el.addEventListener('input', renderRows));
 tbody.addEventListener('click',(event)=>{const row=event.target.closest('tr[data-id]'); if(row) window.location.href=`/institutes/drive.html?drive_id=${row.dataset.id}`;});
-renderRows();
+bindCsvUploadActions(token, { onUploaded: refresh });
+await refresh();
 </script></body></html>
