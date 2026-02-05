@@ -74,3 +74,13 @@ export function getQueryNumber(key) {
   const value = Number(url.searchParams.get(key));
   return Number.isNaN(value) ? null : value;
 }
+
+export function bindPlaceholderActions(root = document) {
+  root.addEventListener('click', (event) => {
+    const actionEl = event.target.closest('[data-placeholder-action]');
+    if (!actionEl) return;
+    const actionLabel = actionEl.dataset.placeholderAction || 'Action';
+    const sectionLabel = actionEl.dataset.section || 'this section';
+    window.alert(`${actionLabel} for ${sectionLabel} is a demo placeholder. Integrations are coming soon.`);
+  });
+}
