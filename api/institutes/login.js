@@ -33,7 +33,7 @@ async function handleMe(req, res) {
   // Schema note: expects `institutions` table with `slug` (login) and branding columns.
   const { data: institution, error: institutionError } = await supabaseAdmin
     .from('institutions')
-    .select('id, name, logo_url, primary_color, secondary_color')
+    .select('id, slug, name, logo_url, primary_color, secondary_color')
     .eq('id', auth.institution_id)
     .maybeSingle();
 
@@ -79,6 +79,7 @@ async function handleMe(req, res) {
   return res.status(200).json({
     institution: {
       id: institution.id,
+      slug: institution.slug,
       name: institution.name,
       logo_url: institution.logo_url,
       primary_color: institution.primary_color,
@@ -144,7 +145,7 @@ module.exports = async function handler(req, res) {
       // Schema note: expects `institutions.slug` to be unique for institute login.
       const { data: institutionRecord, error: institutionError } = await supabaseAdmin
         .from('institutions')
-        .select('id, name, logo_url, primary_color, secondary_color')
+        .select('id, slug, name, logo_url, primary_color, secondary_color')
         .eq('slug', institutionSlug)
         .maybeSingle();
 
@@ -225,7 +226,7 @@ module.exports = async function handler(req, res) {
     if (!institution) {
       const { data: institutionRecord, error: institutionError } = await supabaseAdmin
         .from('institutions')
-        .select('id, name, logo_url, primary_color, secondary_color')
+        .select('id, slug, name, logo_url, primary_color, secondary_color')
         .eq('id', institutionUser.institution_id)
         .maybeSingle();
 
@@ -269,6 +270,7 @@ module.exports = async function handler(req, res) {
     const token = jwt.sign(
       {
         institution_id: institution.id,
+        institution_slug: institution.slug,
         user_id: authUser.id,
         role: institutionUser.role,
         email,
@@ -286,6 +288,7 @@ module.exports = async function handler(req, res) {
       token,
       institution: {
         id: institution.id,
+        slug: institution.slug,
         name: institution.name,
         logo_url: institution.logo_url,
         primary_color: institution.primary_color,

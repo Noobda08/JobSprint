@@ -6,8 +6,8 @@
 </main></div>
 <script type="module">
 import { createDatasetRecord, loadPlacementData } from '/institutes/data-client.js';
-import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, bindRecordManagement, bindSampleCsvDownloads, bindInstituteAccountPanel, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav } from '/institutes/app-shell.js';
-const token = requireInstituteAuth(); if (!token) throw new Error('Unauthorized'); bindInstituteAccountPanel(token); loadInstituteBranding(token).then(applyBranding); setActiveNav('drives'); bindPlaceholderActions(); bindSampleCsvDownloads();
+import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, bindRecordManagement, bindSampleCsvDownloads, bindInstituteAccountPanel, formatDate, loadInstituteBranding, requireInstituteAuth, setActiveNav, buildInstitutePath, guardInstituteSlugRoute } from '/institutes/app-shell.js';
+const token = requireInstituteAuth(); if (!token) throw new Error('Unauthorized'); const routeGuard = await guardInstituteSlugRoute(token); if (routeGuard === null) throw new Error('Route corrected'); bindInstituteAccountPanel(token); loadInstituteBranding(token).then(applyBranding); setActiveNav('drives'); bindPlaceholderActions(); bindSampleCsvDownloads();
 const statusFilter = document.getElementById('status-filter'); const cgpaFilter = document.getElementById('cgpa-filter'); const deptFilter = document.getElementById('dept-filter'); const tbody = document.getElementById('drive-rows');
 let drives = [];
 
@@ -140,7 +140,7 @@ function renderRows() {
 }
 async function refresh(){ const data = await loadPlacementData(token, { force: true }); drives = data.drives || []; hydrateDeptFilter(); renderRows(); }
 [statusFilter,cgpaFilter,deptFilter].forEach((el)=>el.addEventListener('input', renderRows));
-tbody.addEventListener('click',(event)=>{const row=event.target.closest('tr[data-id]'); if(row) window.location.href=`/institutes/drive.html?drive_id=${row.dataset.id}`;});
+tbody.addEventListener('click',(event)=>{const row=event.target.closest('tr[data-id]'); if(row) window.location.href=`${buildInstitutePath('drive', { slug: routeGuard?.institution?.slug })}?drive_id=${row.dataset.id}`;});
 bindRecordManagement(token, { onChanged: refresh });
 bindCsvUploadActions(token, { onUploaded: refresh });
 document.querySelector('[data-create-drive]').addEventListener('click', openCreateDriveJourney);

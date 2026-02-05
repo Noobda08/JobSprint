@@ -65,6 +65,76 @@ export function requireInstituteAuth() {
 }
 
 const INSTITUTE_USER_FALLBACK_NAME = 'Signed-in user';
+
+
+const INSTITUTE_ROUTE_PAGES = new Set(['dashboard', 'students', 'drives', 'counselling', 'student', 'drive']);
+
+function parseInstituteRoute(pathname = window.location.pathname) {
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments[0] !== 'institutes') return { slug: null, page: null };
+
+  const second = segments[1] || '';
+  const third = segments[2] || '';
+
+  if (second && (second.endsWith('.html') || INSTITUTE_ROUTE_PAGES.has(second))) {
+    return { slug: null, page: second.replace(/\.html$/, '') };
+  }
+
+  if (second && third) {
+    return { slug: second, page: third.replace(/\.html$/, '') };
+  }
+
+  return { slug: null, page: null };
+}
+
+export function buildInstitutePath(page, { slug } = {}) {
+  const normalizedPage = String(page || '').replace(/^\//, '').replace(/\.html$/, '');
+  if (!normalizedPage) return '/institutes/dashboard.html';
+  if (slug) return `/institutes/${encodeURIComponent(slug)}/${normalizedPage}`;
+  return `/institutes/${normalizedPage}.html`;
+}
+
+function rewriteInstituteNavLinks(slug) {
+  document.querySelectorAll('[data-nav]').forEach((link) => {
+    const page = link.dataset.nav;
+    if (!page) return;
+    link.setAttribute('href', buildInstitutePath(page, { slug }));
+  });
+
+  document.querySelectorAll('[data-back-page]').forEach((link) => {
+    const page = link.dataset.backPage;
+    if (!page) return;
+    link.setAttribute('href', buildInstitutePath(page, { slug }));
+  });
+}
+
+export async function guardInstituteSlugRoute(token) {
+  const profile = await loadInstituteMe(token);
+  const institutionSlug = profile?.institution?.slug || null;
+  const route = parseInstituteRoute();
+
+  rewriteInstituteNavLinks(institutionSlug || null);
+
+  if (!route.page) return profile;
+  if (!route.slug || !institutionSlug) return profile;
+
+  if (route.slug !== institutionSlug) {
+    const correctedPath = buildInstitutePath(route.page, { slug: institutionSlug });
+    const redirectUrl = `${correctedPath}${window.location.search}${window.location.hash}`;
+
+    if (institutionSlug) {
+      window.location.replace(redirectUrl);
+      return null;
+    }
+
+    window.alert('This page does not match your authenticated institution. Please sign in again.');
+    localStorage.removeItem('institutes_token');
+    window.location.href = '/institutes/login.html';
+    return null;
+  }
+
+  return profile;
+}
 let instituteMeCache = { token: null, payload: null };
 
 async function loadInstituteMe(token) {
@@ -119,7 +189,9 @@ export async function bindInstituteAccountPanel(token, root = document) {
     });
   });
 
-  const user = await loadCurrentInstituteUser(token);
+  const profile = await loadInstituteMe(token);
+  const user = profile?.user;
+  rewriteInstituteNavLinks(profile?.institution?.slug || null);
   if (!user) return;
 
   setText('[data-user-name]', user.name || INSTITUTE_USER_FALLBACK_NAME);
