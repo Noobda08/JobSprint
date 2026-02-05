@@ -91,23 +91,6 @@ export function applyBranding(branding) {
   document.querySelectorAll('[data-brand-sub]').forEach((el) => {
     el.textContent = tagline;
   });
-  document.querySelectorAll('[data-brand-logo]').forEach((el) => {
-    el.textContent = name.slice(0, 2).toUpperCase();
-  });
-
-  document.querySelectorAll('[data-brand-panel-logo]').forEach((container) => {
-    const img = container.querySelector('[data-brand-panel-logo-img]');
-    if (!img) return;
-    if (logo) {
-      img.src = logo;
-      img.alt = `${name} logo`;
-      container.hidden = false;
-    } else {
-      img.removeAttribute('src');
-      container.hidden = true;
-    }
-  });
-
   document.querySelectorAll('[data-brand-panel-logo]').forEach((container) => {
     const img = container.querySelector('[data-brand-panel-logo-img]');
     if (!img) return;
