@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>Drive Detail • JobSprint</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles/theme.css"><link rel="stylesheet" href="/institutes/placement.css"></head><body>
+<div class="layout"><aside class="sidebar"><div class="brand"><div class="brand-logo" data-brand-logo>JS</div><div><div class="brand-name" data-brand-name>Institute</div><div class="brand-sub" data-brand-sub>Placement Center</div></div></div><nav><a data-nav="dashboard" href="/institutes/dashboard.html">Dashboard</a><a data-nav="students" href="/institutes/students.html">Students</a><a data-nav="drives" href="/institutes/drives.html">Drives</a><a data-nav="counselling" href="/institutes/counselling.html">Counselling</a></nav></aside>
+<main class="content"><div class="topbar"><div><h1 id="drive-title">Drive Details</h1><small id="drive-sub">Company and eligibility snapshot</small></div><a class="btn secondary" href="/institutes/drives.html">Back to drives</a></div>
+<section class="card"><div class="section-head"><h2 class="section-title">Eligibility</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="students">Upload Students CSV</button><button class="btn secondary" data-download-sample="students">Sample CSV</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Drive Eligibility">Sync</button></div></div><div class="table-wrap"><table><thead><tr><th>Student</th><th>Dept</th><th>CGPA</th><th>Batch</th><th>Eligibility</th></tr></thead><tbody id="eligibility-rows"></tbody></table></div></section>
+<section class="card"><div class="section-head"><h2 class="section-title">Drive Funnel</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="applications">Upload Applications CSV</button><button class="btn secondary" data-download-sample="applications">Sample CSV</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Drive Funnel">Sync</button></div></div><div class="grid-3" id="funnel-grid"></div></section>
+<section class="card"><div class="section-head"><h2 class="section-title">Students in this Drive</h2><div class="section-actions"><button class="btn secondary" data-upload-dataset="applications">Upload Applications CSV</button><button class="btn secondary" data-download-sample="applications">Sample CSV</button><button class="btn secondary" data-placeholder-action="Sync" data-section="Drive Students">Sync</button></div></div><div class="table-wrap"><table><thead><tr><th>Name</th><th>Dept</th><th>CGPA</th><th>Stage</th></tr></thead><tbody id="drive-students"></tbody></table></div></section>
+</main></div>
+<script type="module">
+import { loadPlacementData } from '/institutes/data-client.js';
+import { applyBranding, bindCsvUploadActions, bindPlaceholderActions, bindSampleCsvDownloads, loadInstituteBranding, requireInstituteAuth, setActiveNav, getQueryNumber, formatDate } from '/institutes/app-shell.js';
+const token = requireInstituteAuth(); if (!token) throw new Error('Unauthorized'); loadInstituteBranding(token).then(applyBranding); setActiveNav('drives'); bindPlaceholderActions(); bindSampleCsvDownloads();
+const driveId = String(getQueryNumber('drive_id') || '');
+async function render(){
+ const { applications = [], drives = [], students = [] } = await loadPlacementData(token, { force: true });
+ const drive = drives.find((d)=> String(d.id) === driveId);
+ if (!drive) { document.getElementById('drive-title').textContent='Drive not found'; return; }
+ document.getElementById('drive-title').textContent = `${drive.company} • ${drive.role}`;
+ document.getElementById('drive-sub').textContent = `${formatDate(drive.date)} • Min CGPA ${Number(drive.min_cgpa || 0).toFixed(1)} • Depts: ${(drive.allowed_departments || []).join(', ')}`;
+ document.getElementById('eligibility-rows').innerHTML = students.map((student)=> { const eligible = Number(student.cgpa || 0) >= Number(drive.min_cgpa || 0) && (drive.allowed_departments || []).includes(student.dept) && student.batch_year >= (drive.min_batch_year || student.batch_year); return `<tr class="clickable" data-student="${student.id}"><td>${student.name}</td><td>${student.dept || '-'}</td><td>${Number(student.cgpa || 0).toFixed(2)}</td><td>${student.batch_year}</td><td><span class="pill ${eligible ? 'completed' : 'rejected'}">${eligible ? 'Eligible':'Not Eligible'}</span></td></tr>`; }).join('') || '<tr><td colspan="5">No students uploaded yet.</td></tr>';
+ const stages = ['applied', 'interview', 'offer', 'rejected'];
+ const driveApplications = applications.filter((item)=>String(item.drive_id)===String(drive.id));
+ document.getElementById('funnel-grid').innerHTML = stages.map((stage)=>`<div class="metric"><div class="label">${stage}</div><div class="value">${driveApplications.filter((item)=>item.stage===stage).length}</div></div>`).join('');
+ const studentsById = new Map(students.map((s)=>[String(s.id),s]));
+ const involved = driveApplications.map((item)=> ({ item, student: studentsById.get(String(item.student_id)) })).filter((row)=>row.student);
+ document.getElementById('drive-students').innerHTML = involved.map(({item,student})=>`<tr class="clickable" data-student="${student.id}"><td>${student.name}</td><td>${student.dept || '-'}</td><td>${Number(student.cgpa || 0).toFixed(2)}</td><td><span class="pill ${item.stage}">${item.stage}</span></td></tr>`).join('') || '<tr><td colspan="4">No applications uploaded for this drive.</td></tr>';
+}
+bindCsvUploadActions(token, { onUploaded: render });
+await render();
+document.body.addEventListener('click',(event)=>{const row=event.target.closest('tr[data-student]'); if(row) window.location.href=`/institutes/student.html?student_id=${row.dataset.student}`;});
+</script></body></html>
