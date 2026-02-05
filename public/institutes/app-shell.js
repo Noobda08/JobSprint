@@ -170,6 +170,8 @@ export async function loadInstituteBranding(token) {
 }
 
 export async function bindInstituteAccountPanel(token, root = document) {
+  setupInstituteMobileSidebar(root);
+
   const setText = (selector, text) => {
     root.querySelectorAll(selector).forEach((node) => {
       node.textContent = text;
@@ -197,6 +199,64 @@ export async function bindInstituteAccountPanel(token, root = document) {
   setText('[data-user-name]', user.name || INSTITUTE_USER_FALLBACK_NAME);
   setText('[data-user-email]', user.email || '—');
   setText('[data-user-role]', user.role || '—');
+}
+
+function setupInstituteMobileSidebar(root = document) {
+  const layout = root.querySelector('.layout');
+  const sidebar = root.querySelector('.sidebar');
+  const topbar = root.querySelector('.topbar');
+  if (!layout || !sidebar || !topbar || topbar.dataset.mobileNavBound === 'true') return;
+
+  topbar.dataset.mobileNavBound = 'true';
+  layout.classList.remove('sidebar-open');
+
+  const menuButton = root.createElement('button');
+  menuButton.type = 'button';
+  menuButton.className = 'topbar-menu-toggle';
+  menuButton.setAttribute('aria-label', 'Toggle navigation menu');
+  menuButton.setAttribute('aria-expanded', 'false');
+  menuButton.innerHTML = '<span></span><span></span><span></span>';
+
+  topbar.prepend(menuButton);
+
+  const closeSidebar = () => {
+    layout.classList.remove('sidebar-open');
+    menuButton.setAttribute('aria-expanded', 'false');
+  };
+
+  const openSidebar = () => {
+    layout.classList.add('sidebar-open');
+    menuButton.setAttribute('aria-expanded', 'true');
+  };
+
+  menuButton.addEventListener('click', () => {
+    if (layout.classList.contains('sidebar-open')) {
+      closeSidebar();
+      return;
+    }
+    openSidebar();
+  });
+
+  layout.addEventListener('click', (event) => {
+    if (window.innerWidth > 980) return;
+    if (!layout.classList.contains('sidebar-open')) return;
+    if (sidebar.contains(event.target) || menuButton.contains(event.target)) return;
+    closeSidebar();
+  });
+
+  sidebar.querySelectorAll('a, button').forEach((actionable) => {
+    actionable.addEventListener('click', () => {
+      if (window.innerWidth <= 980) closeSidebar();
+    });
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeSidebar();
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 980) closeSidebar();
+  });
 }
 
 export function applyBranding(branding) {
