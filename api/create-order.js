@@ -13,7 +13,7 @@ const PLANS = {
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'method_not_allowed' });
     return;
   }
 
@@ -22,16 +22,26 @@ module.exports = async (req, res) => {
     try {
       body = JSON.parse(body);
     } catch (e) {
-      res.status(400).json({ error: 'Invalid request payload' });
+      res.status(400).json({ error: 'invalid_request_payload' });
       return;
     }
   }
 
   const { plan } = body || {};
-  const planConfig = PLANS[plan];
+  if (typeof plan !== 'string' || !plan.trim()) {
+    res.status(400).json({ error: 'missing_plan' });
+    return;
+  }
+  const normalizedPlan = plan.trim().toLowerCase();
+  const planConfig = PLANS[normalizedPlan];
 
   if (!planConfig) {
-    res.status(400).json({ error: 'Invalid plan selected' });
+    res.status(400).json({ error: 'invalid_plan_selected' });
+    return;
+  }
+
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    res.status(500).json({ error: 'missing_razorpay_env' });
     return;
   }
 
@@ -44,7 +54,7 @@ module.exports = async (req, res) => {
     const order = await rzp.orders.create({
       amount: planConfig.amount,              // Amount in paise
       currency: 'INR',
-      receipt: `jobsprint_${plan}_${Date.now()}`,
+      receipt: `jobsprint_${normalizedPlan}_${Date.now()}`,
       payment_capture: 1,
       notes: planConfig.notes,
     });
@@ -53,11 +63,11 @@ module.exports = async (req, res) => {
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
-      plan,
+      plan: normalizedPlan,
       keyId: process.env.RAZORPAY_KEY_ID, // safe to expose
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to create order' });
+    res.status(500).json({ error: 'failed_to_create_order' });
   }
 };
