@@ -151,9 +151,14 @@
   </main>
 
   <script src="scripts/theme.js"></script>
+  <script src="scripts/feature-flags.js"></script>
   <script src="scripts/ats-scorer.js"></script>
   <script>
-    const LEGACY_API_DISABLED = false;
+    const FEATURE_FLAGS = window.JobSprintFeatureFlags || {};
+    const ENABLE_B2C_CORE = FEATURE_FLAGS.ENABLE_B2C_CORE !== false;
+    const ENABLE_B2C_GMAIL = FEATURE_FLAGS.ENABLE_B2C_GMAIL !== false;
+    const ENABLE_B2B_INSTITUTES = FEATURE_FLAGS.ENABLE_B2B_INSTITUTES === true;
+    const ENABLE_B2B_ADMIN = FEATURE_FLAGS.ENABLE_B2B_ADMIN === true;
     const LOADING_DELAY_MS = 1400;
     const DEFAULT_LOADING_HEADLINE = "Analyzing your resume…";
     const DEFAULT_LOADING_SUBTEXT = "Hang tight, we’re preparing your sprint summary.";

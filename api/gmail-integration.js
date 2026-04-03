@@ -1,8 +1,13 @@
 const { supabaseAdmin } = require('../lib/_supabase.js');
 const { findUserFromRequest } = require('../lib/_users.js');
 const { refreshAccessToken, registerWatch } = require('../lib/_gmail.js');
+const { isB2CGmailEnabled, respondB2CGmailDisabled } = require('../lib/_feature_flags.js');
 
 module.exports = async function handler(req, res) {
+  if (!isB2CGmailEnabled()) {
+    return respondB2CGmailDisabled(res);
+  }
+
   const { user, status, error, detail } = await findUserFromRequest(req);
   if (!user) return res.status(status || 400).json({ error, detail });
 

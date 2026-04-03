@@ -1,7 +1,12 @@
 const { buildOAuthUrl } = require('../lib/_gmail.js');
 const { findUserFromRequest } = require('../lib/_users.js');
+const { isB2CGmailEnabled, respondB2CGmailDisabled } = require('../lib/_feature_flags.js');
 
 module.exports = async function handler(req, res) {
+  if (!isB2CGmailEnabled()) {
+    return respondB2CGmailDisabled(res);
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'method_not_allowed' });
   }

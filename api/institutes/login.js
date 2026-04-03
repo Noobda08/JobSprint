@@ -2,10 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { supabaseAdmin } = require('../../lib/_supabase.js');
 const { requireInstituteAuth } = require('../../lib/_institutes_auth.js');
-
-function isB2BEnabled() {
-  return String(process.env.ENABLE_B2B || '').toLowerCase() === 'true';
-}
+const { isB2BInstitutesEnabled, respondB2BInstitutesDisabled } = require('../../lib/_feature_flags.js');
 
 function normalizeBody(body) {
   if (typeof body === 'string') {
@@ -103,8 +100,8 @@ async function handleMe(req, res) {
 }
 
 module.exports = async function handler(req, res) {
-  if (!isB2BEnabled()) {
-    return res.status(404).json({ error: 'not_available' });
+  if (!isB2BInstitutesEnabled()) {
+    return respondB2BInstitutesDisabled(res);
   }
 
   try {

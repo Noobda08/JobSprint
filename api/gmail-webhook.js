@@ -1,5 +1,6 @@
 const { supabaseAdmin } = require('../lib/_supabase.js');
 const { listHistory, getMessage, parseJobApplication, refreshAccessToken } = require('../lib/_gmail.js');
+const { isB2CGmailEnabled, respondB2CGmailDisabled } = require('../lib/_feature_flags.js');
 
 async function ensureAccessToken(integration) {
   if (!integration.token_expires_at || !integration.refresh_token) {
@@ -69,6 +70,10 @@ async function processHistory(accessToken, integration, historyId) {
 }
 
 module.exports = async function handler(req, res) {
+  if (!isB2CGmailEnabled()) {
+    return respondB2CGmailDisabled(res);
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'method_not_allowed' });
   }
