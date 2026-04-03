@@ -17,6 +17,14 @@ Shared flags (frontend convention via `window.JobSprintFeatureFlags`, backend vi
 | Preview / Staging (B2C-only default) | `true` | `true` | `false` | `false` |
 | B2B testing environment | `true` | `true` | `true` | `true` |
 
+
+## Vercel Hobby serverless-function limit
+
+To stay within the Hobby plan limit (12 functions), B2B API handlers are intentionally excluded from `/api` in this repository snapshot and stored under `b2b-disabled-api/`.
+
+- Active deployed functions are the B2C handlers under `/api` (11 total).
+- B2B endpoints under `/api/admin/*` and `/api/institutes/*` are intentionally unavailable in this deployment profile and should return `404`.
+
 ## Smoke checklist (B2C-only profile)
 
 1. Sign in from `/signup` (Google + payment flow if enabled).
