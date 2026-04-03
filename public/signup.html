@@ -115,7 +115,7 @@
   <script src="scripts/theme.js"></script>
   <script>
     const PRICING_REDIRECT_URL = '/index.html#pricing';
-    const LEGACY_API_DISABLED = true;
+    const LEGACY_API_DISABLED = false;
     const searchParams = new URLSearchParams(location.search);
     const SIGNUP_STATE = {
       plan: (searchParams.get('plan') || '').trim().toLowerCase(),
@@ -140,6 +140,28 @@
       }
       return null;
     };
+
+    async function apiJson(url, options = {}) {
+      const response = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+          ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+          ...(options.headers || {})
+        },
+        ...options
+      });
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (_) {
+        data = null;
+      }
+      if (!response.ok) {
+        const message = data?.message || data?.error || `Request failed (${response.status})`;
+        throw new Error(message);
+      }
+      return data || {};
+    }
 
     const redirectWithToast = (url, message) => {
       const toast = notifyLoading(message || 'Redirecting…');
@@ -199,7 +221,51 @@
     }
 
     async function startPayment() {
-      throw new Error('Payments are temporarily unavailable. Please contact the JobSprint team.');
+      const plan = SIGNUP_STATE.plan || 'sprint';
+      if (!SIGNUP_STATE.googlePayload?.email || !SIGNUP_STATE.googlePayload?.google_id) {
+        throw new Error('Please sign in with Google first.');
+      }
+
+      const orderData = await apiJson('/api/create-order', {
+        method: 'POST',
+        body: JSON.stringify({ plan, coupon: SIGNUP_STATE.coupon || undefined })
+      });
+
+      await ensureRazorpayLoaded();
+      return new Promise((resolve, reject) => {
+        const options = {
+          key: orderData.keyId,
+          amount: orderData.amount,
+          currency: orderData.currency || 'INR',
+          order_id: orderData.orderId,
+          name: 'JobSprint',
+          description: 'JobSprint plan checkout',
+          prefill: {
+            name: SIGNUP_STATE.googlePayload.name || '',
+            email: SIGNUP_STATE.googlePayload.email || ''
+          },
+          notes: {
+            plan,
+            google_id: SIGNUP_STATE.googlePayload.google_id
+          },
+          handler: function (response) {
+            if (response?.razorpay_payment_id) {
+              resolve(response.razorpay_payment_id);
+              return;
+            }
+            reject(new Error('Payment finished but no payment ID was returned.'));
+          },
+          modal: {
+            ondismiss: () => reject(new Error('Payment was cancelled.'))
+          }
+        };
+        const checkout = new window.Razorpay(options);
+        checkout.on('payment.failed', (event) => {
+          const reason = event?.error?.description || event?.error?.reason || 'Payment failed.';
+          reject(new Error(reason));
+        });
+        checkout.open();
+      });
     }
 
     function parseJwt (token) {
@@ -230,16 +296,47 @@
     window.handleGoogleCredential = async function (response) {
       let lookupToast = null;
       try {
-        const payload   = parseJwt(response.credential);
+        const payload = parseJwt(response.credential);
         const google_id = payload.sub;
-        const name      = payload.name  || '';
-        const email     = payload.email || '';
+        const name = payload.name || '';
+        const email = payload.email || '';
 
         resetErrorBanner();
         hideContinueButton();
+        lookupToast = notifyLoading('Checking your account…');
+        SIGNUP_STATE.googleCredential = response.credential;
+        SIGNUP_STATE.googlePayload = { google_id, name, email };
 
-        showErrorBanner('Self-serve signup is currently offline. Please contact the JobSprint team to continue.');
-        return;
+        const existing = await apiJson(`/api/get-user?google_id=${encodeURIComponent(google_id)}`).catch(() => null);
+        if (existing?.found) {
+          const stored = JSON.parse(localStorage.getItem('jobsprint_profile') || '{}');
+          const merged = {
+            ...stored,
+            ...existing,
+            google_id,
+            name: name || existing.name || stored.name,
+            email: email || existing.email || stored.email
+          };
+          localStorage.setItem('jobsprint_profile', JSON.stringify(merged));
+          lookupToast?.dismiss?.();
+
+          if (existing.profile_complete === true && existing.token) {
+            redirectWithToast(`/workspace.html?u=${encodeURIComponent(existing.token)}`, 'Welcome back! Opening workspace…');
+            return;
+          }
+
+          const onboardingParams = new URLSearchParams({
+            google_id,
+            email
+          });
+          if (SIGNUP_STATE.paymentIdFromQuery) {
+            onboardingParams.set('payment_id', SIGNUP_STATE.paymentIdFromQuery);
+          }
+          redirectWithToast(`/onboarding.html?${onboardingParams.toString()}`, 'Continuing your onboarding…');
+          return;
+        }
+        lookupToast?.dismiss?.();
+        showContinueButton();
 
       } catch (err) {
         lookupToast?.dismiss?.();
@@ -252,7 +349,38 @@
     };
 
     async function completeSignup(paymentId) {
-      throw new Error('Sign-up services are temporarily unavailable. Please contact the JobSprint team.');
+      if (!SIGNUP_STATE.googlePayload?.google_id || !SIGNUP_STATE.googlePayload?.email) {
+        throw new Error('Please complete Google sign-in first.');
+      }
+      const data = await apiJson('/api/create-user', {
+        method: 'POST',
+        body: JSON.stringify({
+          google_id: SIGNUP_STATE.googlePayload.google_id,
+          email: SIGNUP_STATE.googlePayload.email,
+          name: SIGNUP_STATE.googlePayload.name || '',
+          payment_id: paymentId,
+          allow_payment_pending: false
+        })
+      });
+
+      const stored = JSON.parse(localStorage.getItem('jobsprint_profile') || '{}');
+      localStorage.setItem('jobsprint_profile', JSON.stringify({
+        ...stored,
+        google_id: SIGNUP_STATE.googlePayload.google_id,
+        email: SIGNUP_STATE.googlePayload.email,
+        name: SIGNUP_STATE.googlePayload.name || stored.name || '',
+        token: data.token || stored.token,
+        payment_id: paymentId
+      }));
+
+      const fallbackParams = new URLSearchParams({
+        google_id: SIGNUP_STATE.googlePayload.google_id,
+        email: SIGNUP_STATE.googlePayload.email
+      });
+      fallbackParams.set('payment_id', paymentId);
+      const fallback = `/onboarding.html?${fallbackParams.toString()}`;
+      const target = data.redirect_url || fallback;
+      redirectWithToast(target, 'Payment verified. Preparing your setup…');
     }
 
     if (continueButton) {

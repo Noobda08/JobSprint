@@ -153,7 +153,7 @@
   <script src="scripts/theme.js"></script>
   <script src="scripts/ats-scorer.js"></script>
   <script>
-    const LEGACY_API_DISABLED = true;
+    const LEGACY_API_DISABLED = false;
     const LOADING_DELAY_MS = 1400;
     const DEFAULT_LOADING_HEADLINE = "Analyzing your resume…";
     const DEFAULT_LOADING_SUBTEXT = "Hang tight, we’re preparing your sprint summary.";
@@ -171,6 +171,27 @@
       }
       return null;
     };
+
+    async function apiJson(url, options = {}) {
+      const response = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+          ...(options.headers || {})
+        },
+        ...options
+      });
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (_) {
+        data = null;
+      }
+      if (!response.ok) {
+        const message = data?.message || data?.error || `Request failed (${response.status})`;
+        throw new Error(message);
+      }
+      return data || {};
+    }
 
     const redirectWithToast = (url, message) => {
       const toast = notifyLoading(message || 'Redirecting…');
@@ -642,7 +663,22 @@
           const identityEmail = storedEmail || (paramEmail ? paramEmail.trim() : "");
 
           let parseData = null;
-          let parseErrorMessage = LEGACY_API_DISABLED ? "Resume parsing is currently offline." : "";
+          let parseErrorMessage = "";
+
+          const formData = new FormData();
+          formData.append('file', file);
+          if (googleId) formData.append('google_id', googleId);
+          if (identityEmail) formData.append('email', identityEmail);
+
+          try {
+            parseData = await apiJson('/api/parse-resume', {
+              method: 'POST',
+              body: formData
+            });
+          } catch (parseErr) {
+            console.warn('Remote resume parsing failed; using local text fallback', parseErr);
+            parseErrorMessage = parseErr?.message || "We couldn't parse your resume on the server.";
+          }
 
           const sanitizedText = parseData?.raw_text && String(parseData.raw_text).trim()
             ? String(parseData.raw_text)
@@ -682,8 +718,23 @@
           let syncSucceeded = false;
           let syncErrorMessage = "";
 
-          if (!LEGACY_API_DISABLED && !parseErrorMessage && resumeUrlCandidate && resumeUrlCandidate !== previousResumeUrl) {
-            syncErrorMessage = "Resume sync is currently offline.";
+          if (!parseErrorMessage && resumeUrlCandidate && resumeUrlCandidate !== previousResumeUrl && googleId && identityEmail) {
+            syncAttempted = true;
+            try {
+              await apiJson('/api/create-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  google_id: googleId,
+                  email: identityEmail,
+                  resume_url: resumeUrlCandidate,
+                  allow_payment_pending: true
+                })
+              });
+              syncSucceeded = true;
+            } catch (syncErr) {
+              syncErrorMessage = syncErr?.message || "Couldn't update onboarding profile.";
+            }
           }
 
           if (resumeUrlCandidate) {
