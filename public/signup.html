@@ -113,9 +113,14 @@
     </div>
   </div>
   <script src="scripts/theme.js"></script>
+  <script src="scripts/feature-flags.js"></script>
   <script>
     const PRICING_REDIRECT_URL = '/index.html#pricing';
-    const LEGACY_API_DISABLED = false;
+    const FEATURE_FLAGS = window.JobSprintFeatureFlags || {};
+    const ENABLE_B2C_CORE = FEATURE_FLAGS.ENABLE_B2C_CORE !== false;
+    const ENABLE_B2C_GMAIL = FEATURE_FLAGS.ENABLE_B2C_GMAIL !== false;
+    const ENABLE_B2B_INSTITUTES = FEATURE_FLAGS.ENABLE_B2B_INSTITUTES === true;
+    const ENABLE_B2B_ADMIN = FEATURE_FLAGS.ENABLE_B2B_ADMIN === true;
     const searchParams = new URLSearchParams(location.search);
     const SIGNUP_STATE = {
       plan: (searchParams.get('plan') || '').trim().toLowerCase(),

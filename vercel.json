@@ -1,6 +1,9 @@
 {
   "env": {
     "INSTITUTES_JWT_SECRET": "xlfZCLTnH57RVaD3QYLOTIaTtpHAofgGycBbeq9okVx5YeJ60wEU97tjhjtdacFb",
+    "ENABLE_B2C_CORE": "true",
+    "ENABLE_B2C_GMAIL": "true",
+    "ENABLE_B2B_INSTITUTES": "false",
     "ENABLE_B2B_ADMIN": "false"
   },
   "rewrites": [

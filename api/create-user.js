@@ -2,8 +2,12 @@
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const { supabaseAdmin } = require('../lib/_supabase.js');
+const { isB2CCoreEnabled, respondB2CCoreDisabled } = require('../lib/_feature_flags.js');
 
 module.exports = async function handler(req, res) {
+  if (!isB2CCoreEnabled()) {
+    return respondB2CCoreDisabled(res);
+  }
   try {
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'method_not_allowed' });

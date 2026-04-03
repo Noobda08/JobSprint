@@ -564,8 +564,13 @@
   </script>
 
   <script src="scripts/theme.js"></script>
+  <script src="scripts/feature-flags.js"></script>
   <script>
-    const LEGACY_API_DISABLED = false;
+    const FEATURE_FLAGS = window.JobSprintFeatureFlags || {};
+    const ENABLE_B2C_CORE = FEATURE_FLAGS.ENABLE_B2C_CORE !== false;
+    const ENABLE_B2C_GMAIL = FEATURE_FLAGS.ENABLE_B2C_GMAIL !== false;
+    const ENABLE_B2B_INSTITUTES = FEATURE_FLAGS.ENABLE_B2B_INSTITUTES === true;
+    const ENABLE_B2B_ADMIN = FEATURE_FLAGS.ENABLE_B2B_ADMIN === true;
     const params = new URLSearchParams(location.search);
     let googleId = params.get('google_id');
     const paymentId = params.get('payment_id');

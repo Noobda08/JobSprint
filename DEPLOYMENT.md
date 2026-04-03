@@ -2,21 +2,34 @@
 
 ## Runtime feature flags
 
-### `ENABLE_B2B_ADMIN`
+Shared runtime flags:
 
-- **Default:** `false`
-- **Scope:** All `api/admin/*` handlers.
-- **Behavior when `false`:** Admin APIs return `404` with machine-readable code `b2b_admin_disabled` and skip admin/institute table reads in those handlers.
-- **Behavior when `true`:** Admin APIs run normally.
+- `ENABLE_B2C_CORE` (default `true`)
+- `ENABLE_B2C_GMAIL` (default `true`)
+- `ENABLE_B2B_INSTITUTES` (default `false`)
+- `ENABLE_B2B_ADMIN` (default `false`)
+
+### Scope
+
+- `ENABLE_B2C_CORE`: core B2C APIs (`/api/create-user`, `/api/get-user`, `/api/get-user-by-token`, `/api/create-order`, `/api/parse-resume`, `/api/applications`, `/api/delete-user`).
+- `ENABLE_B2C_GMAIL`: Gmail integration APIs (`/api/gmail-*`).
+- `ENABLE_B2B_INSTITUTES`: institutes APIs (`/api/institutes/*`).
+- `ENABLE_B2B_ADMIN`: admin APIs (`/api/admin/*`).
+
+Disabled flags return `404` with a feature-specific machine code.
 
 ## Environment alignment
 
-To keep environments consistent, set the same `ENABLE_B2B_ADMIN` value in each deployment target:
+Keep values aligned in:
 
-1. **Vercel project environment variables** (`Production`, `Preview`, and `Development`).
-2. **Supabase-managed runtimes** (only if you have Supabase Edge Functions or jobs that call these admin APIs and rely on matching feature behavior).
+1. Vercel project environment variables (`Production`, `Preview`, `Development`).
+2. Any auxiliary runtime that calls these APIs.
 
-## Suggested values by surface
+## Production profile (B2C-only)
 
-- B2C-only environments: `ENABLE_B2B_ADMIN=false`
-- B2B admin-enabled environments: `ENABLE_B2B_ADMIN=true`
+Set:
+
+- `ENABLE_B2C_CORE=true`
+- `ENABLE_B2C_GMAIL=true`
+- `ENABLE_B2B_INSTITUTES=false`
+- `ENABLE_B2B_ADMIN=false`

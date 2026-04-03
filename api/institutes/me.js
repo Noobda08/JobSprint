@@ -1,14 +1,11 @@
 const crypto = require('crypto');
 const { supabaseAdmin } = require('../../lib/_supabase.js');
 const { requireInstituteAuth } = require('../../lib/_institutes_auth.js');
-
-function isB2BEnabled() {
-  return String(process.env.ENABLE_B2B || '').toLowerCase() === 'true';
-}
+const { isB2BInstitutesEnabled, respondB2BInstitutesDisabled } = require('../../lib/_feature_flags.js');
 
 module.exports = async function handler(req, res) {
-  if (!isB2BEnabled()) {
-    return res.status(404).json({ error: 'not_available' });
+  if (!isB2BInstitutesEnabled()) {
+    return respondB2BInstitutesDisabled(res);
   }
 
   try {

@@ -1,4 +1,5 @@
 const { supabaseAdmin } = require('../lib/_supabase.js');
+const { isB2CCoreEnabled, respondB2CCoreDisabled } = require('../lib/_feature_flags.js');
 const { findUserFromRequest } = require('../lib/_users.js');
 
 function normalizeBody(body) {
@@ -89,6 +90,9 @@ async function handleDelete(req, res, userId) {
 }
 
 module.exports = async function handler(req, res) {
+  if (!isB2CCoreEnabled()) {
+    return respondB2CCoreDisabled(res);
+  }
   const { user, status, error, detail } = await findUserFromRequest(req);
   if (!user) {
     return res.status(status || 400).json({ error, detail });

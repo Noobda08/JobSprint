@@ -19,6 +19,7 @@ const crypto = require('crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const Busboy = require('busboy');
+const { isB2CCoreEnabled, respondB2CCoreDisabled } = require('../lib/_feature_flags.js');
 let pdfParseLoadError = null;
 let pdfParse = null;
 const PDF_PARSE_WORKER_CONFIGURED = Symbol.for('pdfParseWorkerConfigured');
@@ -550,6 +551,9 @@ function parseResumeText(text) {
 }
 
 module.exports = async function handler(req, res) {
+  if (!isB2CCoreEnabled()) {
+    return respondB2CCoreDisabled(res);
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'method_not_allowed' });
 
   try {

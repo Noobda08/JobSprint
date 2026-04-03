@@ -1,4 +1,5 @@
 const Razorpay = require('razorpay');
+const { isB2CCoreEnabled, respondB2CCoreDisabled } = require('../lib/_feature_flags.js');
 
 const PLANS = {
   lite: {
@@ -12,6 +13,9 @@ const PLANS = {
 };
 
 module.exports = async (req, res) => {
+  if (!isB2CCoreEnabled()) {
+    return respondB2CCoreDisabled(res);
+  }
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'method_not_allowed' });
     return;
