@@ -3,6 +3,7 @@ const path = require('node:path');
 const Busboy = require('busboy');
 const { supabaseAdmin } = require('../../lib/_supabase.js');
 const { requireAdminAuth } = require('../_admin_auth.js');
+const { isB2BAdminEnabled, respondB2BAdminDisabled } = require('../../lib/_feature_flags.js');
 
 const BUCKET_NAME = 'institution-logos';
 const SIGNED_URL_SECONDS = 60 * 60 * 24 * 7;
@@ -46,6 +47,10 @@ function sanitizeFilename(value, fallback = 'logo') {
 }
 
 module.exports = async function handler(req, res) {
+  if (!isB2BAdminEnabled()) {
+    return respondB2BAdminDisabled(res);
+  }
+
   try {
     const auth = requireAdminAuth(req, res);
     if (!auth) {

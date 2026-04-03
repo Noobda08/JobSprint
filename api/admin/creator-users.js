@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { supabaseAdmin } = require('../../lib/_supabase.js');
 const { requireAdminAuth } = require('../_admin_auth.js');
+const { isB2BAdminEnabled, respondB2BAdminDisabled } = require('../../lib/_feature_flags.js');
 
 const ROLE_OPTIONS = new Set(['super_admin', 'admin']);
 
@@ -24,6 +25,10 @@ function requireSuperAdmin(auth, res) {
 }
 
 module.exports = async function handler(req, res) {
+  if (!isB2BAdminEnabled()) {
+    return respondB2BAdminDisabled(res);
+  }
+
   try {
     const auth = requireAdminAuth(req, res);
     if (!auth) {

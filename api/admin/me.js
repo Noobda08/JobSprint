@@ -1,7 +1,12 @@
 const { supabaseAdmin } = require('../../lib/_supabase.js');
 const { requireAdminAuth } = require('../_admin_auth.js');
+const { isB2BAdminEnabled, respondB2BAdminDisabled } = require('../../lib/_feature_flags.js');
 
 module.exports = async function handler(req, res) {
+  if (!isB2BAdminEnabled()) {
+    return respondB2BAdminDisabled(res);
+  }
+
   try {
     if (req.method !== 'GET') {
       return res.status(405).json({ error: 'method_not_allowed' });
