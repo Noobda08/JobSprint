@@ -565,7 +565,7 @@
 
   <script src="scripts/theme.js"></script>
   <script>
-    const LEGACY_API_DISABLED = true;
+    const LEGACY_API_DISABLED = false;
     const params = new URLSearchParams(location.search);
     let googleId = params.get('google_id');
     const paymentId = params.get('payment_id');
@@ -1433,6 +1433,28 @@
       return null;
     };
 
+    async function apiJson(url, options = {}) {
+      const response = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+          ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+          ...(options.headers || {})
+        },
+        ...options
+      });
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (_) {
+        data = null;
+      }
+      if (!response.ok) {
+        const message = data?.message || data?.error || `Request failed (${response.status})`;
+        throw new Error(message);
+      }
+      return data || {};
+    }
+
     const redirectWithToast = (url, message) => {
       const toast = notifyLoading(message || 'Redirecting…');
       setTimeout(() => {
@@ -1673,13 +1695,25 @@
         if (localProfile?.google_id === id) {
           populateFromProfile(localProfile);
           updateWorkspaceShortcutVisibility({ profileComplete: localProfile?.profile_complete === true });
-          return;
         }
       } catch (storageErr) {
         console.warn('Could not read local profile', storageErr);
       }
+
+      try {
+        const remoteProfile = await apiJson(`/api/get-user?google_id=${encodeURIComponent(id)}`);
+        if (remoteProfile?.found) {
+          const merged = { ...readStoredProfile(), ...remoteProfile, google_id: id };
+          writeStoredProfile(merged);
+          populateFromProfile(merged);
+          updateWorkspaceShortcutVisibility({ profileComplete: merged?.profile_complete === true, storedProfile: merged });
+          return;
+        }
+      } catch (apiErr) {
+        console.warn('Could not load profile from API', apiErr);
+      }
+
       updateResumeStatus();
-      return;
     };
 
     if (googleId) {
@@ -1864,7 +1898,10 @@
       let savingToast = null;
       try {
         savingToast = notifyLoading('Saving your onboarding…');
-        const data = { success: true };
+        const data = await apiJson('/api/create-user', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
         const existing = readStoredProfile();
         const storageUpdate = { google_id };
         Object.entries(payload).forEach(([key, value]) => {

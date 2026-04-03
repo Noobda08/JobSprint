@@ -516,7 +516,7 @@
 <script src="scripts/theme.js"></script>
 <script src="scripts/ats-scorer.js"></script>
 <script>
-  const LEGACY_API_DISABLED = true;
+  const LEGACY_API_DISABLED = false;
   const qs = new URLSearchParams(location.search);
   const token = qs.get('u') || (JSON.parse(localStorage.getItem('jobsprint_profile')||'{}').token) || 'guest';
 
@@ -770,6 +770,28 @@
     return null;
   };
 
+  async function apiJson(url, options = {}) {
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.headers || {})
+      },
+      ...options
+    });
+    let data = null;
+    try {
+      data = await response.json();
+    } catch (_) {
+      data = null;
+    }
+    if (!response.ok) {
+      const message = data?.message || data?.error || `Request failed (${response.status})`;
+      throw new Error(message);
+    }
+    return data || {};
+  }
+
   const redirectWithToast = (url, message) => {
     const toast = notifyLoading(message || 'Redirecting…');
     setTimeout(() => {
@@ -943,16 +965,35 @@
   }
 
   async function persistApplicationToServer(card, statusOverride) {
-    return { localOnly: true };
+    const payload = cardToApiPayload(card, statusOverride);
+    return apiJson('/api/applications', {
+      method: 'POST',
+      body: JSON.stringify({
+        token,
+        application: payload
+      })
+    });
   }
 
   async function deleteApplicationOnServer(id) {
-    return;
+    if (!id) return;
+    return apiJson(`/api/applications?token=${encodeURIComponent(token)}&id=${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
   }
 
   async function loadBoardFromServer() {
     boardLoading = true;
     try {
+      const data = await apiJson(`/api/applications?token=${encodeURIComponent(token)}`);
+      const serverBoard = emptyBoard();
+      const rows = Array.isArray(data?.applications) ? data.applications : [];
+      rows.forEach((row) => {
+        const col = COLUMNS.includes(row.status) ? row.status : 'research';
+        serverBoard[col].push(rowToCard(row));
+      });
+      board = normalizeBoard(serverBoard);
+      localStorage.setItem(KEY_BOARD, JSON.stringify(board));
       renderBoard();
     } catch (err) {
       console.warn('Falling back to cached board', err);
@@ -964,12 +1005,24 @@
 
   async function loadGmailStatus() {
     if (!gmailStatusText) return;
-    gmailStatusText.textContent = 'Gmail sync offline';
+    try {
+      const data = await apiJson(`/api/gmail-integration?token=${encodeURIComponent(token)}`);
+      const integration = data?.integration;
+      if (!integration) {
+        gmailStatusText.textContent = 'Not connected';
+        return;
+      }
+      const account = integration.gmail_address ? ` (${integration.gmail_address})` : '';
+      gmailStatusText.textContent = `Connected${account}`;
+    } catch (err) {
+      console.warn('Could not load Gmail status', err);
+      gmailStatusText.textContent = 'Not connected';
+    }
   }
 
   function startGmailConnect() {
     if (!connectGmailBtn) return;
-    notify('Gmail integration is currently offline.', { variant: 'warning' });
+    window.location.href = `/api/gmail-oauth-start?token=${encodeURIComponent(token)}`;
   }
 
   async function rearmGmailWatch() {
@@ -977,9 +1030,14 @@
     rearmWatchBtn.disabled = true;
     rearmWatchBtn.textContent = 'Re-arming…';
     try {
-      throw new Error('offline');
+      await apiJson(`/api/gmail-integration?token=${encodeURIComponent(token)}`, {
+        method: 'POST',
+        body: JSON.stringify({ token })
+      });
+      notify('Gmail watch renewed.', { variant: 'success' });
+      await loadGmailStatus();
     } catch (err) {
-      notify('Gmail integration is currently offline.', { variant: 'danger' });
+      notify('Could not renew Gmail watch. Please reconnect Gmail.', { variant: 'danger' });
     } finally {
       rearmWatchBtn.disabled = false;
       rearmWatchBtn.textContent = 'Re-arm Watch';
@@ -1084,8 +1142,17 @@
       throw new Error('Enter a number greater than 0.');
     }
 
-    if (LEGACY_API_DISABLED) {
-      notify('Daily goals are stored locally while sync is offline.', { variant: 'info' });
+    if (profile?.google_id && profile?.email) {
+      await apiJson('/api/create-user', {
+        method: 'POST',
+        body: JSON.stringify({
+          google_id: profile.google_id,
+          email: profile.email,
+          applications_goal_per_day: numericGoal,
+          goal_per_day: numericGoal,
+          allow_payment_pending: true
+        })
+      });
     }
 
     profile = { ...(profile || {}), applications_goal_per_day: numericGoal, goal_per_day: numericGoal };
