@@ -3,6 +3,10 @@ const { supabaseAdmin } = require('../lib/_supabase.js');
 
 module.exports = async function handler(req, res) {
   try {
+    if (req.method !== 'GET') {
+      return res.status(405).json({ error: 'method_not_allowed' });
+    }
+
     const google_id = (req.query && req.query.google_id) ? String(req.query.google_id) : '';
     if (!google_id) return res.status(400).json({ error: 'missing google_id' });
 

@@ -3,6 +3,10 @@ const { supabaseAdmin } = require('../lib/_supabase.js');
 
 module.exports = async function handler(req, res) {
   try {
+    if (req.method !== 'GET') {
+      return res.status(405).json({ error: 'method_not_allowed' });
+    }
+
     const token = (req.query && req.query.token) ? String(req.query.token) : '';
     if (!token) return res.status(400).json({ error: 'missing_token' });
 
