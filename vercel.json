@@ -26,38 +26,6 @@
     {
       "source": "/workspace",
       "destination": "/workspace.html"
-    },
-    {
-      "source": "/institutes/login",
-      "destination": "/institutes/login.html"
-    },
-    {
-      "source": "/institutes/dashboard",
-      "destination": "/institutes/dashboard.html"
-    },
-    {
-      "source": "/institutes/:slug/dashboard",
-      "destination": "/institutes/dashboard.html"
-    },
-    {
-      "source": "/institutes/:slug/students",
-      "destination": "/institutes/students.html"
-    },
-    {
-      "source": "/institutes/:slug/drives",
-      "destination": "/institutes/drives.html"
-    },
-    {
-      "source": "/institutes/:slug/counselling",
-      "destination": "/institutes/counselling.html"
-    },
-    {
-      "source": "/institutes/:slug/student",
-      "destination": "/institutes/student.html"
-    },
-    {
-      "source": "/institutes/:slug/drive",
-      "destination": "/institutes/drive.html"
     }
   ]
 }

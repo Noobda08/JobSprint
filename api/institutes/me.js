@@ -2,7 +2,15 @@ const crypto = require('crypto');
 const { supabaseAdmin } = require('../../lib/_supabase.js');
 const { requireInstituteAuth } = require('../../lib/_institutes_auth.js');
 
+function isB2BEnabled() {
+  return String(process.env.ENABLE_B2B || '').toLowerCase() === 'true';
+}
+
 module.exports = async function handler(req, res) {
+  if (!isB2BEnabled()) {
+    return res.status(404).json({ error: 'not_available' });
+  }
+
   try {
     if (req.method !== 'GET') {
       return res.status(405).json({ error: 'method_not_allowed' });
