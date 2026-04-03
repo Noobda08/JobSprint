@@ -1,6 +1,7 @@
 {
   "env": {
-    "INSTITUTES_JWT_SECRET": "xlfZCLTnH57RVaD3QYLOTIaTtpHAofgGycBbeq9okVx5YeJ60wEU97tjhjtdacFb"
+    "INSTITUTES_JWT_SECRET": "xlfZCLTnH57RVaD3QYLOTIaTtpHAofgGycBbeq9okVx5YeJ60wEU97tjhjtdacFb",
+    "ENABLE_B2B_ADMIN": "false"
   },
   "rewrites": [
     {

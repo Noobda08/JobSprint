@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { supabaseAdmin } = require('../../lib/_supabase.js');
 const { getAdminJwtSecret } = require('../_admin_auth.js');
+const { isB2BAdminEnabled, respondB2BAdminDisabled } = require('../../lib/_feature_flags.js');
 
 function normalizeBody(body) {
   if (typeof body === 'string') {
@@ -15,6 +16,10 @@ function normalizeBody(body) {
 }
 
 module.exports = async function handler(req, res) {
+  if (!isB2BAdminEnabled()) {
+    return respondB2BAdminDisabled(res);
+  }
+
   try {
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'method_not_allowed' });
