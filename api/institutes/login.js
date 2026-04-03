@@ -3,6 +3,10 @@ const jwt = require('jsonwebtoken');
 const { supabaseAdmin } = require('../../lib/_supabase.js');
 const { requireInstituteAuth } = require('../../lib/_institutes_auth.js');
 
+function isB2BEnabled() {
+  return String(process.env.ENABLE_B2B || '').toLowerCase() === 'true';
+}
+
 function normalizeBody(body) {
   if (typeof body === 'string') {
     try { return JSON.parse(body || '{}'); } catch (_) { return {}; }
@@ -99,6 +103,10 @@ async function handleMe(req, res) {
 }
 
 module.exports = async function handler(req, res) {
+  if (!isB2BEnabled()) {
+    return res.status(404).json({ error: 'not_available' });
+  }
+
   try {
     if (req.method === 'GET') {
       return await handleMe(req, res);
